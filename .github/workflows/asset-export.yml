@@ -6,6 +6,7 @@ on:
       - chatgpt/studio-art-pass
     paths:
       - tools/generate_pbr.py
+      - tools/build_glb_assets.py
       - assets/meshes/**
       - .github/workflows/asset-export.yml
   workflow_dispatch:
@@ -19,9 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Prepare deterministic procedural material generator
-        run: python3 -m pip install --disable-pip-version-check --user pillow numpy
+        run: python3 -m pip install --disable-pip-version-check --user pillow numpy trimesh
       - name: Generate original PBR source maps
         run: python3 tools/generate_pbr.py --size 1024 --out build/materials
+      - name: Build import-ready glTF prefabs
+        run: python3 tools/build_glb_assets.py --out build/roblox-glb
       - name: Collect original mesh source
         run: |
           mkdir -p build/meshes
@@ -29,7 +32,7 @@ jobs:
       - name: Publish importable source asset pack
         uses: actions/upload-artifact@v4
         with:
-          name: dead-air-original-asset-pack
+          name: dead-air-import-ready-mesh-pbr-pack
           path: build/
           if-no-files-found: error
           retention-days: 30
