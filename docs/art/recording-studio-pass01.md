@@ -1,13 +1,13 @@
 # Dead Air — Recording Studio Art Pass 01
 
 **Branch:** `chatgpt/studio-art-pass`  
-**Target version:** `0.2.1`  
+**Target version:** `0.3.0` (current upstream gameplay milestone)  
 **Visual owner:** ChatGPT (map and environment art)  
 **Gameplay owner:** Claude (objectives, AI, rounds, interactive systems)
 
 ## Status
 
-First native-Part environment pass committed; **Studio runtime verification is pending**. This is not a finished production art pass. All geometry is created by `ArtBuilder.build(layout)` when the game starts, like the existing `MapBuilder`.
+First native-Part environment pass and a 12-Area navigation expansion committed; **Studio runtime verification is pending**. This is not a finished production art pass. Playable geometry is created by `MapBuilder` and detailed after map-contract loading by `ArtBuilder.build(layout)` when the game starts.
 
 The new environment-art source is `src/server/ArtBuilder.luau`; `src/server/Main.server.luau` invokes it immediately after `local layout = loaded`. The active map is `layout.map`, read from `MapContract`, not a model named `Studio`.
 
@@ -38,7 +38,7 @@ No marketplace assets, paid models, or uploads are required. This pass deliberat
 3. Do not attach static art directly to swinging doors: that would leave the decoration behind when `DoorService` tweens their CFrames.
 4. Treat new powered lights as part of `layout.powerLights` and `layout.powerLamps`. `ObjectiveService` already turns them on and off for each round.
 5. Do not replace or move `layout.generator`, `layout.fuseBox`, or `layout.tapeDeck`; ProximityPrompts are attached to those original Parts.
-6. Leave `src/server/MapBuilder.luau` and `src/server/MapContract.luau` unchanged in this pass. Future transparent glass partitions or wall openings need an explicit AI/noise-routing review with Claude.
+6. `src/server/MapBuilder.luau` is now extended with twelve contract Areas; keep `src/server/MapContract.luau` owned by Claude and unchanged in this pass. Future transparent glass partitions or wall openings need an explicit AI/noise-routing review with Claude.
 7. This visual pass still uses the greybox's fixed coordinates. For a newly authored map, adapt the room-specific art positions to that map instead of assuming the same room coordinates. Its gameplay structure must follow the map contract.
 
 ## How to test in Roblox Studio
@@ -54,7 +54,7 @@ Connect Rojo in Roblox Studio, click **Play**, and check the Output window for:
 
 ```
 [Dead Air] recording-studio ArtPass01: ... decorative parts
-[Dead Air] server running, v0.2.1
+[Dead Air] server running, v0.3.0
 ```
 
 **Test checklist**
@@ -85,6 +85,13 @@ Do not merge the PR as playtested until the above commands and in-game checklist
 ## Claude handoff
 
 Compatible with the 0.2.0 layered Engineer AI and its widened doorways. The art pass requires no changes to monster, sound, objectives or rounds. When Claude changes the reference map layout, update `ArtBuilder`'s spatial coordinates, and review whether artwork obscures prompts or critical sightlines. Claude can safely keep working on `main` while the art branch is reviewed.
+
+## Expansion and new model handoffs
+
+- See `docs/art/STUDIO_EXPANSION.md` for chase loops, the lower level, and room-by-room traversal validation.
+- `src/server/Monster/EngineerModel.luau` now defines a detailed procedural Engineer, with the original Humanoid settings, root part and two red earcup lights preserved.
+- `src/server/ItemArt.luau` now returns detailed belt walkies and anchored tape decoys with their existing API contracts preserved.
+- See `docs/art/SOUND_CATALOG.md` for all 16 current `Sounds.luau` entries, plus suggested Creator Store search terms.
 
 ## Follow-up art passes
 
