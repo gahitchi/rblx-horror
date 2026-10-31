@@ -4,7 +4,6 @@
 -- No unbounded per-frame raycasts, fake global illumination, or global depth-of-field blur.
 
 local Lighting = game:GetService("Lighting")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MapBuilder = require(script.Parent.MapBuilder)
 
 local VisualFidelity = {}
