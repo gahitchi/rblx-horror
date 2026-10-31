@@ -154,7 +154,7 @@ local function buildAreas(parent: Instance)
 	area(parent, "RearGallery", -40, -146, 40, -130, 0, { { -30, -139 }, { 0, -139 }, { 30, -139 } })
 	area(parent, "MasteringSuite", -40, -178, -5, -146, 0, { { -30, -152 }, { -30, -170 }, { -12, -165 } })
 	area(parent, "NorthSpine", -5, -178, 5, -146, 0, { { 0, -154 }, { 0, -170 } })
-	area(parent, "MachineShop", 5, -178, 40, -146, 0, { { 13, -154 }, { 30, -165 }, { 15, -173 } })
+	area(parent, "MachineShop", 5, -178, 40, -146, 0, { { 13, -154 }, { 30, -165 }, { 15, -162 } })
 	area(parent, "TapeVault", -18, -201, 18, -178, 0, { { 0, -188 }, { -12, -193 }, { 12, -193 } })
 	-- Archive -> service hall -> archive is a second independent chase loop.
 	area(parent, "EastServiceHall", 70, -130, 90, -70, 0, { { 80, -80 }, { 80, -100 }, { 80, -120 } })
@@ -564,7 +564,7 @@ local function buildExpansion(
 	end
 	coverTable("MasteringUnderTable", -17, 0, -173)
 	coverTable("WorkshopUnderTable", 17, 0, -173)
-	coverTable("UtilityUnderTable", -22, BASEMENT_Y, 58)
+	coverTable("UtilityUnderTable", -33, BASEMENT_Y, 51)
 
 	for _, p in {
 		Vector3.new(-27, 0.25, -172), Vector3.new(-11, 0.25, -190),
