@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+local PrefabLibrary = require(script.Parent.Parent.PrefabLibrary)
 
 local M = Config.MONSTER
 
@@ -162,6 +163,24 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 	piece("BoomCapsule", Vector3.new(0.23, 0.23, 0.31),
 		Vector3.new(-1.34, 3.27, -1.2), rubber, Enum.Material.Metal)
 
+	-- Imported headset lives on the same rigid HRP. The original earcup attachments
+	-- remain present (and hold exactly two gameplay-controlled red PointLights).
+	if PrefabLibrary.attach(hrp,"EngineerHeadset",CFrame.new(0,3.7,-0.08)) then
+		local replaceable = {
+			HeadbandSection = true,
+			HeadphoneYoke = true,
+			Earcup = true,
+			EarcupGrille = true,
+			EarcupSlot = true,
+			BrokenBoomArm = true,
+			BoomCapsule = true,
+		}
+		for _,child in m:GetChildren() do
+			if child:IsA("BasePart") and replaceable[child.Name] then
+				child.Transparency = 1
+			end
+		end
+	end
 	head:SetAttribute("Blind", true)
 
 	local h = Instance.new("Humanoid")
