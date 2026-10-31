@@ -18,7 +18,9 @@ local function shape(parent: Instance, name: string, size: Vector3, cf: CFrame,
     p.CanQuery=false
     p.CanTouch=false
     p.CastShadow=size.Magnitude>2.8
-    if cylinder then p.Shape=Enum.PartType.Cylinder end
+    if cylinder then
+        p.Shape=Enum.PartType.Cylinder
+    end
     p.Parent=parent
     return p
 end
@@ -129,7 +131,9 @@ function Assets.decorate(parent: Instance, role: string, id: string,
             slab(parent,"FloorCableRoute",x,0.07,z,8,0.04,0.15,p.steel,Enum.Material.Metal)
             acousticWall(parent,x1+0.85,z1+4,z2-z1-10,p)
         elseif role=="archive" or role=="store" then
-            for j=0,2 do tapeReel(parent,right-7,3.2+j*1.9,north+2,p) end
+            for j=0,2 do
+                tapeReel(parent,right-7,3.2+j*1.9,north+2,p)
+            end
         elseif role=="booth" then
             acousticWall(parent,x2-0.9,z1+4,z2-z1-9,p)
             oldMicrophone(parent,right-7,south-5,p)
@@ -146,14 +150,18 @@ function Assets.decorate(parent: Instance, role: string, id: string,
             analogRack(parent,right-2,north+4,p)
             analogRack(parent,left+2,south-5,p)
         elseif role=="archive" then
-            for j=0,3 do tapeReel(parent,right-6,1.8+j*1.8,north+4,p) end
+            for j=0,3 do
+                tapeReel(parent,right-6,1.8+j*1.8,north+4,p)
+            end
         elseif role=="booth" then
             acousticWall(parent,x1+0.9,z1+4,z2-z1-9,p)
             oldMicrophone(parent,right-7,south-6,p)
         end
     elseif id=="foundry" then
         if role=="stage" or role=="machine" or role=="boiler" then
-            if role=="stage" then foundryBell(parent,right-8,north+7,p) end
+            if role=="stage" then
+                foundryBell(parent,right-8,north+7,p)
+            end
             foundryPipe(parent,left+3,south-4,p)
             slab(parent,"OverheadCraneRail",x,height-2.2,north+4,x2-x1-3,0.8,1.7,
                 p.steel,Enum.Material.Metal)
