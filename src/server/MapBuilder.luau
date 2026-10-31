@@ -450,7 +450,9 @@ local function powerLight(parent: Instance, position: Vector3)
 	light.Color = Color3.fromRGB(255, 110, 80)
 	light.Brightness = 1.2
 	light.Range = 24
-	light.Shadows = true
+	-- Generic emergency bulbs provide inexpensive fill; four hero spotlights in ArtBuilder
+	-- cast the selected dynamic shadows to avoid dozens of overlapping shadow maps.
+	light.Shadows = false
 	light.Enabled = false
 	light.Parent = lamp
 	lamp:SetAttribute("OnColor", Color3.fromRGB(255, 120, 90))
