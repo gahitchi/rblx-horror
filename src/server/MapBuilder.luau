@@ -9,7 +9,7 @@
 --   reception (exit doors on its south wall) -> main corridor north -> control rooms A (west) and B (east)
 --   -> cross corridor -> live room (north) with three soundproof booths on its west side and the
 --   tape archive on its east side; break room off the cross corridor; stairwell down to the basement
---   (generator room and electrical room).
+--   (generator room and electrical room), plus rear mastering, east service and deep utilities.
 
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -150,6 +150,16 @@ local function buildAreas(parent: Instance)
 		{ { 55, -76 }, { 55, -87 }, { 55, -102 }, { 55, -117 }, { 55, -127 } }
 	)
 	area(parent, "BreakRoom", 35, -60, 60, -35, 0, { { 42, -42 }, { 42, -55 }, { 55, -53 } })
+	-- The two rear-gallery doors form a safe-looking loop; the vault at its end does not.
+	area(parent, "RearGallery", -40, -146, 40, -130, 0, { { -30, -139 }, { 0, -139 }, { 30, -139 } })
+	area(parent, "MasteringSuite", -40, -178, -5, -146, 0, { { -30, -152 }, { -30, -170 }, { -12, -165 } })
+	area(parent, "NorthSpine", -5, -178, 5, -146, 0, { { 0, -154 }, { 0, -170 } })
+	area(parent, "MachineShop", 5, -178, 40, -146, 0, { { 13, -154 }, { 30, -165 }, { 30, -173 } })
+	area(parent, "TapeVault", -18, -201, 18, -178, 0, { { 0, -188 }, { -12, -193 }, { 12, -193 } })
+	-- Archive -> service hall -> archive is a second independent chase loop.
+	area(parent, "EastServiceHall", 70, -130, 90, -70, 0, { { 80, -80 }, { 80, -100 }, { 80, -120 } })
+	area(parent, "LoadingBay", 90, -130, 122, -90, 0, { { 99, -106 }, { 115, -112 }, { 113, -123 } })
+	area(parent, "QuietStore", 90, -90, 122, -70, 0, { { 100, -79 }, { 114, -84 } })
 	area(
 		parent,
 		"GeneratorRoom",
@@ -170,6 +180,11 @@ local function buildAreas(parent: Instance)
 		B,
 		{ { -40, 0 }, { -52, 5 }, { -28, -6 }, { -50, -8 } }
 	)
+	-- A long, intentionally hazardous lower-level branch: rooms are searchable, not safe lockers.
+	area(parent, "ServiceTunnel", -46, 10, -34, 43, B, { { -40, 18 }, { -40, 35 } })
+	area(parent, "CompressorRoom", -76, 14, -46, 43, B, { { -55, 28 }, { -69, 35 } })
+	area(parent, "ColdStore", -34, 14, -4, 43, B, { { -25, 28 }, { -11, 36 } })
+	area(parent, "BoilerRoom", -55, 43, -25, 66, B, { { -40, 54 }, { -49, 61 }, { -29, 60 } })
 end
 
 local function newPart(
@@ -441,6 +456,132 @@ local function powerLight(parent: Instance, position: Vector3)
 	lamp:SetAttribute("OnColor", Color3.fromRGB(255, 120, 90))
 end
 
+
+-- Structural extension built with the same Map contract as the original. It does not add
+-- hidden teleports, jumps, or solid clutter in pathways. Areas are declared in buildAreas().
+local function buildExpansion(
+	structure: Folder, props: Folder, markers: Folder, doorsFolder: Folder, lightsFolder: Folder
+)
+	-- Rear mastering circuit: two doors from the live floor to a gallery. Both rooms beside the
+	-- central spine have doors to the gallery AND to the spine. A vault beyond is a dead end.
+	room(structure, "RearGallery", -40, -146, 40, -130, 0, H, COLORS.carpet, Enum.Material.Fabric)
+	room(structure, "MasteringSuite", -40, -178, -5, -146, 0, H, COLORS.wood, Enum.Material.WoodPlanks)
+	room(structure, "NorthSpine", -5, -178, 5, -146, 0, H, COLORS.concrete, Enum.Material.Concrete)
+	room(structure, "MachineShop", 5, -178, 40, -146, 0, H, COLORS.concrete, Enum.Material.Concrete)
+	room(structure, "TapeVault", -18, -201, 18, -178, 0, H, COLORS.concrete, Enum.Material.Concrete)
+	wallZ(structure, -40, -146, -130, 0, H)
+	wallZ(structure, 40, -146, -130, 0, H)
+	wallX(structure, -146, -40, 40, 0, H, {
+		{ center = -22, width = DOOR_W }, { center = 0, width = 10, header = false },
+		{ center = 22, width = DOOR_W },
+	})
+	wallX(structure, -178, -40, -5, 0, H)
+	wallX(structure, -178, -5, 5, 0, H, { { center = 0, width = 8 } })
+	wallX(structure, -178, 5, 40, 0, H)
+	wallZ(structure, -40, -178, -146, 0, H)
+	wallZ(structure, -5, -178, -146, 0, H, { { center = -164, width = DOOR_W } })
+	wallZ(structure, 5, -178, -146, 0, H, { { center = -164, width = DOOR_W } })
+	wallZ(structure, 40, -178, -146, 0, H)
+	wallX(structure, -201, -18, 18, 0, H)
+	wallX(structure, -178, -18, -5, 0, H)
+	wallX(structure, -178, 5, 18, 0, H)
+	wallZ(structure, -18, -201, -178, 0, H)
+	wallZ(structure, 18, -201, -178, 0, H)
+	-- All doors are existing DoorService leaves; their real frame openings remain >= six studs.
+	door(doorsFolder, "RearWestDoor", -25, 0, -130, DOOR_W, false, "normal")
+	door(doorsFolder, "RearEastDoor", 25, 0, -130, DOOR_W, false, "normal")
+	door(doorsFolder, "MasteringDoor", -22, 0, -146, DOOR_W, false, "normal")
+	door(doorsFolder, "WorkshopDoor", 22, 0, -146, DOOR_W, false, "normal")
+	door(doorsFolder, "MasteringSpineDoor", -5, 0, -164, DOOR_W, true, "normal")
+	door(doorsFolder, "WorkshopSpineDoor", 5, 0, -164, DOOR_W, true, "normal")
+	door(doorsFolder, "TapeVaultDoor", 0, 0, -178, 8, false, "normal")
+
+	-- East exterior service route circles the archive. Loading and quiet storage each have one
+	-- entrance only; crossing their threshold is a calculated risk while the Engineer is nearby.
+	room(structure, "EastServiceHall", 70, -130, 90, -70, 0, H, COLORS.concrete, Enum.Material.Concrete)
+	room(structure, "LoadingBay", 90, -130, 122, -90, 0, H, COLORS.concrete, Enum.Material.Concrete)
+	room(structure, "QuietStore", 90, -90, 122, -70, 0, H, COLORS.tile, Enum.Material.Slate)
+	wallX(structure, -130, 70, 122, 0, H)
+	wallX(structure, -90, 90, 122, 0, H)
+	wallX(structure, -70, 70, 122, 0, H)
+	wallZ(structure, 90, -130, -70, 0, H, {
+		{ center = -108, width = DOOR_W }, { center = -80, width = DOOR_W },
+	})
+	wallZ(structure, 122, -130, -70, 0, H)
+	door(doorsFolder, "ServiceHallNorth", 70, 0, -116, DOOR_W, true, "normal")
+	door(doorsFolder, "ServiceHallSouth", 70, 0, -84, DOOR_W, true, "normal")
+	door(doorsFolder, "LoadingBayDoor", 90, 0, -108, DOOR_W, true, "normal")
+	door(doorsFolder, "QuietStoreDoor", 90, 0, -80, DOOR_W, true, "normal")
+
+	-- Beyond the electrical room is a long utility corridor with branches. Each branch is a true
+	-- dead end: the player can get out only through the door used to enter.
+	room(structure, "ServiceTunnel", -46, 10, -34, 43, BASEMENT_Y, BASEMENT_H, COLORS.concrete, Enum.Material.Concrete)
+	room(structure, "CompressorRoom", -76, 14, -46, 43, BASEMENT_Y, BASEMENT_H, COLORS.concrete, Enum.Material.Concrete)
+	room(structure, "ColdStore", -34, 14, -4, 43, BASEMENT_Y, BASEMENT_H, COLORS.concrete, Enum.Material.Concrete)
+	room(structure, "BoilerRoom", -55, 43, -25, 66, BASEMENT_Y, BASEMENT_H, COLORS.concrete, Enum.Material.Concrete)
+	wallZ(structure, -46, 10, 43, BASEMENT_Y, BASEMENT_H, { { center = 28, width = DOOR_W } })
+	wallZ(structure, -34, 10, 43, BASEMENT_Y, BASEMENT_H, { { center = 28, width = DOOR_W } })
+	wallX(structure, 14, -76, -46, BASEMENT_Y, BASEMENT_H)
+	wallX(structure, 14, -34, -4, BASEMENT_Y, BASEMENT_H)
+	wallX(structure, 43, -76, -46, BASEMENT_Y, BASEMENT_H)
+	wallX(structure, 43, -46, -34, BASEMENT_Y, BASEMENT_H, { { center = -40, width = 8 } })
+	wallX(structure, 43, -34, -4, BASEMENT_Y, BASEMENT_H)
+	wallZ(structure, -76, 14, 43, BASEMENT_Y, BASEMENT_H)
+	wallZ(structure, -4, 14, 43, BASEMENT_Y, BASEMENT_H)
+	wallX(structure, 66, -55, -25, BASEMENT_Y, BASEMENT_H)
+	wallZ(structure, -55, 43, 66, BASEMENT_Y, BASEMENT_H)
+	wallZ(structure, -25, 43, 66, BASEMENT_Y, BASEMENT_H)
+	-- Boiler front-wall edges; the centre is the only approach from the service tunnel.
+	wallX(structure, 43, -55, -46, BASEMENT_Y, BASEMENT_H)
+	wallX(structure, 43, -34, -25, BASEMENT_Y, BASEMENT_H)
+	door(doorsFolder, "ElectricalExtensionDoor", -40, BASEMENT_Y, 10, 10, false, "normal")
+	door(doorsFolder, "CompressorDoor", -46, BASEMENT_Y, 28, DOOR_W, true, "normal")
+	door(doorsFolder, "ColdStoreDoor", -34, BASEMENT_Y, 28, DOOR_W, true, "normal")
+	door(doorsFolder, "BoilerDoor", -40, BASEMENT_Y, 43, 8, false, "normal")
+
+	-- Collision-equipped furniture creates silhouette hiding without closing routes. Small floor
+	-- clutter remains decorative only; the floor is included in the map's onFloor raycasts.
+	prop(props, "MasteringDesk", -28, 0, -173, 11, 3, 3, COLORS.wood, Enum.Material.Wood)
+	prop(props, "MasteringCabinet", -37, 0, -161, 3, 7, 5, COLORS.metal, Enum.Material.Metal)
+	prop(props, "WorkshopBench", 31, 0, -174, 12, 3.3, 3, COLORS.metal, Enum.Material.Metal)
+	prop(props, "MachineRack", 36, 0, -156, 3, 8, 5, COLORS.prop, Enum.Material.Metal)
+	prop(props, "VaultShelves", -12, 0, -197, 3, 8, 5, COLORS.metal, Enum.Material.Metal)
+	prop(props, "LoadingPallets", 116, 0, -123, 8, 2.7, 6, COLORS.wood, Enum.Material.WoodPlanks)
+	prop(props, "LoadingForklift", 116, 0, -96, 6, 6, 3, COLORS.metal, Enum.Material.Metal)
+	prop(props, "StoreCupboard", 117, 0, -83, 4, 7, 6, COLORS.prop, Enum.Material.Wood)
+	prop(props, "Compressor", -70, BASEMENT_Y, 34, 7, 6, 5, COLORS.metal, Enum.Material.DiamondPlate)
+	prop(props, "CoolingUnit", -8, BASEMENT_Y, 36, 7, 6, 5, COLORS.metal, Enum.Material.Metal)
+	prop(props, "Boiler", -40, BASEMENT_Y, 62, 7, 7, 4, COLORS.metal, Enum.Material.DiamondPlate)
+	-- Under-desk hiding works because the desks use an open central clearance: keep their
+	-- collision to legs/top in future art; do not use a fully solid box for hiding furniture.
+
+	for _, p in {
+		Vector3.new(-27, 0.25, -172), Vector3.new(-11, 0.25, -190),
+		Vector3.new(28, 0.25, -166), Vector3.new(80, 0.25, -125),
+		Vector3.new(116, 0.25, -116), Vector3.new(114, 0.25, -77),
+		Vector3.new(-69, BASEMENT_Y + 0.25, 22), Vector3.new(-12, BASEMENT_Y + 0.25, 23),
+		Vector3.new(-47, BASEMENT_Y + 0.25, 59),
+	} do
+		marker("FuseSpot", p, markers)
+	end
+	for _, p in {
+		Vector3.new(-22, 10, -154), Vector3.new(25, 10, -167),
+		Vector3.new(0, 10, -190), Vector3.new(80, 10, -101),
+		Vector3.new(112, 10, -113), Vector3.new(-40, -3, 27),
+		Vector3.new(-40, -3, 58),
+	} do
+		marker("Speaker", p, markers)
+	end
+	for _, p in {
+		Vector3.new(-20, H - 0.3, -140), Vector3.new(-22, H - 0.3, -164),
+		Vector3.new(22, H - 0.3, -164), Vector3.new(0, H - 0.3, -189),
+		Vector3.new(80, H - 0.3, -103), Vector3.new(110, H - 0.3, -109),
+		Vector3.new(-40, -1.8, 31), Vector3.new(-40, -1.8, 55),
+	} do
+		powerLight(lightsFolder, p)
+	end
+end
+
 function MapBuilder.buildLobby(): CFrame
 	local lobby = Instance.new("Model")
 	lobby.Name = "Lobby"
@@ -607,7 +748,10 @@ function MapBuilder.build(): Model
 	wallX(structure, -70, 40, 60, 0, H, { { center = 55, width = DOOR_W } }) -- archive door
 	wallX(structure, -70, 60, 70, 0, H)
 	wallX(structure, -130, -55, -40, 0, H, nil, COLORS.foam)
-	wallX(structure, -130, -40, 40, 0, LIVE_H)
+	wallX(structure, -130, -40, 40, 0, LIVE_H, {
+		{ center = -25, width = DOOR_W },
+		{ center = 25, width = DOOR_W },
+	}) -- rear gallery escape loop
 	wallX(structure, -130, 40, 70, 0, H)
 	wallX(structure, -110, -55, -40, 0, H, nil, COLORS.foam) -- booth separators
 	wallX(structure, -90, -55, -40, 0, H, nil, COLORS.foam)
@@ -631,13 +775,16 @@ function MapBuilder.build(): Model
 	})
 	wallZ(structure, -55, -130, -70, 0, H, nil, COLORS.foam)
 	wallZ(structure, 40, -130, -70, 0, LIVE_H, { { center = -100, width = DOOR_W } }) -- live room to archive
-	wallZ(structure, 70, -130, -70, 0, H)
+	wallZ(structure, 70, -130, -70, 0, H, {
+		{ center = -116, width = DOOR_W },
+		{ center = -84, width = DOOR_W },
+	}) -- two entrances to east service loop
 	wallZ(structure, 60, -70, -35, 0, H)
 
 	-- Basement walls
 	wallZ(structure, -60, -40, 10, BASEMENT_Y, BASEMENT_H)
 	wallZ(structure, -20, -40, 10, BASEMENT_Y, BASEMENT_H)
-	wallX(structure, 10, -60, -20, BASEMENT_Y, BASEMENT_H)
+	wallX(structure, 10, -60, -20, BASEMENT_Y, BASEMENT_H, { { center = -40, width = 10 } })
 	wallX(structure, -40, -40, -20, BASEMENT_Y, BASEMENT_H)
 	wallX(structure, -15, -60, -20, BASEMENT_Y, BASEMENT_H, { { center = -40, width = DOOR_W } })
 
@@ -704,8 +851,8 @@ function MapBuilder.build(): Model
 	prop(props, "ChairStack", 30, 0, -80, 3, 5, 3, Color3.fromRGB(60, 60, 64), Enum.Material.Metal)
 	for i, z in { -122, -112, -92, -82 } do
 		local west = i % 2 == 1
-		local x = if west then 51 else 59 -- alternate ends to make a zigzag
-		prop(props, "Shelf", x, 0, z, 20, 9, 2, COLORS.metal, Enum.Material.Metal)
+		local x = if west then 50 else 60 -- leave >= 10-stud passages around both ends
+		prop(props, "Shelf", x, 0, z, 10, 9, 2, COLORS.metal, Enum.Material.Metal)
 	end
 	prop(props, "BreakTable", 50, 0, -47, 6, 3, 4, COLORS.wood, Enum.Material.WoodPlanks)
 	prop(props, "Fridge", 57, 0, -38, 3, 7, 3, Color3.fromRGB(200, 200, 196))
@@ -834,6 +981,7 @@ function MapBuilder.build(): Model
 		marker("Speaker", p, markers)
 	end
 
+	buildExpansion(structure, props, markers, doorsFolder, lightsFolder)
 	studio.Parent = Workspace
 	return studio
 end
