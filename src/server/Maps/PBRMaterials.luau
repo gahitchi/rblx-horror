@@ -37,7 +37,9 @@ function PBRMaterials.apply(map: Instance): number
         print(string.format("[Dead Air] PBR: assigned %d parts from %d approved MaterialVariants",
             changed, (function()
                 local total=0
-                for _ in seen do total+=1 end
+                for _ in seen do
+                    total+=1
+                end
                 return total
             end)()))
     else
