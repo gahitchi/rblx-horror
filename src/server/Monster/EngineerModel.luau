@@ -64,7 +64,9 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 		p.CanQuery = false
 		p.Massless = true
 		p.CastShadow = true
-		if shape then p.Shape = shape end
+		if shape then
+			p.Shape = shape
+		end
 		p.TopSurface = Enum.SurfaceType.Smooth
 		p.BottomSurface = Enum.SurfaceType.Smooth
 		p.Parent = m
