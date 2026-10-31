@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.1.1"
+Config.VERSION = "0.1.2-art"
 Config.DEBUG = true -- extra Output logging while in development
 
 -- Movement
