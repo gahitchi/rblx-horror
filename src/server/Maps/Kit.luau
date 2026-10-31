@@ -120,8 +120,10 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
     elseif role=="booth" then
         for i=0,5 do
             local zz=back+i*3.5
-            if zz<front then box(parent,"FabricAbsorber",r.x1+0.6,1.4,zz-1.1,r.x1+0.85,8.9,zz+1.1,
-                p.trim,Enum.Material.Fabric,false) end
+            if zz<front then
+                box(parent,"FabricAbsorber",r.x1+0.6,1.4,zz-1.1,r.x1+0.85,8.9,zz+1.1,
+                    p.trim,Enum.Material.Fabric,false)
+            end
         end
         box(parent,"BoothCarpet",r.x1+2,0.03,r.z1+2,r.x2-2,0.09,r.z2-2,p.trim,Enum.Material.Fabric,false)
     elseif role=="machine" or role=="generator" or role=="boiler" then
@@ -152,7 +154,7 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
             p.steel,Enum.Material.Metal,false)
     end
 end
-local function doorLeaf(parent: Instance, portal: Portal, h: number, palette: { wall: Color3, floor: Color3, ceiling: Color3, trim: Color3, steel: Color3, accent: Color3 }): Part
+local function doorLeaf(parent: Instance, portal: Portal, palette: { wall: Color3, floor: Color3, ceiling: Color3, trim: Color3, steel: Color3, accent: Color3 }): Part
     local x = if portal.axis=="X" then portal.along else portal.at
     local z = if portal.axis=="X" then portal.at else portal.along
     local leaf=piece(parent,portal.name,Vector3.new(portal.width-0.2,9,0.55),
@@ -178,7 +180,9 @@ local function portalsForEdge(all: { Portal },axis: string,at: number,minAlong: 
             table.insert(found,p)
         end
     end
-    table.sort(found,function(a,b) return a.along<b.along end)
+    table.sort(found,function(a,b)
+        return a.along<b.along
+    end)
     return found
 end
 local function wall(parent: Instance, axis: string, at: number, a: number, b: number, h: number, p: { wall: Color3, floor: Color3, ceiling: Color3, trim: Color3, steel: Color3, accent: Color3 }, portals: { Portal })
@@ -201,7 +205,9 @@ local function wall(parent: Instance, axis: string, at: number, a: number, b: nu
         local left=math.max(a,portal.along-portal.width/2)
         local right=math.min(b,portal.along+portal.width/2)
         segment(cursor,left,0,h)
-        if portal.kind~="open" then segment(left,right,9,h) end
+        if portal.kind~="open" then
+            segment(left,right,9,h)
+        end
         cursor=right
     end
     segment(cursor,b,0,h)
@@ -238,7 +244,9 @@ function Kit.build(spec: Specification): Model
     local portals: { Portal }={}
     local portalsByRoom: { [string]: { Portal } }={}
     local function attach(roomName: string,p: Portal)
-        if not portalsByRoom[roomName] then portalsByRoom[roomName]={} end
+        if not portalsByRoom[roomName] then
+            portalsByRoom[roomName]={}
+        end
         table.insert(portalsByRoom[roomName],p)
     end
     for index,link in spec.links do
@@ -260,7 +268,9 @@ function Kit.build(spec: Specification): Model
             local low,high=math.max(a.x1,b.x1),math.min(a.x2,b.x2)
             span=high-low
             center=(low+high)/2
-        else error("Nonadjacent rooms: "..aName.."/"..bName) end
+        else
+            error("Nonadjacent rooms: "..aName.."/"..bName)
+        end
         local width=if kind=="open" then 14 else 8
         assert(span>=width+4,"Portal too wide for "..aName.."/"..bName)
         local portal: Portal={axis=axis,at=at,along=center,width=width,kind=kind,
@@ -305,19 +315,25 @@ function Kit.build(spec: Specification): Model
             Vector3.new((room.x2-room.x1)*0.22,3,-(room.z2-room.z1)*0.22),
             Vector3.new(-(room.x2-room.x1)*0.22,3,(room.z2-room.z1)*0.22),
             Vector3.new((room.x2-room.x1)*0.22,3,(room.z2-room.z1)*0.22),
-        } do mark(dir,"Spot",room.center+delta) end
+        } do
+            mark(dir,"Spot",room.center+delta)
+        end
         furnishing(room,spec,detailFolder)
         AssetLibrary.decorate(detailFolder,room.role,spec.id,room.x1,room.x2,room.z1,room.z2,spec.height,theme)
     end
     local doorByName: { [string]: Part }={}
     for _,p in portals do
-        if p.kind~="open" then doorByName[p.name]=doorLeaf(doors,p,spec.height,theme) end
+        if p.kind~="open" then
+            doorByName[p.name]=doorLeaf(doors,p,theme)
+        end
     end
     for _,roomName in spec.booths do
         local room=assert(byName[roomName],"Missing booth room")
         local doorName: string?=nil
         for _,p in portalsByRoom[roomName] or {} do
-            if p.kind=="booth" then doorName=p.name end
+            if p.kind=="booth" then
+                doorName=p.name
+            end
         end
         assert(doorName,"Booth has no isolation door: "..roomName)
         local v=mark(booths,"Isolation_"..roomName,room.center+Vector3.new(0,spec.height/2,0))
