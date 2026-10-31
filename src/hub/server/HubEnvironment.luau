@@ -51,7 +51,7 @@ local function plaque(m: Instance,text: string,at: Vector3,w: number,h: number)
     label.Parent=ui
 end
 local function lamp(m: Instance,at: Vector3,hero: boolean)
-    local body=part(m,"IndustrialPendantHousing",Vector3.new(4.2,0.32,1.7),CFrame.new(at),
+    part(m,"IndustrialPendantHousing",Vector3.new(4.2,0.32,1.7),CFrame.new(at),
         c.steel,Enum.Material.Metal,false)
     local lens=part(m,"PendantLens",Vector3.new(3.8,0.08,1.2),
         CFrame.new(at+Vector3.new(0,-0.22,0)),Color3.fromRGB(166,132,96),Enum.Material.Glass,false)
