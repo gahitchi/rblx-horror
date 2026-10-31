@@ -45,13 +45,14 @@ local function swing(state: DoorState, open: boolean)
 end
 
 -- Toggles a door. `loudness` is how far the sound carries; the source player is credited for the noise.
-local function toggle(state: DoorState, loudness: number, source: Player?)
+-- `kind` is "door" for players and "monster" for the monster, which never reacts to its own noise.
+local function toggle(state: DoorState, loudness: number, source: Player?, kind: string)
 	if state.busy then
 		return
 	end
 	swing(state, not (state.part:GetAttribute("Open") == true))
 	Sounds.playAt(Sounds.DOOR, state.part.Position, 0.7)
-	NoiseService.emit(state.part.Position, loudness, "door", source)
+	NoiseService.emit(state.part.Position, loudness, kind, source)
 end
 
 function DoorService.register(part: BasePart, withPrompt: boolean)
@@ -76,10 +77,17 @@ function DoorService.register(part: BasePart, withPrompt: boolean)
 		prompt.RequiresLineOfSight = false
 		prompt.Parent = part
 		prompt.Triggered:Connect(function(player)
-			toggle(state, Config.NOISE.DOOR, player)
+			toggle(state, Config.NOISE.DOOR, player, "door")
 		end)
 		state.prompt = prompt
 	end
+end
+
+-- True for a closed door the monster may push open (any registered door except the exit).
+function DoorService.isClosedInnerDoor(part: BasePart): boolean
+	return doors[part] ~= nil
+		and part:GetAttribute("Kind") ~= "front"
+		and part:GetAttribute("Open") ~= true
 end
 
 function DoorService.isOpen(part: BasePart): boolean
@@ -90,7 +98,7 @@ end
 function DoorService.monsterOpen(part: BasePart)
 	local state = doors[part]
 	if state and not DoorService.isOpen(part) then
-		toggle(state, Config.NOISE.DOOR_SLAM, nil)
+		toggle(state, Config.NOISE.DOOR_SLAM, nil, "monster")
 	end
 end
 

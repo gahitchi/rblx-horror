@@ -13,6 +13,11 @@ Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before de
 - Fair monetization: cosmetics only, nothing that helps survive.
 - Ask Gabriel when a direction is unclear; he prefers being asked.
 
+## Team
+- Gabriel: direction, playtesting.
+- ChatGPT: the map and the graphical side (models, textures, lighting look). It may also touch scripts now and then.
+- Claude: scripts and game systems. Keep map-specific data out of the systems where possible, so ChatGPT's map can replace the greybox in `MapBuilder`. Fetch before editing: someone else may have pushed.
+
 ## Workflow
 - Claude writes code here and pushes to `main`. Gabriel runs `rojo serve` on his Arch laptop (Studio through Vinegar) and plays.
 - There's no Roblox runtime in Claude's environment, so nothing can be play-tested here: review logic carefully and say plainly what is untested.
@@ -23,6 +28,8 @@ Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before de
 - Luau `--!strict` everywhere, typed. One responsibility per module.
 - The server is the authority: noise, objectives, catches and rounds happen there. Clients only draw and send input.
 - All tuning numbers live in `src/shared/Config.luau`.
-- The map is built in code (`MapBuilder`) as a greybox; real models come later.
+- The map is currently a greybox built in code (`MapBuilder`); ChatGPT's real map will replace it.
+- The monster AI is layered: `Monster/Perception` (awareness, fuzzy hearing), `Monster/Director` (pacing), `Monster/Navigator` (pathing, doors, stuck recovery), `MonsterService` (the state machine). `Config.DEBUG_AI` shows its state and path in the world.
+- Doorways must be at least 6 studs wide or the monster's pathfinding can't fit through.
 - Comments explain why, in plain words.
 - Sounds in `src/shared/Sounds.luau` are placeholders until real ones are uploaded.

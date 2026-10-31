@@ -49,7 +49,7 @@ for _, door in layout.doors do
 	DoorService.register(door, true)
 end
 
-MonsterService.init(layout.wanderNodes, RoundService.isTarget, RoundService.catch)
+MonsterService.init(layout.areas, RoundService.isTarget, RoundService.catch)
 ObjectiveService.init(layout, RoundService.isTarget)
 PlayerService.init()
 RoundService.init(layout)

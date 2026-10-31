@@ -12,9 +12,17 @@ Sounds.ALARM = "rbxasset://sounds/electronicpingshort.wav" -- needs a proper sir
 Sounds.CATCH = "rbxasset://sounds/uuhhh.mp3"
 Sounds.LUNGE = "rbxasset://sounds/swordlunge.wav" -- needs a proper shriek
 Sounds.FLASHLIGHT = "rbxasset://sounds/switch.wav"
+Sounds.MONSTER_STEP = "rbxasset://sounds/action_footsteps_plastic.mp3" -- played slow and low; needs heavy steps
+Sounds.ALERT = "rbxasset://sounds/swordlunge.wav" -- the Engineer locking on; needs a proper cry
 
 -- Plays a one-shot sound at a position in the world, heard by everyone nearby.
-function Sounds.playAt(soundId: string, position: Vector3, volume: number?, maxDistance: number?)
+function Sounds.playAt(
+	soundId: string,
+	position: Vector3,
+	volume: number?,
+	maxDistance: number?,
+	playbackSpeed: number?
+)
 	if soundId == "" then
 		return
 	end
@@ -32,6 +40,7 @@ function Sounds.playAt(soundId: string, position: Vector3, volume: number?, maxD
 	sound.SoundId = soundId
 	sound.Volume = volume or 0.8
 	sound.RollOffMaxDistance = maxDistance or 120
+	sound.PlaybackSpeed = playbackSpeed or 1
 	sound.Parent = holder
 	holder.Parent = workspace
 

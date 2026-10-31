@@ -20,11 +20,21 @@ export type Zone = {
 	door: BasePart,
 }
 
+-- A named part of the map the monster reasons about: where it patrols and searches.
+-- `points` are standing spots (root height) inside it, clear of props.
+export type Area = {
+	name: string,
+	min: Vector3,
+	max: Vector3,
+	center: Vector3,
+	points: { Vector3 },
+}
+
 export type Layout = {
 	spawn: CFrame,
 	lobbySpawn: CFrame,
 	monsterSpawn: Vector3,
-	wanderNodes: { Vector3 },
+	areas: { Area },
 	fuseSpots: { Vector3 },
 	speakers: { Vector3 },
 	generator: BasePart,
@@ -46,6 +56,7 @@ local LIVE_H = 20 -- the live room is taller
 local DOOR_H = 9
 local BASEMENT_Y = -14
 local BASEMENT_H = 13
+local DOOR_W = 6 -- wide enough for the monster's pathfinding agent with room to spare
 
 local COLORS = table.freeze({
 	wall = Color3.fromRGB(88, 84, 80),
@@ -63,6 +74,109 @@ local COLORS = table.freeze({
 })
 
 local MapBuilder = {}
+
+local function area(
+	name: string,
+	x1: number,
+	z1: number,
+	x2: number,
+	z2: number,
+	floorY: number,
+	spots: { { number } }
+): Area
+	local points: { Vector3 } = {}
+	local sum = Vector3.zero
+	for _, spot in spots do
+		local point = Vector3.new(spot[1], floorY + 3, spot[2])
+		table.insert(points, point)
+		sum += point
+	end
+	return {
+		name = name,
+		min = Vector3.new(math.min(x1, x2), floorY - 2, math.min(z1, z2)),
+		max = Vector3.new(math.max(x1, x2), floorY + 11, math.max(z1, z2)),
+		center = sum / math.max(#points, 1),
+		points = points,
+	}
+end
+
+-- The rooms as the monster knows them. Spots avoid the props placed in build().
+local function buildAreas(): { Area }
+	local B = BASEMENT_Y
+	return {
+		area("Reception", -20, 0, 20, 30, 0, { { 0, 15 }, { -14, 22 }, { 14, 8 }, { 0, 4 } }),
+		area("Corridor", -5, -60, 5, 0, 0, { { 0, -10 }, { 0, -30 }, { 0, -50 } }),
+		area(
+			"ControlA",
+			-35,
+			-40,
+			-5,
+			-10,
+			0,
+			{ { -20, -22 }, { -30, -14 }, { -10, -14 }, { -29, -31 } }
+		),
+		area(
+			"ControlB",
+			5,
+			-40,
+			35,
+			-10,
+			0,
+			{ { 20, -22 }, { 30, -14 }, { 10, -14 }, { 29, -31 } }
+		),
+		area(
+			"CrossCorridor",
+			-60,
+			-70,
+			60,
+			-60,
+			0,
+			{ { -45, -65 }, { -20, -65 }, { 20, -65 }, { 45, -65 } }
+		),
+		area("LiveRoom", -40, -130, 40, -70, 0, {
+			{ 0, -80 },
+			{ -25, -82 },
+			{ 28, -84 },
+			{ -32, -100 },
+			{ 0, -110 },
+			{ 30, -106 },
+			{ 0, -123 },
+			{ -34, -124 },
+			{ 12, -123 },
+		}),
+		area("Booth1", -55, -130, -40, -110, 0, { { -48, -120 } }),
+		area("Booth2", -55, -110, -40, -90, 0, { { -48, -100 } }),
+		area("Booth3", -55, -90, -40, -70, 0, { { -48, -80 } }),
+		area(
+			"Archive",
+			40,
+			-130,
+			70,
+			-70,
+			0,
+			{ { 55, -76 }, { 55, -87 }, { 55, -102 }, { 55, -117 }, { 55, -127 } }
+		),
+		area("BreakRoom", 35, -60, 60, -35, 0, { { 42, -42 }, { 42, -55 }, { 55, -53 } }),
+		area(
+			"GeneratorRoom",
+			-60,
+			-40,
+			-20,
+			-15,
+			B,
+			{ { -38, -26 }, { -53, -21 }, { -28, -35 }, { -28, -20 } }
+		),
+		area(
+			"ElectricalRoom",
+			-60,
+			-15,
+			-20,
+			10,
+			B,
+			{ { -40, 0 }, { -52, 5 }, { -28, -6 }, { -50, -8 } }
+		),
+	}
+end
 
 local function newPart(
 	name: string,
@@ -494,11 +608,11 @@ function MapBuilder.build(): Layout
 	wallX(structure, -10, 5, 35, 0, H)
 	wallX(structure, -40, -35, -5, 0, H)
 	wallX(structure, -40, 5, 35, 0, H)
-	wallX(structure, -60, -60, -5, 0, H, { { center = -50, width = 5 } }) -- stairwell door
-	wallX(structure, -60, 5, 60, 0, H, { { center = 47.5, width = 5 } }) -- break room door
+	wallX(structure, -60, -60, -5, 0, H, { { center = -50, width = DOOR_W } }) -- stairwell door
+	wallX(structure, -60, 5, 60, 0, H, { { center = 47.5, width = DOOR_W } }) -- break room door
 	wallX(structure, -70, -60, -40, 0, H)
 	wallX(structure, -70, -40, 40, 0, LIVE_H, { { center = 0, width = 8 } }) -- live room doors
-	wallX(structure, -70, 40, 60, 0, H, { { center = 55, width = 5 } }) -- archive door
+	wallX(structure, -70, 40, 60, 0, H, { { center = 55, width = DOOR_W } }) -- archive door
 	wallX(structure, -70, 60, 70, 0, H)
 	wallX(structure, -130, -55, -40, 0, H, nil, COLORS.foam)
 	wallX(structure, -130, -40, 40, 0, LIVE_H)
@@ -511,20 +625,20 @@ function MapBuilder.build(): Layout
 	-- Walls along Z
 	wallZ(structure, -20, 0, 30, 0, H)
 	wallZ(structure, 20, 0, 30, 0, H)
-	wallZ(structure, -5, -60, 0, 0, H, { { center = -25, width = 5 } }) -- control room A door
-	wallZ(structure, 5, -60, 0, 0, H, { { center = -25, width = 5 } }) -- control room B door
+	wallZ(structure, -5, -60, 0, 0, H, { { center = -25, width = DOOR_W } }) -- control room A door
+	wallZ(structure, 5, -60, 0, 0, H, { { center = -25, width = DOOR_W } }) -- control room B door
 	wallZ(structure, -35, -40, -10, 0, H)
 	wallZ(structure, 35, -60, -10, 0, H)
 	wallZ(structure, -60, -70, -60, 0, H)
 	wallZ(structure, -60, -60, -40, BASEMENT_Y, H - BASEMENT_Y) -- stairwell sides reach down to the basement
 	wallZ(structure, -40, -60, -40, BASEMENT_Y, H - BASEMENT_Y)
 	wallZ(structure, -40, -130, -70, 0, LIVE_H, { -- booth doors
-		{ center = -120, width = 5 },
-		{ center = -100, width = 5 },
-		{ center = -80, width = 5 },
+		{ center = -120, width = DOOR_W },
+		{ center = -100, width = DOOR_W },
+		{ center = -80, width = DOOR_W },
 	})
 	wallZ(structure, -55, -130, -70, 0, H, nil, COLORS.foam)
-	wallZ(structure, 40, -130, -70, 0, LIVE_H, { { center = -100, width = 5 } }) -- live room to archive
+	wallZ(structure, 40, -130, -70, 0, LIVE_H, { { center = -100, width = DOOR_W } }) -- live room to archive
 	wallZ(structure, 70, -130, -70, 0, H)
 	wallZ(structure, 60, -70, -35, 0, H)
 
@@ -533,17 +647,24 @@ function MapBuilder.build(): Layout
 	wallZ(structure, -20, -40, 10, BASEMENT_Y, BASEMENT_H)
 	wallX(structure, 10, -60, -20, BASEMENT_Y, BASEMENT_H)
 	wallX(structure, -40, -40, -20, BASEMENT_Y, BASEMENT_H)
-	wallX(structure, -15, -60, -20, BASEMENT_Y, BASEMENT_H, { { center = -40, width = 6 } })
+	wallX(structure, -15, -60, -20, BASEMENT_Y, BASEMENT_H, { { center = -40, width = DOOR_W } })
 
-	-- The stairs: a ramp from the corridor door (high, north) down into the basement (low, south)
-	local ramp = Instance.new("WedgePart")
-	ramp.Name = "Stairs"
-	ramp.Size = Vector3.new(20, -BASEMENT_Y, 20)
-	ramp.CFrame = CFrame.new(-50, BASEMENT_Y / 2, -50)
-	ramp.Color = COLORS.concrete
-	ramp.Material = Enum.Material.Concrete
-	ramp.Anchored = true
-	ramp.Parent = structure
+	-- The stairs: a tilted slab from the stairwell door (floor level, north, z = -60) down to the
+	-- basement (south, z = -40). A plain slab, so its direction is exact (a wedge's slope side is easy
+	-- to get backwards). Its top surface runs along the line between those two edges.
+	do
+		local top = Vector3.new(-50, 0, -60)
+		local bottom = Vector3.new(-50, BASEMENT_Y, -40)
+		local slope = CFrame.lookAt((top + bottom) / 2, bottom)
+		newPart(
+			"Stairs",
+			Vector3.new(20, 1, (bottom - top).Magnitude + 0.6),
+			slope * CFrame.new(0, -0.5, 0),
+			COLORS.concrete,
+			Enum.Material.Concrete,
+			structure
+		)
+	end
 
 	-- Outside the front doors: a small step and the exit zone
 	box("Outside", -8, -1, 30, 8, 0, 44, COLORS.concrete, Enum.Material.Concrete, structure)
@@ -652,16 +773,16 @@ function MapBuilder.build(): Layout
 	local frontDoor = door(doorsFolder, "FrontDoors", 0, 0, 30, 10, false, "front")
 	frontDoor.Color = Color3.fromRGB(60, 62, 66)
 	frontDoor.Material = Enum.Material.Metal
-	addDoor("ControlADoor", -5, -25, 5, true, "normal")
-	addDoor("ControlBDoor", 5, -25, 5, true, "normal")
-	addDoor("StairwellDoor", -50, -60, 5, false, "normal")
-	addDoor("BreakRoomDoor", 47.5, -60, 5, false, "normal")
+	addDoor("ControlADoor", -5, -25, DOOR_W, true, "normal")
+	addDoor("ControlBDoor", 5, -25, DOOR_W, true, "normal")
+	addDoor("StairwellDoor", -50, -60, DOOR_W, false, "normal")
+	addDoor("BreakRoomDoor", 47.5, -60, DOOR_W, false, "normal")
 	addDoor("LiveRoomDoors", 0, -70, 8, false, "normal")
-	addDoor("ArchiveDoor", 55, -70, 5, false, "normal")
-	addDoor("ArchiveLiveDoor", 40, -100, 5, true, "normal")
-	local booth1 = addDoor("Booth1Door", -40, -120, 5, true, "booth")
-	local booth2 = addDoor("Booth2Door", -40, -100, 5, true, "booth")
-	local booth3 = addDoor("Booth3Door", -40, -80, 5, true, "booth")
+	addDoor("ArchiveDoor", 55, -70, DOOR_W, false, "normal")
+	addDoor("ArchiveLiveDoor", 40, -100, DOOR_W, true, "normal")
+	local booth1 = addDoor("Booth1Door", -40, -120, DOOR_W, true, "booth")
+	local booth2 = addDoor("Booth2Door", -40, -100, DOOR_W, true, "booth")
+	local booth3 = addDoor("Booth3Door", -40, -80, DOOR_W, true, "booth")
 
 	-- Emergency lights: off until the generator runs
 	local powerLights: { PointLight } = {}
@@ -691,23 +812,7 @@ function MapBuilder.build(): Layout
 		spawn = CFrame.lookAt(Vector3.new(0, 3, 24), Vector3.new(0, 3, 0)),
 		lobbySpawn = lobbySpawn,
 		monsterSpawn = Vector3.new(0, 4.5, -118),
-		wanderNodes = {
-			Vector3.new(0, 3, 15),
-			Vector3.new(0, 3, -20),
-			Vector3.new(0, 3, -48),
-			Vector3.new(-20, 3, -25),
-			Vector3.new(20, 3, -25),
-			Vector3.new(-45, 3, -65),
-			Vector3.new(45, 3, -65),
-			Vector3.new(-20, 3, -88),
-			Vector3.new(20, 3, -108),
-			Vector3.new(0, 3, -100),
-			Vector3.new(50, 3, -105),
-			Vector3.new(62, 3, -76),
-			Vector3.new(44, 3, -50),
-			Vector3.new(-40, BASEMENT_Y + 3, -28),
-			Vector3.new(-40, BASEMENT_Y + 3, 0),
-		},
+		areas = buildAreas(),
 		fuseSpots = {
 			Vector3.new(-15, 3.75, 10),
 			Vector3.new(-26, 3.75, -36),

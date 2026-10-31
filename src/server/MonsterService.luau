@@ -1,10 +1,24 @@
 --!strict
--- The Engineer: map 1's monster. Blind; it only knows where you are from what it hears.
--- States: Dormant (not arrived yet) -> Wander -> Investigate a noise -> Search the area,
--- or Chase a player it keeps hearing close by. It catches anyone it reaches.
+-- The Engineer: map 1's monster. Blind; it knows where you are only from what it hears, and from
+-- touch when you're right next to it.
+--
+-- Built in layers (see Config.MONSTER for the tuning):
+--   Monster/Perception: awareness and fuzzy sound localisation.
+--   Monster/Director: pacing (grace period, retreats, drifting toward the players' area).
+--   Monster/Navigator: pathing, smoothing, doors, stuck recovery.
+--   This file: the brain, a state machine that turns what it perceives into behaviour.
+--
+-- States:
+--   Dormant      not arrived yet
+--   Roam         walking room to room, pausing now and then to listen
+--   Listen       heard something faint: stops and turns toward it
+--   Investigate  heard enough: goes to where it thinks the sound was
+--   Search       found nothing there: checks the spots around it, listening at each
+--   Hunt         heard a player clearly and close: pursues, speeding up; loses them after a few
+--                seconds of silence and searches where they were heading
+--   Retreat      backs off to a far part of the building for a while (director)
 
 local Players = game:GetService("Players")
-local PathfindingService = game:GetService("PathfindingService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -14,9 +28,13 @@ local Config = require(Shared:WaitForChild("Config"))
 local Sounds = require(Shared:WaitForChild("Sounds"))
 
 local DoorService = require(script.Parent.DoorService)
+local MapBuilder = require(script.Parent.MapBuilder)
 local NoiseService = require(script.Parent.NoiseService)
+local Director = require(script.Parent.Monster.Director)
+local Navigator = require(script.Parent.Monster.Navigator)
+local Perception = require(script.Parent.Monster.Perception)
 
-type State = "Dormant" | "Wander" | "Investigate" | "Search" | "Chase"
+type State = "Dormant" | "Roam" | "Listen" | "Investigate" | "Search" | "Hunt" | "Retreat"
 type LungePhase = "None" | "Windup" | "Lunge"
 
 local M = Config.MONSTER
@@ -24,43 +42,51 @@ local TICK = 0.1
 
 local MonsterService = {}
 
-local model: Model? = nil
-local humanoid: Humanoid? = nil
-local root: BasePart? = nil
-local state: State = "Dormant"
-local wanderNodes: { Vector3 } = {}
+-- Set once
+local areas: { MapBuilder.Area } = {}
 local isTarget: (Player) -> boolean = function()
 	return false
 end
 local onCatch: (Player) -> () = function() end
 
-local goal: Vector3? = nil
-local waypoints: { PathWaypoint } = {}
-local waypointIndex = 1
-local lastPathTime = 0
-local lastGoalForPath: Vector3? = nil
-
-local chaseTarget: Player? = nil
-local lastHeardTime = 0
-local lastHeardPosition: Vector3? = nil
-local chaseStartTime = 0
-local lungePhase: LungePhase = "None"
-local lungePhaseEnd = 0
-local lungeReadyAt = 0
+-- The body
+local model: Model? = nil
+local humanoid: Humanoid? = nil
+local root: BasePart? = nil
+local nav: Navigator.Navigator? = nil
 local glows: { PointLight } = {}
-local searchUntil = 0
-local nextSearchPoint = 0
-local stuckCheckTime = 0
-local stuckCheckPosition = Vector3.zero
 local loopId = 0
 local rng = Random.new()
 
-local path = PathfindingService:CreatePath({
-	AgentRadius = 2.2,
-	AgentHeight = 8.5,
-	AgentCanJump = false,
-	WaypointSpacing = 4,
-})
+-- The brain
+local state: State = "Dormant"
+local resumeState: State = "Roam" -- where Listen goes back to
+local route: { Vector3 } = {} -- spots left to visit (Roam, Search, Retreat)
+local currentArea: MapBuilder.Area? = nil
+local pauseUntil = 0
+local listenUntil = 0
+local listenToward: Vector3? = nil
+local investigateTarget: Vector3? = nil
+local investigateUrgent = false
+local searchUntil = 0
+
+-- The hunt
+local huntTarget: Player? = nil
+local huntStart = 0
+local lastHeard = 0
+local lastKnown: Vector3? = nil
+local heading = Vector3.zero -- the target's estimated velocity, for predicting where it went
+
+local lungePhase: LungePhase = "None"
+local lungePhaseEnd = 0
+local lungeReadyAt = 0
+
+local stepTimer = 0
+
+-- Debug overlay (Config.DEBUG_AI)
+local debugLabel: TextLabel? = nil
+local debugFolder: Folder? = nil
+local debugPath: { Vector3 }? = nil
 
 local function log(...)
 	if Config.DEBUG then
@@ -68,15 +94,93 @@ local function log(...)
 	end
 end
 
-local function setState(newState: State)
-	if state ~= newState then
-		state = newState
-		if model then
-			model:SetAttribute("State", newState)
-		end
-		log("->", newState)
-	end
+local function flat(v: Vector3): Vector3
+	return Vector3.new(v.X, 0, v.Z)
 end
+
+local function rootOf(player: Player): BasePart?
+	local character = player.Character
+	local r = character and character:FindFirstChild("HumanoidRootPart")
+	if r and r:IsA("BasePart") then
+		return r
+	end
+	return nil
+end
+
+local function targetPositions(): { Vector3 }
+	local list: { Vector3 } = {}
+	for _, player in Players:GetPlayers() do
+		if isTarget(player) then
+			local r = rootOf(player)
+			if r then
+				table.insert(list, r.Position)
+			end
+		end
+	end
+	return list
+end
+
+local function areaAt(position: Vector3): MapBuilder.Area?
+	for _, area in areas do
+		local lo, hi = area.min, area.max
+		if
+			position.X >= lo.X
+			and position.X <= hi.X
+			and position.Y >= lo.Y
+			and position.Y <= hi.Y
+			and position.Z >= lo.Z
+			and position.Z <= hi.Z
+		then
+			return area
+		end
+	end
+	return nil
+end
+
+local function hasLineOfSight(from: Vector3, to: Vector3, ignore: { Instance }): boolean
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = ignore
+	return Workspace:Raycast(from, to - from, params) == nil
+end
+
+local function ear(): Vector3
+	local r = root :: BasePart
+	return r.Position + Vector3.new(0, 3.6, 0)
+end
+
+-- Its own footsteps mask quiet sounds: it hears best standing still.
+local function hearing(): number
+	local r = root
+	if not r then
+		return M.HEARING_STILL
+	end
+	local speed = flat(r.AssemblyLinearVelocity).Magnitude
+	if speed < 1.5 then
+		return M.HEARING_STILL
+	elseif state == "Hunt" then
+		return M.HEARING_HUNTING
+	elseif speed > M.INVESTIGATE_SPEED + 1 then
+		return M.HEARING_HURRYING
+	end
+	return M.HEARING_WALKING
+end
+
+local function setState(newState: State)
+	if state == newState then
+		return
+	end
+	if state == "Listen" and humanoid then
+		humanoid.AutoRotate = true
+	end
+	state = newState
+	if model then
+		model:SetAttribute("State", newState)
+	end
+	log("->", newState, string.format("(awareness %d)", Perception.awareness()))
+end
+
+-- ===== Body =====
 
 local function weld(part: BasePart, to: BasePart)
 	local w = Instance.new("WeldConstraint")
@@ -89,8 +193,8 @@ end
 local function buildModel(position: Vector3): (Model, Humanoid, BasePart)
 	local m = Instance.new("Model")
 	m.Name = "Monster"
-	glows = {}
 	m:SetAttribute("MonsterName", "The Engineer")
+	glows = {}
 
 	local hrp = Instance.new("Part")
 	hrp.Name = "HumanoidRootPart"
@@ -155,11 +259,12 @@ local function buildModel(position: Vector3): (Model, Humanoid, BasePart)
 	local h = Instance.new("Humanoid")
 	h.RigType = Enum.HumanoidRigType.R15
 	h.HipHeight = 3
-	h.WalkSpeed = M.WANDER_SPEED
+	h.WalkSpeed = M.ROAM_SPEED
 	h.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	h.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
 	h:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
 	h:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
+	h:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
 	h.Parent = m
 
 	m.Parent = Workspace
@@ -167,152 +272,250 @@ local function buildModel(position: Vector3): (Model, Humanoid, BasePart)
 	return m, h, hrp
 end
 
-local function computePath(target: Vector3)
+local function setGlow(brightness: number, range: number)
+	for _, glow in glows do
+		glow.Brightness = brightness
+		glow.Range = range
+	end
+end
+
+-- Turns the body toward a point (used while listening).
+local function face(point: Vector3)
 	local r = root
 	if not r then
 		return
 	end
-	lastPathTime = os.clock()
-	lastGoalForPath = target
-	local ok = pcall(function()
-		path:ComputeAsync(r.Position, target)
-	end)
-	if ok and path.Status == Enum.PathStatus.Success then
-		waypoints = path:GetWaypoints()
-		waypointIndex = math.min(2, #waypoints)
-	else
-		waypoints = {}
-		waypointIndex = 1
+	local look = flat(point - r.Position)
+	if look.Magnitude < 0.5 then
+		return
 	end
+	local current = r.CFrame
+	local desired = CFrame.lookAt(current.Position, current.Position + look)
+	r.CFrame = current:Lerp(desired, 0.3)
 end
 
-local function pickWanderGoal(): Vector3
-	return wanderNodes[rng:NextInteger(1, #wanderNodes)]
-end
-
-local function startSearch(around: Vector3)
-	setState("Search")
-	searchUntil = os.clock() + M.SEARCH_TIME
-	nextSearchPoint = 0
-	goal = around
-end
-
-local function hasLineOfSight(from: Vector3, to: Vector3, ignore: { Instance }): boolean
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = ignore
-	return Workspace:Raycast(from, to - from, params) == nil
-end
-
-local function rootOf(player: Player): BasePart?
-	local character = player.Character
-	local r = character and character:FindFirstChild("HumanoidRootPart")
-	if r and r:IsA("BasePart") then
-		return r
-	end
-	return nil
-end
-
-local function onNoise(noise: NoiseService.Noise)
+-- Heavy, slow steps that players can hear coming. They aren't noise events, so it ignores them.
+local function updateFootsteps(dt: number)
 	local r = root
-	if state == "Dormant" or not r then
+	if not r then
 		return
 	end
-	if not NoiseService.canHear(noise, r.Position) then
+	local speed = flat(r.AssemblyLinearVelocity).Magnitude
+	if speed < 2 then
+		stepTimer = 0
 		return
 	end
-
-	local source = noise.source
-	local distance = (noise.position - r.Position).Magnitude
-	if source and isTarget(source) and distance <= M.CHASE_LOCK_DISTANCE then
-		if chaseTarget ~= source then
-			log("chasing", source.Name, "heard", noise.kind)
-		end
-		if state ~= "Chase" then
-			chaseStartTime = os.clock()
-		end
-		chaseTarget = source
-		lastHeardTime = os.clock()
-		lastHeardPosition = noise.position
-		setState("Chase")
-	elseif state ~= "Chase" then
-		goal = noise.position
-		setState("Investigate")
-	elseif source == chaseTarget then
-		lastHeardTime = os.clock()
-		lastHeardPosition = noise.position
+	stepTimer += dt
+	local interval = math.clamp(6 / speed, 0.28, 0.9)
+	if stepTimer >= interval then
+		stepTimer = 0
+		local feet = r.Position - Vector3.new(0, 3.5, 0)
+		local volume = math.clamp(0.35 + speed / 40, 0.35, 0.9)
+		Sounds.playAt(Sounds.MONSTER_STEP, feet, volume, 80, 0.55)
 	end
 end
 
--- Starts at walking pace and builds up the longer the chase goes on.
-local function chaseSpeed(now: number): number
-	local t = math.clamp((now - chaseStartTime) / M.CHASE_RAMP_SECONDS, 0, 1)
-	return M.CHASE_SPEED + (M.CHASE_MAX_SPEED - M.CHASE_SPEED) * t
+-- ===== Behaviours =====
+
+local function pickRoute(area: MapBuilder.Area, count: number): { Vector3 }
+	local spots = table.clone(area.points)
+	local picked: { Vector3 } = {}
+	while #spots > 0 and #picked < count do
+		table.insert(picked, table.remove(spots, rng:NextInteger(1, #spots)) :: Vector3)
+	end
+	return picked
 end
 
-local function decideGoal(now: number): (Vector3?, number)
-	local r = root :: BasePart
-	if state == "Chase" then
-		local target = chaseTarget
-		if not target or not isTarget(target) or now - lastHeardTime > M.CHASE_MEMORY then
-			chaseTarget = nil
-			startSearch(lastHeardPosition or r.Position)
-			return goal, M.INVESTIGATE_SPEED
-		end
-		-- Right after hearing them it knows roughly where they are; then only where they last were.
-		local targetRoot = rootOf(target)
-		if targetRoot and now - lastHeardTime < 1 then
-			return targetRoot.Position, chaseSpeed(now)
-		end
-		return lastHeardPosition, chaseSpeed(now)
-	elseif state == "Investigate" then
-		if goal and (goal - r.Position).Magnitude < 5 then
-			startSearch(goal)
-		end
-		return goal, M.INVESTIGATE_SPEED
-	elseif state == "Search" then
-		if now > searchUntil then
-			setState("Wander")
-			goal = pickWanderGoal()
-			return goal, M.WANDER_SPEED
-		end
-		if now > nextSearchPoint then
-			nextSearchPoint = now + 3
-			local offset = Vector3.new(rng:NextNumber(-1, 1), 0, rng:NextNumber(-1, 1))
-				* M.SEARCH_RADIUS
-			goal = (lastHeardPosition or r.Position) + offset
-		end
-		return goal, M.WANDER_SPEED
-	else -- Wander
-		if not goal or (goal - r.Position).Magnitude < 6 then
-			goal = pickWanderGoal()
-		end
-		return goal, M.WANDER_SPEED
-	end
+local function startRoam()
+	route = {}
+	pauseUntil = 0
+	setState("Roam")
 end
 
-local function setLungeVisual(on: boolean)
-	if model then
-		model:SetAttribute("Lunging", on)
+local function startRetreat()
+	local r = root
+	if not r then
+		return
 	end
-	for _, glow in glows do
-		glow.Brightness = if on then 5 else 0.8
-		glow.Range = if on then 16 else 7
+	local now = os.clock()
+	Director.startRetreat(now)
+	huntTarget = nil
+	local area = Director.pickArea(areas, now, r.Position, targetPositions(), areaAt(r.Position))
+	currentArea = area
+	route = pickRoute(area, #area.points)
+	pauseUntil = 0
+	setState("Retreat")
+	log("retreating to", area.name)
+end
+
+local function startListen(toward: Vector3)
+	if state ~= "Listen" then
+		resumeState = if state == "Search" then "Search" else "Roam"
 	end
+	listenToward = toward
+	listenUntil = os.clock() + M.LISTEN_TIME + rng:NextNumber(-0.4, 0.6)
+	if nav then
+		nav.stop()
+	end
+	if humanoid then
+		humanoid.AutoRotate = false
+	end
+	setState("Listen")
+end
+
+local function startInvestigate(target: Vector3, urgent: boolean)
+	investigateUrgent = urgent or (state == "Investigate" and investigateUrgent)
+	investigateTarget = target
+	setState("Investigate")
+end
+
+-- Search the spots around `center`: the nearest patrol spots of its room and the rooms next to it,
+-- closest first, listening at each.
+local function startSearch(center: Vector3)
+	local spots: { Vector3 } = { center }
+	local nearby: { Vector3 } = {}
+	for _, area in areas do
+		for _, point in area.points do
+			local d = (point - center).Magnitude
+			if d > 4 and d < M.SEARCH_RADIUS and math.abs(point.Y - center.Y) < 8 then
+				table.insert(nearby, point)
+			end
+		end
+	end
+	table.sort(nearby, function(a, b)
+		return (a - center).Magnitude < (b - center).Magnitude
+	end)
+	for i = 1, math.min(M.SEARCH_POINTS - 1, #nearby) do
+		table.insert(spots, nearby[i])
+	end
+	route = spots
+	pauseUntil = 0
+	searchUntil = os.clock() + M.SEARCH_TIME
+	setState("Search")
 end
 
 local function endLunge(now: number)
 	if lungePhase ~= "None" then
 		lungePhase = "None"
 		lungeReadyAt = now + M.LUNGE_COOLDOWN
-		setLungeVisual(false)
+		setGlow(0.8, 7)
+		if model then
+			model:SetAttribute("Lunging", false)
+		end
 	end
 end
 
--- Up close in a chase it lunges: a short warning (shriek, glow), then a burst of speed straight at
--- the player. Returns true while the burst is moving it, so normal pathing stands aside.
+local function startHunt(player: Player, position: Vector3)
+	local now = os.clock()
+	if state ~= "Hunt" then
+		huntStart = now
+		heading = Vector3.zero
+		local r = root
+		if r then
+			Sounds.playAt(Sounds.ALERT, r.Position, 1, 150, 0.7)
+		end
+		log("hunting", player.Name)
+	end
+	huntTarget = player
+	lastHeard = now
+	lastKnown = position
+	Perception.set(100)
+	setState("Hunt")
+end
+
+-- A fresh fix on the hunted player: also estimates which way they're moving.
+local function updateTrack(position: Vector3, now: number)
+	local previous = lastKnown
+	local elapsed = now - lastHeard
+	if previous and elapsed > 0.05 and elapsed < 2 then
+		local velocity = flat(position - previous) / elapsed
+		if velocity.Magnitude > 24 then
+			velocity = velocity.Unit * 24
+		end
+		heading = heading:Lerp(velocity, 0.5)
+	end
+	lastKnown = position
+	lastHeard = now
+end
+
+local function chaseSpeed(now: number): number
+	local t = math.clamp((now - huntStart) / M.CHASE_RAMP_SECONDS, 0, 1)
+	return M.CHASE_SPEED + (M.CHASE_MAX_SPEED - M.CHASE_SPEED) * t
+end
+
+-- Reacting to a sound it heard.
+local function react(stimulus: Perception.Stimulus)
+	local now = os.clock()
+	local source = stimulus.source
+
+	if state == "Hunt" then
+		-- Focused on its target; everyone else's sounds wash past it.
+		if source and source == huntTarget then
+			updateTrack(stimulus.estimate, now)
+		end
+		return
+	end
+	if state == "Retreat" and not stimulus.loud then
+		return
+	end
+
+	local awareness = Perception.awareness()
+	if
+		source
+		and isTarget(source)
+		and awareness >= M.HUNT_AT
+		and stimulus.clarity >= 0.3
+		and stimulus.distance <= M.CHASE_LOCK_DISTANCE
+	then
+		startHunt(source, stimulus.estimate)
+	elseif awareness >= M.INVESTIGATE_AT or stimulus.loud then
+		startInvestigate(stimulus.estimate, stimulus.loud or awareness >= M.HURRY_AT)
+	elseif
+		awareness >= M.LISTEN_AT and (state == "Roam" or state == "Search" or state == "Listen")
+	then
+		startListen(stimulus.estimate)
+	end
+end
+
+local function onNoise(noise: NoiseService.Noise)
+	if state == "Dormant" or not root then
+		return
+	end
+	local stimulus = Perception.hear(noise, ear(), hearing())
+	if stimulus then
+		react(stimulus)
+	end
+end
+
+-- Touch: anyone close enough to brush against it is found, however quiet.
+local function feelAround()
+	local r = root
+	if not r then
+		return
+	end
+	for _, player in Players:GetPlayers() do
+		if isTarget(player) then
+			local targetRoot = rootOf(player)
+			if targetRoot then
+				local offset = targetRoot.Position - r.Position
+				if flat(offset).Magnitude <= M.TOUCH_DISTANCE and math.abs(offset.Y) < 5 then
+					if state == "Hunt" and huntTarget == player then
+						updateTrack(targetRoot.Position, os.clock())
+					else
+						log("felt", player.Name)
+						startHunt(player, targetRoot.Position)
+					end
+					return
+				end
+			end
+		end
+	end
+end
+
+-- Up close in a hunt it lunges: a short warning (cry, glow, vignette), then a burst of speed straight
+-- at the player. Returns true while the burst is steering it.
 local function updateLunge(now: number, h: Humanoid, r: BasePart): boolean
-	local target = chaseTarget
+	local target = huntTarget
 	local targetRoot = if target then rootOf(target) else nil
 	if lungePhase == "Windup" then
 		if now >= lungePhaseEnd then
@@ -325,36 +528,41 @@ local function updateLunge(now: number, h: Humanoid, r: BasePart): boolean
 			endLunge(now)
 			return false
 		end
+		-- The navigator stands aside so it doesn't steer the leap back onto its path.
+		if nav and nav.status() ~= "Idle" then
+			nav.stop()
+		end
 		h.WalkSpeed = M.LUNGE_SPEED
 		h:MoveTo(targetRoot.Position)
 		return true
 	end
 
-	if state ~= "Chase" or now < lungeReadyAt or not targetRoot or not target then
+	if now < lungeReadyAt or not targetRoot or not target or now - lastHeard > 1 then
 		return false
 	end
 	local offset = targetRoot.Position - r.Position
-	local flat = Vector3.new(offset.X, 0, offset.Z).Magnitude
-	if flat > M.LUNGE_RANGE or math.abs(offset.Y) > 6 then
+	if flat(offset).Magnitude > M.LUNGE_RANGE or math.abs(offset.Y) > 5 then
 		return false
 	end
-	-- It needs a clear run at them: no lunging through walls.
 	local ignore: { Instance } = { model :: Model }
 	if target.Character then
 		table.insert(ignore, target.Character)
 	end
 	if not hasLineOfSight(r.Position, targetRoot.Position, ignore) then
-		return false
+		return false -- no lunging through walls
 	end
 	log("lunging at", target.Name)
 	lungePhase = "Windup"
 	lungePhaseEnd = now + M.LUNGE_WINDUP
-	setLungeVisual(true)
+	setGlow(5, 16)
+	if model then
+		model:SetAttribute("Lunging", true)
+	end
 	Sounds.playAt(Sounds.LUNGE, r.Position, 1, 120)
 	return false
 end
 
-local function tryCatch()
+local function tryCatch(now: number)
 	local r = root
 	local m = model
 	if not r or not m then
@@ -365,8 +573,7 @@ local function tryCatch()
 			local targetRoot = rootOf(player)
 			if targetRoot then
 				local offset = targetRoot.Position - r.Position
-				local flat = Vector3.new(offset.X, 0, offset.Z).Magnitude
-				if flat <= M.CATCH_DISTANCE and math.abs(offset.Y) < 6 then
+				if flat(offset).Magnitude <= M.CATCH_DISTANCE and math.abs(offset.Y) < 6 then
 					local ignore: { Instance } = { m }
 					if player.Character then
 						table.insert(ignore, player.Character)
@@ -375,11 +582,10 @@ local function tryCatch()
 						log("caught", player.Name)
 						Sounds.playAt(Sounds.CATCH, targetRoot.Position, 1)
 						onCatch(player)
-						endLunge(os.clock())
-						if chaseTarget == player then
-							chaseTarget = nil
-							startSearch(r.Position)
-						end
+						endLunge(now)
+						-- It takes its catch away: the others get room to breathe.
+						startRetreat()
+						return
 					end
 				end
 			end
@@ -387,64 +593,217 @@ local function tryCatch()
 	end
 end
 
-local function step(now: number)
-	local h = humanoid
-	local r = root
-	if not h or not r or state == "Dormant" then
-		return
+-- Walks a route of spots, pausing at some of them. Returns true when the route is done.
+local function followRoute(
+	now: number,
+	speed: number,
+	pauseChance: number,
+	pauseMin: number,
+	pauseMax: number
+): boolean
+	local h = humanoid :: Humanoid
+	local n = nav :: Navigator.Navigator
+	if now < pauseUntil then
+		return false
 	end
-
-	local target, speed = decideGoal(now)
+	local spot = route[1]
+	if not spot then
+		return true
+	end
 	h.WalkSpeed = speed
-	if not target then
-		return
-	end
-	local lunging = updateLunge(now, h, r)
-
-	-- Re-plan when the goal moved, on a timer while chasing, or when the path ran out.
-	local goalMoved = not lastGoalForPath or (target - (lastGoalForPath :: Vector3)).Magnitude > 4
-	local repathDue = state == "Chase" and now - lastPathTime > M.REPATH_INTERVAL
-	if not lunging and (goalMoved or repathDue or waypointIndex > #waypoints) then
-		computePath(target)
-	end
-
-	if lunging then
-		-- updateLunge is steering.
-	elseif #waypoints > 0 and waypointIndex <= #waypoints then
-		local waypoint = waypoints[waypointIndex].Position
-		h:MoveTo(waypoint)
-		local flat = Vector3.new(waypoint.X - r.Position.X, 0, waypoint.Z - r.Position.Z).Magnitude
-		if flat < 3 then
-			waypointIndex += 1
+	n.moveTo(spot)
+	local status = n.status()
+	if status == "Arrived" or status == "Failed" then
+		table.remove(route, 1)
+		if status == "Arrived" and rng:NextNumber() < pauseChance then
+			pauseUntil = now + rng:NextNumber(pauseMin, pauseMax)
+			n.stop()
 		end
-	else
-		h:MoveTo(target) -- no path: head straight for it
 	end
-
-	local door = DoorService.closedDoorNear(r.Position, M.DOOR_OPEN_DISTANCE)
-	if door then
-		DoorService.monsterOpen(door)
-	end
-
-	-- If it hasn't moved in a while, it's stuck: re-plan towards somewhere else.
-	if now - stuckCheckTime > 3 then
-		if (r.Position - stuckCheckPosition).Magnitude < 1.5 and state ~= "Chase" then
-			goal = pickWanderGoal()
-			lastGoalForPath = nil
-		end
-		stuckCheckTime = now
-		stuckCheckPosition = r.Position
-	end
-
-	tryCatch()
+	return #route == 0
 end
 
+local function think(now: number)
+	local h = humanoid :: Humanoid
+	local r = root :: BasePart
+	local n = nav :: Navigator.Navigator
+
+	if state == "Roam" then
+		if #route == 0 then
+			local area = Director.pickArea(areas, now, r.Position, targetPositions(), currentArea)
+			currentArea = area
+			route = pickRoute(area, rng:NextInteger(2, 3))
+		end
+		followRoute(now, M.ROAM_SPEED, 0.45, 1, 3)
+		if Director.wantsRetreat() then
+			startRetreat()
+		end
+	elseif state == "Listen" then
+		if listenToward then
+			face(listenToward)
+		end
+		if now >= listenUntil then
+			if resumeState == "Search" and #route > 0 then
+				setState("Search")
+			else
+				startRoam()
+			end
+		end
+	elseif state == "Investigate" then
+		local target = investigateTarget
+		if not target then
+			startRoam()
+			return
+		end
+		h.WalkSpeed = if investigateUrgent then M.HURRY_SPEED else M.INVESTIGATE_SPEED
+		n.moveTo(target)
+		local status = n.status()
+		if status == "Arrived" or status == "Failed" or flat(target - r.Position).Magnitude < 4 then
+			startSearch(target)
+		end
+	elseif state == "Search" then
+		local done = followRoute(now, M.SEARCH_SPEED, 0.8, 1.2, 2.4)
+		if done or now >= searchUntil then
+			if Director.wantsRetreat() then
+				startRetreat()
+			else
+				startRoam()
+			end
+		end
+	elseif state == "Retreat" then
+		local done = followRoute(now, M.RETREAT_SPEED, 0, 0, 0)
+		if Director.mode() ~= "Retreat" then
+			startRoam()
+		elseif done and currentArea then
+			-- Still backstage: idle around the far room until the director lets it go.
+			route = pickRoute(currentArea, 1)
+			pauseUntil = now + rng:NextNumber(2, 4)
+		end
+	elseif state == "Hunt" then
+		local target = huntTarget
+		local targetRoot = if target then rootOf(target) else nil
+		if not target or not targetRoot or not isTarget(target) then
+			endLunge(now)
+			huntTarget = nil
+			startSearch(lastKnown or r.Position)
+			return
+		end
+		local silence = now - lastHeard
+		local known = lastKnown or targetRoot.Position
+		if silence > M.CHASE_MEMORY then
+			-- Lost them: search where they were heading, not where they were.
+			endLunge(now)
+			huntTarget = nil
+			log("lost", target.Name, "- searching ahead of them")
+			Perception.set(M.HURRY_AT)
+			startInvestigate(known + heading * 1.5, true)
+			return
+		end
+		h.WalkSpeed = chaseSpeed(now)
+		local lunging = updateLunge(now, h, r)
+		if not lunging then
+			-- Right after hearing them it knows roughly where they are; after that, it predicts.
+			local goal = if silence < 0.6
+				then targetRoot.Position
+				else known + heading * math.min(silence, 1.5)
+			n.moveTo(goal, true)
+			if n.status() == "Failed" then
+				n.moveTo(known, false)
+			end
+		end
+	end
+end
+
+local function updateDebug()
+	if not Config.DEBUG_AI then
+		return
+	end
+	local m = model
+	local n = nav
+	if not m or not n then
+		return
+	end
+	if not debugLabel then
+		local head = m:FindFirstChild("Head")
+		if head then
+			local board = Instance.new("BillboardGui")
+			board.Size = UDim2.fromOffset(230, 60)
+			board.StudsOffset = Vector3.new(0, 2.5, 0)
+			board.AlwaysOnTop = true
+			board.Parent = head
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.fromScale(1, 1)
+			label.BackgroundTransparency = 0.5
+			label.BackgroundColor3 = Color3.new(0, 0, 0)
+			label.TextColor3 = Color3.new(1, 1, 1)
+			label.Font = Enum.Font.RobotoMono
+			label.TextSize = 13
+			label.Parent = board
+			debugLabel = label
+		end
+	end
+	if debugLabel then
+		debugLabel.Text = string.format(
+			"%s  aware %d\ndirector %s  menace %.2f\nnav %s",
+			state,
+			Perception.awareness(),
+			Director.mode(),
+			Director.menace(),
+			n.status()
+		)
+	end
+	local points = n.waypoints()
+	if points ~= debugPath then
+		debugPath = points
+		if debugFolder then
+			debugFolder:Destroy()
+		end
+		local folder = Instance.new("Folder")
+		folder.Name = "MonsterPathDebug"
+		for _, point in points do
+			local dot = Instance.new("Part")
+			dot.Shape = Enum.PartType.Ball
+			dot.Size = Vector3.new(0.6, 0.6, 0.6)
+			dot.Position = point + Vector3.new(0, 0.3, 0)
+			dot.Anchored = true
+			dot.CanCollide = false
+			dot.CanQuery = false
+			dot.CanTouch = false
+			dot.Material = Enum.Material.Neon
+			dot.Color = Color3.fromRGB(255, 200, 40)
+			dot.Parent = folder
+		end
+		folder.Parent = Workspace
+		debugFolder = folder
+	end
+end
+
+local function step(now: number, dt: number)
+	local r = root
+	local n = nav
+	if state == "Dormant" or not r or not humanoid or not n then
+		return
+	end
+	if state ~= "Hunt" then
+		Perception.decay(dt)
+	end
+	Director.update(dt, now, r.Position, state == "Hunt", targetPositions())
+	feelAround()
+	think(now)
+	n.update(now)
+	updateFootsteps(dt)
+	tryCatch(now)
+	updateDebug()
+end
+
+-- ===== API =====
+
 function MonsterService.init(
-	nodes: { Vector3 },
+	mapAreas: { MapBuilder.Area },
 	targetCheck: (Player) -> boolean,
 	catchCallback: (Player) -> ()
 )
-	wanderNodes = nodes
+	areas = mapAreas
 	isTarget = targetCheck
 	onCatch = catchCallback
 	NoiseService.onNoise(onNoise)
@@ -453,17 +812,26 @@ end
 -- Removes the monster (between rounds).
 function MonsterService.despawn()
 	loopId += 1
+	if nav then
+		nav.destroy()
+	end
 	if model then
 		model:Destroy()
 	end
-	model, humanoid, root = nil, nil, nil
+	if debugFolder then
+		debugFolder:Destroy()
+	end
+	model, humanoid, root, nav = nil, nil, nil, nil
+	debugLabel, debugFolder, debugPath = nil, nil, nil
 	state = "Dormant"
-	chaseTarget = nil
-	goal = nil
-	waypoints = {}
+	huntTarget = nil
+	lastKnown = nil
+	route = {}
+	currentArea = nil
 	lungePhase = "None"
 	lungeReadyAt = 0
 	glows = {}
+	Perception.reset()
 	NoiseService.setIgnoreList({})
 end
 
@@ -472,17 +840,21 @@ function MonsterService.spawn(position: Vector3)
 	MonsterService.despawn()
 	local m, h, r = buildModel(position)
 	model, humanoid, root = m, h, r
+	nav = Navigator.new(h, r, { m }, DoorService.isClosedInnerDoor, DoorService.monsterOpen)
 	NoiseService.setIgnoreList({ m })
-	setState("Wander")
-	goal = pickWanderGoal()
-	stuckCheckTime = os.clock()
-	stuckCheckPosition = r.Position
+	Director.reset(os.clock())
+	Perception.reset()
+	currentArea = areaAt(position)
+	startRoam()
 
 	loopId += 1
 	local myLoop = loopId
 	task.spawn(function()
+		local last = os.clock()
 		while loopId == myLoop do
-			step(os.clock())
+			local now = os.clock()
+			step(now, now - last)
+			last = now
 			task.wait(TICK)
 		end
 	end)
@@ -495,8 +867,9 @@ end
 
 -- Keeps the monster's physics owned by the server even if it touches players.
 RunService.Heartbeat:Connect(function()
-	if root and root.Parent and root:GetNetworkOwner() ~= nil then
-		root:SetNetworkOwner(nil)
+	local r = root
+	if r and r.Parent and r:GetNetworkOwner() ~= nil then
+		r:SetNetworkOwner(nil)
 	end
 end)
 
