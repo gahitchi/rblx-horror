@@ -76,6 +76,7 @@ local function spawnAt(player: Player, cframe: CFrame, inRound: boolean)
 		return
 	end
 	character:SetAttribute("InRound", inRound)
+	character:SetAttribute("FlashlightOn", true) -- everyone starts with the torch lit
 	local spread = Vector3.new(rng:NextNumber(-4, 4), 0, rng:NextNumber(-3, 3))
 	character:PivotTo(cframe + spread)
 	local humanoid = character:FindFirstChildOfClass("Humanoid")

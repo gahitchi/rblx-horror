@@ -10,6 +10,7 @@ Sounds.GENERATOR_PULL = "rbxasset://sounds/action_jump_land.mp3"
 Sounds.GENERATOR_HUM = "" -- needs a looping engine sound
 Sounds.ALARM = "rbxasset://sounds/electronicpingshort.wav" -- needs a proper siren
 Sounds.CATCH = "rbxasset://sounds/uuhhh.mp3"
+Sounds.LUNGE = "rbxasset://sounds/swordlunge.wav" -- needs a proper shriek
 Sounds.FLASHLIGHT = "rbxasset://sounds/switch.wav"
 
 -- Plays a one-shot sound at a position in the world, heard by everyone nearby.

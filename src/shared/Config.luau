@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.1.0"
+Config.VERSION = "0.1.1"
 Config.DEBUG = true -- extra Output logging while in development
 
 -- Movement
@@ -36,10 +36,20 @@ Config.VOICE_THRESHOLD = 0.04 -- quieter than this counts as silence
 Config.VOICE_SEND_INTERVAL = 0.25
 
 -- The monster
+-- It starts every chase at a player's walking pace and speeds up the longer the chase lasts, so a
+-- sprint buys distance but not escape: running out of breath in its hearing range is fatal. The way
+-- out is to break away and go quiet. Up close it lunges, with a warning (sound, glow, vignette).
 Config.MONSTER = table.freeze({
-	WANDER_SPEED = 9,
-	INVESTIGATE_SPEED = 14,
-	CHASE_SPEED = 18.5,
+	WANDER_SPEED = 8,
+	INVESTIGATE_SPEED = Config.WALK_SPEED,
+	CHASE_SPEED = Config.WALK_SPEED, -- at the start of a chase
+	CHASE_MAX_SPEED = 19, -- still just under a sprint
+	CHASE_RAMP_SECONDS = 8, -- from start to max speed
+	LUNGE_RANGE = 14,
+	LUNGE_WINDUP = 0.45, -- the warning before it leaps
+	LUNGE_SPEED = 32,
+	LUNGE_TIME = 0.6,
+	LUNGE_COOLDOWN = 6,
 	CATCH_DISTANCE = 4.5,
 	CHASE_LOCK_DISTANCE = 55, -- hearing a player this close starts a chase
 	CHASE_MEMORY = 3.5, -- seconds of silence before it loses a chase

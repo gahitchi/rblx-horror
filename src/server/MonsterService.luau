@@ -17,6 +17,7 @@ local DoorService = require(script.Parent.DoorService)
 local NoiseService = require(script.Parent.NoiseService)
 
 type State = "Dormant" | "Wander" | "Investigate" | "Search" | "Chase"
+type LungePhase = "None" | "Windup" | "Lunge"
 
 local M = Config.MONSTER
 local TICK = 0.1
@@ -42,6 +43,11 @@ local lastGoalForPath: Vector3? = nil
 local chaseTarget: Player? = nil
 local lastHeardTime = 0
 local lastHeardPosition: Vector3? = nil
+local chaseStartTime = 0
+local lungePhase: LungePhase = "None"
+local lungePhaseEnd = 0
+local lungeReadyAt = 0
+local glows: { PointLight } = {}
 local searchUntil = 0
 local nextSearchPoint = 0
 local stuckCheckTime = 0
@@ -83,6 +89,7 @@ end
 local function buildModel(position: Vector3): (Model, Humanoid, BasePart)
 	local m = Instance.new("Model")
 	m.Name = "Monster"
+	glows = {}
 	m:SetAttribute("MonsterName", "The Engineer")
 
 	local hrp = Instance.new("Part")
@@ -141,6 +148,7 @@ local function buildModel(position: Vector3): (Model, Humanoid, BasePart)
 		glow.Brightness = 0.8
 		glow.Range = 7
 		glow.Parent = cup
+		table.insert(glows, glow)
 	end
 	head:SetAttribute("Blind", true)
 
@@ -220,6 +228,9 @@ local function onNoise(noise: NoiseService.Noise)
 		if chaseTarget ~= source then
 			log("chasing", source.Name, "heard", noise.kind)
 		end
+		if state ~= "Chase" then
+			chaseStartTime = os.clock()
+		end
 		chaseTarget = source
 		lastHeardTime = os.clock()
 		lastHeardPosition = noise.position
@@ -231,6 +242,12 @@ local function onNoise(noise: NoiseService.Noise)
 		lastHeardTime = os.clock()
 		lastHeardPosition = noise.position
 	end
+end
+
+-- Starts at walking pace and builds up the longer the chase goes on.
+local function chaseSpeed(now: number): number
+	local t = math.clamp((now - chaseStartTime) / M.CHASE_RAMP_SECONDS, 0, 1)
+	return M.CHASE_SPEED + (M.CHASE_MAX_SPEED - M.CHASE_SPEED) * t
 end
 
 local function decideGoal(now: number): (Vector3?, number)
@@ -245,9 +262,9 @@ local function decideGoal(now: number): (Vector3?, number)
 		-- Right after hearing them it knows roughly where they are; then only where they last were.
 		local targetRoot = rootOf(target)
 		if targetRoot and now - lastHeardTime < 1 then
-			return targetRoot.Position, M.CHASE_SPEED
+			return targetRoot.Position, chaseSpeed(now)
 		end
-		return lastHeardPosition, M.CHASE_SPEED
+		return lastHeardPosition, chaseSpeed(now)
 	elseif state == "Investigate" then
 		if goal and (goal - r.Position).Magnitude < 5 then
 			startSearch(goal)
@@ -274,6 +291,69 @@ local function decideGoal(now: number): (Vector3?, number)
 	end
 end
 
+local function setLungeVisual(on: boolean)
+	if model then
+		model:SetAttribute("Lunging", on)
+	end
+	for _, glow in glows do
+		glow.Brightness = if on then 5 else 0.8
+		glow.Range = if on then 16 else 7
+	end
+end
+
+local function endLunge(now: number)
+	if lungePhase ~= "None" then
+		lungePhase = "None"
+		lungeReadyAt = now + M.LUNGE_COOLDOWN
+		setLungeVisual(false)
+	end
+end
+
+-- Up close in a chase it lunges: a short warning (shriek, glow), then a burst of speed straight at
+-- the player. Returns true while the burst is moving it, so normal pathing stands aside.
+local function updateLunge(now: number, h: Humanoid, r: BasePart): boolean
+	local target = chaseTarget
+	local targetRoot = if target then rootOf(target) else nil
+	if lungePhase == "Windup" then
+		if now >= lungePhaseEnd then
+			lungePhase = "Lunge"
+			lungePhaseEnd = now + M.LUNGE_TIME
+		end
+		return false
+	elseif lungePhase == "Lunge" then
+		if now >= lungePhaseEnd or not targetRoot then
+			endLunge(now)
+			return false
+		end
+		h.WalkSpeed = M.LUNGE_SPEED
+		h:MoveTo(targetRoot.Position)
+		return true
+	end
+
+	if state ~= "Chase" or now < lungeReadyAt or not targetRoot or not target then
+		return false
+	end
+	local offset = targetRoot.Position - r.Position
+	local flat = Vector3.new(offset.X, 0, offset.Z).Magnitude
+	if flat > M.LUNGE_RANGE or math.abs(offset.Y) > 6 then
+		return false
+	end
+	-- It needs a clear run at them: no lunging through walls.
+	local ignore: { Instance } = { model :: Model }
+	if target.Character then
+		table.insert(ignore, target.Character)
+	end
+	if not hasLineOfSight(r.Position, targetRoot.Position, ignore) then
+		return false
+	end
+	log("lunging at", target.Name)
+	lungePhase = "Windup"
+	lungePhaseEnd = now + M.LUNGE_WINDUP
+	setLungeVisual(true)
+	Sounds.playAt(Sounds.LUNGE, r.Position, 1, 120)
+	return false
+end
+
 local function tryCatch()
 	local r = root
 	local m = model
@@ -295,6 +375,7 @@ local function tryCatch()
 						log("caught", player.Name)
 						Sounds.playAt(Sounds.CATCH, targetRoot.Position, 1)
 						onCatch(player)
+						endLunge(os.clock())
 						if chaseTarget == player then
 							chaseTarget = nil
 							startSearch(r.Position)
@@ -318,15 +399,18 @@ local function step(now: number)
 	if not target then
 		return
 	end
+	local lunging = updateLunge(now, h, r)
 
 	-- Re-plan when the goal moved, on a timer while chasing, or when the path ran out.
 	local goalMoved = not lastGoalForPath or (target - (lastGoalForPath :: Vector3)).Magnitude > 4
 	local repathDue = state == "Chase" and now - lastPathTime > M.REPATH_INTERVAL
-	if goalMoved or repathDue or waypointIndex > #waypoints then
+	if not lunging and (goalMoved or repathDue or waypointIndex > #waypoints) then
 		computePath(target)
 	end
 
-	if #waypoints > 0 and waypointIndex <= #waypoints then
+	if lunging then
+		-- updateLunge is steering.
+	elseif #waypoints > 0 and waypointIndex <= #waypoints then
 		local waypoint = waypoints[waypointIndex].Position
 		h:MoveTo(waypoint)
 		local flat = Vector3.new(waypoint.X - r.Position.X, 0, waypoint.Z - r.Position.Z).Magnitude
@@ -377,6 +461,9 @@ function MonsterService.despawn()
 	chaseTarget = nil
 	goal = nil
 	waypoints = {}
+	lungePhase = "None"
+	lungeReadyAt = 0
+	glows = {}
 	NoiseService.setIgnoreList({})
 end
 

@@ -66,8 +66,9 @@ local function startOwnBeam()
 			beam.Enabled = on
 			fill.Enabled = on
 			if camera then
-				-- Slightly below and right of the eye, like holding it in a hand.
-				holder.CFrame = camera.CFrame * CFrame.new(0.4, -0.3, -0.5)
+				-- At the eye, a touch low and to the right. Never in front of it: up against a wall,
+				-- a light placed ahead of the camera ends up inside the wall and everything goes dark.
+				holder.CFrame = camera.CFrame * CFrame.new(0.3, -0.25, 0)
 			end
 		end
 	)
@@ -109,7 +110,25 @@ local function onToggle(_: string, state: Enum.UserInputState): Enum.ContextActi
 	return Enum.ContextActionResult.Pass
 end
 
+-- The beam starts inside your own (invisible, first-person) head, so your own body must not cast
+-- shadows from it. This only changes your view; other players still see your shadow.
+local function noSelfShadow(character: Model)
+	local function apply(descendant: Instance)
+		if descendant:IsA("BasePart") then
+			descendant.CastShadow = false
+		end
+	end
+	for _, descendant in character:GetDescendants() do
+		apply(descendant)
+	end
+	character.DescendantAdded:Connect(apply)
+end
+
 function FlashlightController.start()
+	player.CharacterAdded:Connect(noSelfShadow)
+	if player.Character then
+		noSelfShadow(player.Character)
+	end
 	startOwnBeam()
 	for _, other in Players:GetPlayers() do
 		watchPlayer(other)
