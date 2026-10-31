@@ -3,6 +3,7 @@
 -- The kit is usable without imported meshes or asset IDs. It provides differentiated
 -- studio, broadcast and foundry silhouettes, while an authored mesh/PBR pass follows.
 -- Decorative meshes never contribute to collision, navigation or sound occlusion.
+local PrefabLibrary = require(script.Parent.Parent.PrefabLibrary)
 local Assets={}
 
 local function shape(parent: Instance, name: string, size: Vector3, cf: CFrame,
@@ -35,6 +36,9 @@ local function rod(parent: Instance,name: string,at: Vector3,length: number,diam
         color,Enum.Material.Metal,true)
 end
 local function meshSpeaker(parent: Instance,x: number,y: number,z: number,p: any)
+    if PrefabLibrary.place(parent,"NearfieldMonitor",CFrame.new(x,y-1.8,z)) then
+        return
+    end
     slab(parent,"MonitorCabinet",x,y,z,2.3,3.6,1.5,p.steel,Enum.Material.Wood)
     for _,height in { -0.9, 0.8 } do
         shape(parent,"MonitorCone",Vector3.new(0.14,1.05,1.05),
@@ -46,6 +50,9 @@ local function meshSpeaker(parent: Instance,x: number,y: number,z: number,p: any
     end
 end
 local function analogRack(parent: Instance,x: number,z: number,p: any)
+    if PrefabLibrary.place(parent,"AnalogRack",CFrame.new(x,0,z)) then
+        return
+    end
     slab(parent,"SteelRack",x,4.1,z,3.5,8.0,2.0,p.steel,Enum.Material.Metal)
     for j=0,9 do
         local y=0.85+j*0.7
@@ -57,11 +64,17 @@ local function analogRack(parent: Instance,x: number,z: number,p: any)
     end
 end
 local function tapeReel(parent: Instance,x: number,y: number,z: number,p: any)
+    if PrefabLibrary.place(parent,"TapeReel",CFrame.new(x,y,z)) then
+        return
+    end
     local rot=CFrame.Angles(0,math.rad(90),0)
     shape(parent,"ReelFlange",Vector3.new(0.18,1.7,1.7),CFrame.new(x,y,z)*rot,p.steel,Enum.Material.Metal,true)
     shape(parent,"ReelHub",Vector3.new(0.23,0.47,0.47),CFrame.new(x,y,z-0.13)*rot,p.trim,Enum.Material.Metal,true)
 end
 local function oldMicrophone(parent: Instance,x: number,z: number,p: any)
+    if PrefabLibrary.place(parent,"BroadcastMicrophone",CFrame.new(x,0,z)) then
+        return
+    end
     rod(parent,"MicColumn",Vector3.new(x,2.7,z),5.1,0.12,p.steel,true)
     rod(parent,"MicCrossbar",Vector3.new(x+0.45,5.15,z),1.15,0.13,p.steel)
     slab(parent,"CapsuleHousing",x+0.9,5.13,z,0.45,0.64,0.42,p.trim,Enum.Material.Metal)
@@ -71,6 +84,9 @@ local function oldMicrophone(parent: Instance,x: number,z: number,p: any)
     rod(parent,"WeightedFoot",Vector3.new(x,0.1,z),1.6,0.16,p.trim)
 end
 local function foundryBell(parent: Instance,x: number,z: number,p: any)
+    if PrefabLibrary.place(parent,"FoundryBell",CFrame.new(x,0,z)) then
+        return
+    end
     -- Stepped die-cast bell, a distant landmark, not a single undifferentiated cylinder.
     local bronze=Color3.fromRGB(133,91,54)
     local bands={ {y=1.1,r=5.4,h=1.4},{y=2.5,r=4.7,h=1.4},{y=3.85,r=3.6,h=1.2},
