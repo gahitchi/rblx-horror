@@ -319,7 +319,7 @@ end
 local function breakRoom()
     -- Keep the center clear: the existing table and fridge are the solid collision shapes.
     block("TableSurface", 50, 3.06, -47, 6.4, 0.18, 4.3, C.timber, Enum.Material.Wood)
-    block("Cup", 48.4, 3.25, -47, 0.52, 0.37, 0.52, C.paper, Enum.Material.Ceramic)
+    block("Cup", 48.4, 3.25, -47, 0.52, 0.37, 0.52, C.paper, Enum.Material.SmoothPlastic)
     block("CoffeeStain", 49.2, 3.16, -45.8, 0.7, 0.025, 0.7, Color3.fromRGB(67, 48, 34))
     block("FridgeHandle", 55.35, 4.8, -36.5, 0.16, 2.2, 0.17, C.darkSteel, Enum.Material.Metal)
     sign("StaffNotice", "STAFF ROOM\nKEEP ALL DOORS SHUT\nDO NOT USE THE INTERCOM", Vector3.new(59.39, 7, -48), -90, 7.5, 4.5, C.timberEdge)
