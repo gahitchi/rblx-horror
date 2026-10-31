@@ -6,6 +6,7 @@ local Workspace = game:GetService("Workspace")
 local AssetLibrary = require(script.Parent.AssetLibrary)
 local ArchitecturalDetail = require(script.Parent.ArchitecturalDetail)
 local PBRMaterials = require(script.Parent.PBRMaterials)
+local PrefabLibrary = require(script.Parent.Parent.PrefabLibrary)
 
 local Kit = {}
 export type Room = { name: string, role: string, col: number, row: number }
@@ -87,16 +88,21 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
     local front=z+hd-4.5
     local role=r.role
     if role=="control" or role=="broadcast" or role=="master" then
-        box(parent,"DeskPlinth",left-2,0,back-1,left+5,2.7,back+2.5,p.steel,Enum.Material.Metal,true)
-        box(parent,"ConsoleSurface",left-2.5,2.7,back-1.4,left+5.5,3.05,back+3,p.trim,Enum.Material.Metal,false)
-        for i=1,8 do
-            local fx=left-1.8+i*0.79
-            box(parent,"ConsoleFader",fx,3.09,back+0.1,fx+0.24,3.16,back+1.9,p.accent,Enum.Material.Metal,false)
-        end
-        for i=0,2 do
-            box(parent,"MeterFrame",left-1+i*2.4,3.5,back-1.1,left+0.7+i*2.4,5.2,back-0.8,p.steel,Enum.Material.Metal,false)
-            box(parent,"MeterGlow",left-0.9+i*2.4,3.65,back-1.17,left+0.55+i*2.4,5.05,back-1.13,
-                Color3.fromRGB(36,92,72),Enum.Material.Glass,false)
+        local collider=box(parent,"DeskPlinth",left-2,0,back-1,left+5,2.7,back+2.5,p.steel,Enum.Material.Metal,true)
+        if PrefabLibrary.place(parent,"MixingConsole",CFrame.new(left+1.5,0,back+0.7)) then
+            -- The invisible proxy alone owns the console's collision/monster navigation.
+            collider.Transparency=1
+        else
+            box(parent,"ConsoleSurface",left-2.5,2.7,back-1.4,left+5.5,3.05,back+3,p.trim,Enum.Material.Metal,false)
+            for i=1,8 do
+                local fx=left-1.8+i*0.79
+                box(parent,"ConsoleFader",fx,3.09,back+0.1,fx+0.24,3.16,back+1.9,p.accent,Enum.Material.Metal,false)
+            end
+            for i=0,2 do
+                box(parent,"MeterFrame",left-1+i*2.4,3.5,back-1.1,left+0.7+i*2.4,5.2,back-0.8,p.steel,Enum.Material.Metal,false)
+                box(parent,"MeterGlow",left-0.9+i*2.4,3.65,back-1.17,left+0.55+i*2.4,5.05,back-1.13,
+                    Color3.fromRGB(36,92,72),Enum.Material.Glass,false)
+            end
         end
     elseif role=="live" or role=="stage" then
         rectangle(r,-hw+5,0,-hd+5,p.steel,Enum.Material.Metal,parent)
@@ -515,8 +521,11 @@ function Kit.build(spec: Specification): Model
     local f=roomPos(spec.fuseBox)
     box(objectives,"FuseBox",f.X+9,2.5,f.Z-2,f.X+10.6,6.5,f.Z+2,theme.steel,Enum.Material.Metal,true)
     local tape=roomPos(spec.tape)
-    box(objectives,"TapeDeck",tape.X-1.6,3.2,tape.Z-2,tape.X+1.6,4.7,tape.Z+0.2,
+    local tapeProxy=box(objectives,"TapeDeck",tape.X-1.6,3.2,tape.Z-2,tape.X+1.6,4.7,tape.Z+0.2,
         theme.trim,Enum.Material.Metal,true)
+    if PrefabLibrary.place(detailFolder,"CassetteRecorder",CFrame.new(tape.X,4.69,tape.Z-0.8)) then
+        tapeProxy.Transparency=1
+    end
     -- All maps have a physically reachable outside floor and exit volume.
     local ex=roomPos(spec.spawn)
     box(structure,"FrontApron",ex.X-13,-1,entrance.z2,ex.X+13,0,entrance.z2+18,
@@ -526,6 +535,7 @@ function Kit.build(spec: Specification): Model
     exit.CanTouch=true
     -- Import-approved PBR material variants are applied to the finished shell only.
     PBRMaterials.apply(model)
+    PrefabLibrary.report()
     model.Parent=Workspace
     return model
 end
