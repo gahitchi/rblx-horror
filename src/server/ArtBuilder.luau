@@ -200,7 +200,7 @@ local function reception()
         block("ReceptionFloorSeam", -17 + i * 10, 0.035, 14.5, 0.04, 0.04, 28, C.trim)
     end
     sign("StudioIdentity", "BLACKLINE\nRECORDING", Vector3.new(0, 7.5, 0.61), 0, 10, 3, C.timberEdge)
-    sign("ExitWarning", "FIRE EXIT  /  RECEPTION", Vector3.new(0, 9.7, 29.38), 0, 10, 1.25, C.darkSteel, C.red)
+    sign("ExitWarning", "FIRE EXIT  /  RECEPTION", Vector3.new(0, 9.7, 29.38), 180, 10, 1.25, C.darkSteel, C.red)
     sign("RecordingSchedule", "SESSION LOG\n04 / 17    23:40\nROOM A    ACTIVE\nENGINEER  ON DUTY", Vector3.new(19.37, 6.5, 17), -90, 5, 4, C.timberEdge)
     -- Waiting area, anchored to the existing sofa silhouette.
     block("SofaBack", 12, 2.65, 19.25, 8.3, 2.2, 0.55, Color3.fromRGB(67, 46, 47), Enum.Material.Fabric)
@@ -229,7 +229,7 @@ local function studioConsole(x: number, suffix: string)
     for i = 0, 4 do
         acousticPanel(x - 12 + i * 6, 6.5, -39.35, 0, 4.4, 6, i)
     end
-    sign("ConsoleRackLabel" .. suffix, suffix .. " / CONTROL", Vector3.new(x, 9.5, -9.42), 0, 9, 1.3, C.darkSteel)
+    sign("ConsoleRackLabel" .. suffix, suffix .. " / CONTROL", Vector3.new(x, 9.5, -10.62), 180, 9, 1.3, C.darkSteel)
 end
 
 local function liveRoom()
@@ -291,8 +291,8 @@ local function corridors()
     end
     sign("WestDirection", "A  /  CONTROL", Vector3.new(-4.35, 8, -16), 90, 4, 1.2, C.darkSteel)
     sign("EastDirection", "B  /  CONTROL", Vector3.new(4.35, 8, -16), -90, 4, 1.2, C.darkSteel)
-    sign("BasementDirection", "GENERATOR  /  LOWER LEVEL", Vector3.new(-50, 9.7, -59.4), 0, 9, 1.1, C.darkSteel, C.amber)
-    sign("BreakDirection", "STAFF ONLY", Vector3.new(47.5, 9.7, -59.4), 0, 7.5, 1.1, C.darkSteel)
+    sign("BasementDirection", "GENERATOR  /  LOWER LEVEL", Vector3.new(-50, 9.7, -60.62), 180, 9, 1.1, C.darkSteel, C.amber)
+    sign("BreakDirection", "STAFF ONLY", Vector3.new(47.5, 9.7, -60.62), 180, 7.5, 1.1, C.darkSteel)
     for _, x in { -34, -15, 15, 34 } do
         block("CrossPassageDado", x, 3.3, -69.38, 9, 0.15, 0.15, C.brass, Enum.Material.Metal)
     end
