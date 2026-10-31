@@ -10,7 +10,7 @@ export type Room = { name: string, role: string, col: number, row: number }
 export type Specification = {
     id: string, name: string, palette: { wall: Color3, floor: Color3, ceiling: Color3, trim: Color3, steel: Color3, accent: Color3 },
     x: { number }, z: { number }, height: number, rooms: { Room },
-    links: { { number | string } }, booths: { string }, fuseRooms: { string },
+    links: { { number | string } }, booths: { string }, windows: { { string } }?, fuseRooms: { string },
     generator: string, fuseBox: string, tape: string, spawn: string, monster: string,
 }
 type AreaInfo = { name: string, role: string, x1: number, x2: number, z1: number, z2: number, center: Vector3 }
@@ -205,7 +205,38 @@ local function wall(parent: Instance, axis: string, at: number, a: number, b: nu
         local left=math.max(a,portal.along-portal.width/2)
         local right=math.min(b,portal.along+portal.width/2)
         segment(cursor,left,0,h)
-        if portal.kind~="open" then
+        if portal.kind=="window" then
+            -- Real observation glazing: no solid wall behind the glass, but sound is blocked.
+            segment(left,right,0,4.2)
+            segment(left,right,10.6,h)
+            local pane: Part
+            if axis=="X" then
+                pane=box(parent,"AcousticObservationGlass",left,4.2,at-0.18,right,10.6,at+0.18,
+                    Color3.fromRGB(112,137,142),Enum.Material.Glass,true)
+                for _, y in {4.2,10.6} do
+                    box(parent,"WindowHorizontalFrame",left-0.18,y-0.19,at-0.38,
+                        right+0.18,y+0.19,at+0.38,p.trim,Enum.Material.Metal,false)
+                end
+                for _, x in {left,(left+right)/2,right} do
+                    box(parent,"WindowVerticalMullion",x-0.13,4.1,at-0.4,
+                        x+0.13,10.7,at+0.4,p.steel,Enum.Material.Metal,false)
+                end
+            else
+                pane=box(parent,"AcousticObservationGlass",at-0.18,4.2,left,at+0.18,10.6,right,
+                    Color3.fromRGB(112,137,142),Enum.Material.Glass,true)
+                for _, y in {4.2,10.6} do
+                    box(parent,"WindowHorizontalFrame",at-0.38,y-0.19,left-0.18,
+                        at+0.38,y+0.19,right+0.18,p.trim,Enum.Material.Metal,false)
+                end
+                for _, z in {left,(left+right)/2,right} do
+                    box(parent,"WindowVerticalMullion",at-0.4,4.1,z-0.13,
+                        at+0.4,10.7,z+0.13,p.steel,Enum.Material.Metal,false)
+                end
+            end
+            pane.Transparency=0.42
+            pane.Reflectance=0.06
+            pane:SetAttribute("AcousticGlazing",true)
+        elseif portal.kind~="open" then
             segment(left,right,9,h)
         end
         cursor=right
@@ -279,6 +310,48 @@ function Kit.build(spec: Specification): Model
         attach(aName,portal)
         attach(bName,portal)
     end
+    -- Viewing panels connect adjacent rooms visually while preserving acoustic isolation.
+    for index, pair in spec.windows or {} do
+        local a=assert(byName[pair[1]],"Unknown window room "..pair[1])
+        local b=assert(byName[pair[2]],"Unknown window room "..pair[2])
+        local axis: string
+        local at: number
+        local along: number
+        local lo: number
+        local hi: number
+        if math.abs(a.z2-b.z1)<0.01 or math.abs(b.z2-a.z1)<0.01 then
+            axis="X"
+            at=if math.abs(a.z2-b.z1)<0.01 then a.z2 else b.z2
+            lo=math.max(a.x1,b.x1)
+            hi=math.min(a.x2,b.x2)
+        elseif math.abs(a.x2-b.x1)<0.01 or math.abs(b.x2-a.x1)<0.01 then
+            axis="Z"
+            at=if math.abs(a.x2-b.x1)<0.01 then a.x2 else b.x2
+            lo=math.max(a.z1,b.z1)
+            hi=math.min(a.z2,b.z2)
+        else
+            error("Observation window must join adjacent rooms: "..pair[1].."/"..pair[2])
+        end
+        assert(hi-lo>=23,"Observation wall is too narrow")
+        local width=9
+        along=(lo+hi)/2
+        for _, portal in portals do
+            if portal.axis==axis and math.abs(portal.at-at)<0.01
+                and portal.kind~="window" and math.abs(portal.along-along)<0.01 then
+                along=hi-6.5
+            end
+        end
+        for _, portal in portals do
+            if portal.axis==axis and math.abs(portal.at-at)<0.01 then
+                assert(math.abs(portal.along-along) >= (portal.width+width)/2+1,
+                    "Observation glazing overlaps passage "..portal.name)
+            end
+        end
+        table.insert(portals,{
+            axis=axis,at=at,along=along,width=width,kind="window",
+            name="ObservationWindow"..tostring(index),
+        })
+    end
     local entrance=assert(byName[spec.spawn],"Missing reception")
     local front: Portal={axis="X",at=entrance.z2,along=entrance.center.X,width=10,kind="front",name="FrontDoors"}
     table.insert(portals,front)
@@ -323,7 +396,7 @@ function Kit.build(spec: Specification): Model
     end
     local doorByName: { [string]: Part }={}
     for _,p in portals do
-        if p.kind~="open" then
+        if p.kind~="open" and p.kind~="window" then
             doorByName[p.name]=doorLeaf(doors,p,theme)
         end
     end
