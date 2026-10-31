@@ -1,4 +1,4 @@
-# Playtest checklist: 0.5.0
+# Playtest checklist: 0.6.0
 
 One session tests everything built since the last playtest. Nothing here has run in Roblox yet,
 so expect some of it to break; that's what this session is for.
@@ -94,3 +94,14 @@ so expect some of it to break; that's what this session is for.
       beam colour shows for you and for the other player. Losing a level relocks its look.
 - [ ] Robux revive: needs a Developer Product id in `Config.REVIVE.PRODUCT_ID` (0 hides the button);
       Studio test purchases are free.
+
+## 10. Added in 0.6.0: the hub and replays (published game, see docs/HUB.md)
+
+- [ ] In Studio, hub place: create a lobby (map, size, public or friends only); it shows as "Your
+      lobby"; Leave works; a second test player sees and joins it; the next member becomes host
+      when the host leaves.
+- [ ] Published: Start teleports everyone in the lobby together into a match on the chosen map.
+- [ ] A friend's lobby in another hub server shows "(friend, other server)", and Join gets you there.
+- [ ] After a round: "Play again?" No sends you to the hub; Yes shows the map vote; with everyone
+      on Yes and the same map, the next round starts in the same server.
+- [ ] In Studio, the vote appears and everyone stays (no teleports there).

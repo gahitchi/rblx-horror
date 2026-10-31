@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.5.0"
+Config.VERSION = "0.6.0"
 Config.DEBUG = true -- extra Output logging while in development
 Config.DEBUG_AI = false -- shows the monster's state, awareness and path in the world
 
@@ -163,6 +163,31 @@ Config.REVIVE = table.freeze({
 
 Config.READY_COUNTDOWN = 3 -- when everyone in the lobby is ready, the round starts this soon
 
+-- The experience's places (ids from the Creator Dashboard > your experience > Places). While they
+-- are 0, or in Studio, nothing teleports: the match place plays on its own as before.
+Config.PLACES = table.freeze({
+	HUB = 0, -- the start place, where players gather and make lobbies
+	MATCH = 0, -- the place rounds are played in (reserved servers)
+})
+
+-- The maps players can pick. `id` is what MapBuilder/ServerStorage.Maps use.
+Config.MAPS = table.freeze({
+	table.freeze({ id = "studio", name = "Recording studio", monster = "The Engineer" }),
+})
+
+-- Hub lobbies.
+Config.LOBBY = table.freeze({
+	MAX_PLAYERS = 4,
+	LIST_INTERVAL = 2, -- how often each player's lobby list is refreshed
+	PUBLISH_INTERVAL = 10, -- how often a hub tells other hubs about its lobbies (for friends)
+	EXPIRY = 35, -- a published lobby disappears this long after its hub stops refreshing it
+})
+
+-- After a round in a match server.
+Config.REPLAY = table.freeze({
+	VOTE_TIME = 15, -- seconds to answer "play again?" and vote; no answer means back to the hub
+})
+
 -- Feature switches: turn one off if it misbehaves in a playtest, without losing the rest.
 Config.FEATURES = table.freeze({
 	WALKIE = true,
@@ -170,6 +195,7 @@ Config.FEATURES = table.freeze({
 	MIMICRY = true,
 	SPECTATE = true,
 	FEEDBACK = true,
+	REPLAY = true, -- "play again?" and the map vote after each round in a match server
 })
 
 -- Walkie-talkie: hold V to talk through every other walkie; 1 to 4 send quick callouts.

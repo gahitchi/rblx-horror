@@ -2,6 +2,8 @@
 -- Server entry point: builds the map, wires the systems together, and starts the round loop.
 
 local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -18,6 +20,7 @@ local RoundService = require(script.Parent.RoundService)
 
 local FeedbackService = require(script.Parent.FeedbackService)
 local ProgressService = require(script.Parent.ProgressService)
+local ReplayService = require(script.Parent.ReplayService)
 local ReviveService = require(script.Parent.ReviveService)
 local TapeService = require(script.Parent.Items.TapeService)
 local WalkieService = require(script.Parent.Items.WalkieService)
@@ -35,10 +38,43 @@ end
 
 -- The map: a hand-made Workspace.Map if there is one (see docs/MAP_CONTRACT.md), otherwise the
 -- code-built greybox, which follows the same contract.
+-- Which map: the one the hub lobby (or the replay vote) picked, sent with the teleport. A reserved
+-- server starts because players are on their way, so wait for the first one to read it.
+local function chosenMap(): string
+	if game.PrivateServerId ~= "" and game.PrivateServerOwnerId == 0 then
+		local deadline = os.clock() + 20
+		while #Players:GetPlayers() == 0 and os.clock() < deadline do
+			task.wait(0.1)
+		end
+		local first = Players:GetPlayers()[1]
+		local joinData = if first then first:GetJoinData() else nil
+		local data: any = joinData and joinData.TeleportData
+		local wanted = if type(data) == "table" then data.map else nil
+		for _, entry in Config.MAPS do
+			if entry.id == wanted then
+				return entry.id
+			end
+		end
+	end
+	return Config.MAPS[1].id
+end
+local mapId = chosenMap()
+
+-- A hand-made map: Workspace.Map (testing in Studio), or ServerStorage.Maps.<id> for that map.
+-- Otherwise the code-built greybox (the recording studio).
 local lobbySpawn = MapBuilder.buildLobby()
 local map = Workspace:FindFirstChild("Map")
 if not map then
-	map = MapBuilder.build()
+	local stored = ServerStorage:FindFirstChild("Maps")
+	local source = stored and stored:FindFirstChild(mapId)
+	if source then
+		local copy = source:Clone()
+		copy.Name = "Map"
+		copy.Parent = Workspace
+		map = copy
+	else
+		map = MapBuilder.build()
+	end
 end
 local loaded, problems = MapContract.read(map :: Instance, lobbySpawn)
 for _, problem in problems do
@@ -90,6 +126,8 @@ FeedbackService.init()
 ReviveService.init(layout.areas)
 WalkieService.init(layout.areas)
 TapeService.init()
+ReplayService.init(mapId)
+RoundService.afterResults(ReplayService.run)
 RoundService.init(layout)
 
 print(string.format("[%s] server running, v%s", Config.GAME_NAME, Config.VERSION))

@@ -22,7 +22,8 @@ Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before de
 ## Workflow
 - Claude writes code here and pushes to `main`. Gabriel runs `rojo serve` on his Arch laptop (Studio through Vinegar) and plays.
 - There's no Roblox runtime in Claude's environment, so nothing can be play-tested here: review logic carefully and say plainly what is untested.
-- Before pushing: `stylua src`, `luau-lsp analyze` with a sourcemap (no type errors), `rojo build`. Selene needs the Roblox API dump from the network and may not run.
+- Two places (docs/HUB.md): the hub (`hub.project.json`, `src/hub/`) and the match place (`default.project.json`, `src/server`, `src/client`); `src/shared` goes to both. Teleports can't be tested in Studio.
+- Before pushing: `stylua src`, `luau-lsp analyze` with each place's sourcemap on its own folders (no type errors), `rojo build` for both project files. Selene needs the Roblox API dump from the network and may not run.
 - Bump `Config.VERSION` when a build is meant to be tested.
 
 ## Code conventions

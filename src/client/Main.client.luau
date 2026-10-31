@@ -10,6 +10,7 @@ local Hud = require(script.Parent.Hud)
 local ItemController = require(script.Parent.ItemController)
 local LobbyUi = require(script.Parent.LobbyUi)
 local MovementController = require(script.Parent.MovementController)
+local ReplayUi = require(script.Parent.ReplayUi)
 local SpectateController = require(script.Parent.SpectateController)
 local VoiceController = require(script.Parent.VoiceController)
 
@@ -27,6 +28,7 @@ local controllers: { [string]: { start: () -> () } } = {
 	ItemController = ItemController,
 	SpectateController = SpectateController,
 	LobbyUi = LobbyUi,
+	ReplayUi = ReplayUi,
 }
 
 for name, controller in controllers do

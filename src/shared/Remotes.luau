@@ -51,4 +51,13 @@ return table.freeze({
 	FeedbackReceived = event("FeedbackReceived"), -- server -> client: (ok: boolean, message: string)
 	Revive = event("Revive"), -- client -> server: (method: "level" | "token") come back after being caught
 	SetSkin = event("SetSkin"), -- client -> server: (skinId: string) equip an unlocked flashlight look
+	-- Hub
+	CreateLobby = event("CreateLobby"), -- client -> server: ({ map, max, friendsOnly })
+	JoinLobby = event("JoinLobby"), -- client -> server: (lobbyId: string)
+	LeaveLobby = event("LeaveLobby"), -- client -> server: ()
+	StartLobby = event("StartLobby"), -- client -> server: () host only
+	LobbyList = event("LobbyList"), -- server -> client: ({ LobbyEntry }, myLobbyId: string?)
+	-- Match: after a round
+	ReplayChoice = event("ReplayChoice"), -- client -> server: (again: boolean)
+	MapVote = event("MapVote"), -- client -> server: (mapId: string)
 })

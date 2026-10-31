@@ -68,6 +68,11 @@ Voice is optional; the game works the same without it. To test it in a published
 voice chat for the experience (Game Settings > Communication) and use an account that has voice.
 `UseAudioApi` is already enabled in the project file. Voice doesn't work in solo Studio play.
 
+## Places
+
+Two places: the hub (`hub.project.json`, `src/hub/`) where players make lobbies, and the match
+place (`default.project.json`) where rounds are played. Setup and publishing: [docs/HUB.md](docs/HUB.md).
+
 ## Maps
 
 A map is a `Workspace.Map` laid out as [docs/MAP_CONTRACT.md](docs/MAP_CONTRACT.md) describes. Without

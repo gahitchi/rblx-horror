@@ -41,15 +41,6 @@ local function notify(player: Player, message: string)
 	Remotes.Notify:FireClient(player, message)
 end
 
-local function rootOf(player: Player): BasePart?
-	local character = player.Character
-	local r = character and character:FindFirstChild("HumanoidRootPart")
-	if r and r:IsA("BasePart") then
-		return r
-	end
-	return nil
-end
-
 local function clearMarker(player: Player)
 	local marker = markers[player]
 	if marker then

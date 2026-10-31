@@ -88,6 +88,13 @@ function RoundService.onRoundEnd(callback: () -> ())
 	table.insert(roundEndListeners, callback)
 end
 
+local afterResultsListeners: { ({ Player }) -> () } = {}
+
+-- `callback(players)` runs after the results, before the next lobby; it may wait (the replay vote).
+function RoundService.afterResults(callback: ({ Player }) -> ())
+	table.insert(afterResultsListeners, callback)
+end
+
 -- `callback()` runs when a round starts, before anyone is spawned into it.
 function RoundService.onRoundStart(callback: () -> ())
 	table.insert(roundStartListeners, callback)
@@ -347,7 +354,14 @@ function RoundService.init(map: MapContract.Layout)
 		while true do
 			runLobby()
 			runRound()
+			local played: { Player } = {}
+			for player in participants do
+				table.insert(played, player)
+			end
 			runResults()
+			for _, callback in afterResultsListeners do
+				callback(played)
+			end
 		end
 	end)
 end
