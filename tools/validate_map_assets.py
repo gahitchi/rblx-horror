@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""Check authored Luau room catalogs and original OBJ geometry without Roblox Studio."""
+import re
+from collections import defaultdict, deque
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+source = (ROOT / "src/server/Maps/Layouts.luau").read_text()
+files = ["console-master.obj", "broadcast-microphone.obj", "foundry-bell.obj",
+         "cassette-recorder.obj", "engineer-headset.obj"]
+
+def brace_chunk(text, key):
+    m = re.search(r"\b" + re.escape(key) + r"\s*=\s*\{", text)
+    assert m, f"Missing {key} block"
+    start = m.end()-1
+    depth = 0
+    quote = False
+    escape = False
+    for i in range(start,len(text)):
+        ch=text[i]
+        if quote:
+            if escape: escape=False
+            elif ch=="\\": escape=True
+            elif ch=='"': quote=False
+            continue
+        if ch=='"': quote=True
+        elif ch=="{": depth += 1
+        elif ch=="}":
+            depth -= 1
+            if depth==0: return text[start:i+1]
+    raise AssertionError(f"Unclosed {key} block")
+
+def room_rows(chunk):
+    return [re.findall(r'"([^"]+)"', row) for row in re.findall(r"\{([^{}]+)\}",chunk)]
+
+def check_map(mapid):
+    start = source.index(f"function Layouts.{mapid}()")
+    later = source.find("\nfunction Layouts.",start+1)
+    block = source[start:later if later!=-1 else len(source)]
+    names=room_rows(brace_chunk(block,"names"))
+    roles=room_rows(brace_chunk(block,"roles"))
+    assert len(names)==len(roles)==5,(mapid,len(names),len(roles))
+    assert all(len(n)==len(r)==4 for n,r in zip(names,roles))
+    flattened=[name for row in names for name in row]
+    assert len(flattened)==len(set(flattened))==20,(mapid,"duplicate rooms")
+    def key(k):
+        m=re.search(r"\b"+k+r'="([^"]+)"',block)
+        assert m, (mapid,k)
+        assert m.group(1) in flattened,(mapid,k,m.group(1))
+        return m.group(1)
+    for k in ("generator","fuseBox","tape","spawn","monster"):key(k)
+    fuse= re.findall(r'"([^"]+)"',brace_chunk(block,"fuseRooms"))
+    assert len(fuse)>=10 and len(fuse)==len(set(fuse)),(mapid,"fuse count")
+    assert set(fuse).issubset(flattened),(mapid,"unknown fuse rooms")
+    xs=[float(v) for v in re.findall(r"-?\d+",brace_chunk(block,"x"))]
+    zs=[float(v) for v in re.findall(r"-?\d+",brace_chunk(block,"z"))]
+    assert len(xs)==5 and len(zs)==6,(mapid,"grid dims")
+    assert all(b-a>=24 for a,b in zip(xs,xs[1:])),(mapid,"narrow cell")
+    assert all(b-a>=24 for a,b in zip(zs,zs[1:])),(mapid,"narrow cell")
+    # Cross-check the explicit network built in Layouts.luau.
+    edges=[]
+    for col in (1,3):edges.append(((1,col),(1,col+1)))
+    for row in range(2,6):
+        for col in range(1,4):edges.append(((row,col),(row,col+1)))
+    for r,c in [(1,2),(1,4),(2,1),(2,3),(2,4),(3,1),(3,2),(3,3),
+                (4,1),(4,2),(4,3),(4,4)]:
+        edges.append(((r,c),(r+1,c)))
+    adjacency=defaultdict(set)
+    for a,b in edges: adjacency[a].add(b);adjacency[b].add(a)
+    visited={(5,3)}
+    pending=deque(visited)
+    while pending:
+        for neighbour in adjacency[pending.popleft()]:
+            if neighbour not in visited:
+                visited.add(neighbour);pending.append(neighbour)
+    assert len(visited)==20,(mapid,"unreachable room")
+    assert len(edges)-20+1>=4,(mapid,"insufficient escape loops")
+    leaves=[v for v,adj in adjacency.items() if len(adj)==1]
+    assert len(leaves)>=2,(mapid,"need risky dead ends")
+    booth_block=brace_chunk(block,"booths")
+    booth_names=re.findall(r"(\w+)\s*=\s*true",booth_block)
+    for b in booth_names:
+        assert b in flattened
+        j=flattened.index(b)
+        assert (j//4+1,j%4+1) in leaves,(mapid,"booth has alternate exit",b)
+    print(f"PASS {mapid}: 20 rooms, {len(edges)} links, {len(leaves)} dead ends, "
+          f"{len(fuse)} fuse sites, {len(booth_names)} booths")
+
+def check_mesh(name):
+    file=ROOT/"assets/meshes"/name
+    lines=file.read_text().splitlines()
+    nv=sum(line.startswith("v ") for line in lines)
+    nu=sum(line.startswith("vt ") for line in lines)
+    faces=[line for line in lines if line.startswith("f ")]
+    assert nv>=100 and nv==nu and len(faces)>=80,(name,"missing geometry/uv")
+    for line in faces:
+        for component in line[2:].split():
+            pos,uv=component.split("/")[:2]
+            assert 1<=int(pos)<=nv and 1<=int(uv)<=nu,(name,component)
+    print(f"PASS OBJ {name}: {nv} vertices, {len(faces)} faces, UV indices valid")
+
+if __name__=="__main__":
+    for ident in ("studio","radio","foundry"):check_map(ident)
+    for item in files:check_mesh(item)
