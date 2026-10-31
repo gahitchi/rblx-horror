@@ -140,8 +140,11 @@ The map has to end up as `Workspace.Map`. Either:
 2. **Built by code:** a ModuleScript that creates the `Map` model following this contract (the way
    `MapBuilder.luau` does for the greybox), called from `Main.server.luau` before the map is read.
 
-Leave the scripts in `src/` to Claude unless agreed otherwise, and say in the commit message when
-a script had to change.
+This contract is shared ground, not a fence. If the map needs something it doesn't allow (glass
+that lets sound through, a ladder, a different kind of door), change it: update this file and
+`src/server/MapContract.luau` together, or ask and we'll work it out. Anyone can touch any file;
+when you change something the other is in the middle of, say so in the commit message so it can be
+checked together.
 
 ## Checking a map
 
