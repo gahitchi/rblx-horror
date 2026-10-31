@@ -4,6 +4,7 @@
 -- Deliberately no free-floating "ray tracing": Roblox lighting is handled by VisualFidelity.
 local Workspace = game:GetService("Workspace")
 local AssetLibrary = require(script.Parent.AssetLibrary)
+local ArchitecturalDetail = require(script.Parent.ArchitecturalDetail)
 local PBRMaterials = require(script.Parent.PBRMaterials)
 
 local Kit = {}
@@ -394,6 +395,7 @@ function Kit.build(spec: Specification): Model
         end
         furnishing(room,spec,detailFolder)
         AssetLibrary.decorate(detailFolder,room.role,spec.id,room.x1,room.x2,room.z1,room.z2,spec.height,theme)
+        ArchitecturalDetail.decorate(detailFolder,spec.id,room.role,room.x1,room.x2,room.z1,room.z2,spec.height,theme)
     end
     local doorByName: { [string]: Part }={}
     for _,p in portals do
@@ -434,12 +436,29 @@ function Kit.build(spec: Specification): Model
         local spot=Instance.new("SpotLight")
         spot.Face=Enum.NormalId.Bottom
         spot.Color=theme.accent
-        spot.Brightness=0.85
-        spot.Range=23
-        spot.Angle=105
-        spot.Shadows=false
+        local hero=r.name==spec.spawn or r.name==spec.tape or r.name==spec.generator
+        spot.Brightness=if hero then 1.1 else 0.72
+        spot.Range=if hero then 30 else 22
+        spot.Angle=100
+        spot.Shadows=hero
         spot.Enabled=false
         spot.Parent=housing
+        -- Real buildings retain a few low-intensity, battery-backed egress indicators.
+        -- They do not participate in generator power state and cannot obscure the torch.
+        if r.name==spec.spawn or r.role=="corridor" or r.name==spec.fuseBox then
+            local battery=piece(detailFolder,"BatteryExitHousing",Vector3.new(2.5,0.6,0.22),
+                CFrame.new(r.center.X,10.2,r.z1+1.4),theme.steel,Enum.Material.Metal,false)
+            local lens=piece(detailFolder,"BatteryExitLens",Vector3.new(1.7,0.28,0.07),
+                CFrame.new(r.center.X,10.2,r.z1+1.2),
+                Color3.fromRGB(87,54,40),Enum.Material.Neon,false)
+            local standby=Instance.new("PointLight")
+            standby.Name="EmergencyBatteryLight"
+            standby.Range=9
+            standby.Brightness=0.14
+            standby.Color=Color3.fromRGB(205,111,70)
+            standby.Shadows=false
+            standby.Parent=lens
+        end
     end
     local g=roomPos(spec.generator)
     box(objectives,"Generator",g.X-3,0,g.Z-3,g.X+3,5,g.Z+1,theme.steel,Enum.Material.DiamondPlate,true)
