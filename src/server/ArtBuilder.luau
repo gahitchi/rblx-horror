@@ -234,7 +234,11 @@ end
 local function liveRoom()
     -- Acoustic baffles on rear wall and side walls; no free-standing new collision.
     for i = 0, 8 do
-        acousticPanel(-33 + i * 8.2, 7.4, -129.36, 0, 5.8, 9, i)
+        -- The rear wall now has two playable gallery doors, at x=-25 and x=25.
+        -- Their passage must not appear to be sealed by decorative foam.
+        if i ~= 1 and i ~= 7 then
+            acousticPanel(-33 + i * 8.2, 7.4, -129.36, 0, 5.8, 9, i)
+        end
     end
     for i = 0, 4 do
         acousticPanel(39.3, 6.8, -122 + i * 11, -90, 6, 8, i)
