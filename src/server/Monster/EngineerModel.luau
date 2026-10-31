@@ -71,7 +71,6 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 		weld(p, hrp)
 		return p
 	end
-	local vertical = CFrame.Angles(0, 0, math.rad(90))
 
 	-- Unnaturally thin shoulders and an old maintenance coat. The shoulder-line reads from far
 	-- away under a torch beam; the inset waist makes the silhouette distinctly non-player.
