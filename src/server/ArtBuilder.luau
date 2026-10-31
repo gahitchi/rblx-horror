@@ -3,13 +3,12 @@
 -- This module adds visual detail WITHOUT replacing MapBuilder's geometry or gameplay anchors.
 -- All decorative parts are non-collidable, non-queryable and non-touchable: the Engineer's
 -- navigation, sound occlusion, objective prompts and door swings remain owned by existing code.
--- The studio is constructed at server start so the generated details sync through Rojo.
+-- The active map comes from layout.map (see docs/MAP_CONTRACT.md). The details replicate at server start.
 --
 -- The assets are all native Roblox Parts/SurfaceGuis; no marketplace dependencies or asset IDs.
 -- Room accents intentionally leave central walkways and every door threshold unobstructed.
 
 local Lighting = game:GetService("Lighting")
-local Workspace = game:GetService("Workspace")
 
 local MapBuilder = require(script.Parent.MapBuilder)
 
@@ -109,7 +108,7 @@ local function sign(
     textLabel.Parent = gui
 end
 
-local function colourStructure(studio: Model)
+local function colourStructure(studio: Instance)
     local structure = studio:FindFirstChild("Structure")
     if not structure then
         return
@@ -365,9 +364,9 @@ function ArtBuilder.build(layout: MapBuilder.Layout)
     if built then
         return
     end
-    local studio = Workspace:FindFirstChild("Studio")
-    if not studio or not studio:IsA("Model") then
-        warn("[Dead Air] ArtBuilder: Studio not available")
+    local studio = layout.map
+    if not (studio:IsA("Model") or studio:IsA("Folder")) then
+        warn("[Dead Air] ArtBuilder: loaded map must be a Model or Folder")
         return
     end
     built = true

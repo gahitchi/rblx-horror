@@ -28,7 +28,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Sounds = require(Shared:WaitForChild("Sounds"))
 
 local DoorService = require(script.Parent.DoorService)
-local MapBuilder = require(script.Parent.MapBuilder)
+local MapContract = require(script.Parent.MapContract)
 local NoiseService = require(script.Parent.NoiseService)
 local Director = require(script.Parent.Monster.Director)
 local Navigator = require(script.Parent.Monster.Navigator)
@@ -43,7 +43,7 @@ local TICK = 0.1
 local MonsterService = {}
 
 -- Set once
-local areas: { MapBuilder.Area } = {}
+local areas: { MapContract.Area } = {}
 local isTarget: (Player) -> boolean = function()
 	return false
 end
@@ -62,7 +62,7 @@ local rng = Random.new()
 local state: State = "Dormant"
 local resumeState: State = "Roam" -- where Listen goes back to
 local route: { Vector3 } = {} -- spots left to visit (Roam, Search, Retreat)
-local currentArea: MapBuilder.Area? = nil
+local currentArea: MapContract.Area? = nil
 local pauseUntil = 0
 local listenUntil = 0
 local listenToward: Vector3? = nil
@@ -120,7 +120,7 @@ local function targetPositions(): { Vector3 }
 	return list
 end
 
-local function areaAt(position: Vector3): MapBuilder.Area?
+local function areaAt(position: Vector3): MapContract.Area?
 	for _, area in areas do
 		local lo, hi = area.min, area.max
 		if
@@ -317,7 +317,7 @@ end
 
 -- ===== Behaviours =====
 
-local function pickRoute(area: MapBuilder.Area, count: number): { Vector3 }
+local function pickRoute(area: MapContract.Area, count: number): { Vector3 }
 	local spots = table.clone(area.points)
 	local picked: { Vector3 } = {}
 	while #spots > 0 and #picked < count do
@@ -799,7 +799,7 @@ end
 -- ===== API =====
 
 function MonsterService.init(
-	mapAreas: { MapBuilder.Area },
+	mapAreas: { MapContract.Area },
 	targetCheck: (Player) -> boolean,
 	catchCallback: (Player) -> ()
 )

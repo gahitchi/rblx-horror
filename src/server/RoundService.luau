@@ -11,7 +11,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 
 local DoorService = require(script.Parent.DoorService)
-local MapBuilder = require(script.Parent.MapBuilder)
+local MapContract = require(script.Parent.MapContract)
 local MonsterService = require(script.Parent.MonsterService)
 local ObjectiveService = require(script.Parent.ObjectiveService)
 local RoundState = require(script.Parent.RoundState)
@@ -20,7 +20,7 @@ type Status = "alive" | "caught" | "escaped"
 
 local RoundService = {}
 
-local layout: MapBuilder.Layout
+local layout: MapContract.Layout
 local phase = "Lobby"
 local participants: { [Player]: Status } = {}
 local roundId = 0
@@ -212,7 +212,7 @@ local function runResults()
 	end
 end
 
-function RoundService.init(map: MapBuilder.Layout)
+function RoundService.init(map: MapContract.Layout)
 	layout = map
 	Players.CharacterAutoLoads = false
 

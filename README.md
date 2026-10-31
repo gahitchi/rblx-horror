@@ -62,11 +62,16 @@ Voice is optional; the game works the same without it. To test it in a published
 voice chat for the experience (Game Settings > Communication) and use an account that has voice.
 `UseAudioApi` is already enabled in the project file. Voice doesn't work in solo Studio play.
 
+## Maps
+
+A map is a `Workspace.Map` laid out as [docs/MAP_CONTRACT.md](docs/MAP_CONTRACT.md) describes. Without
+one, the game builds the greybox studio, which follows the same rules.
+
 ## Layout
 
 ```
 src/shared   Config (all tuning numbers), Remotes, Sounds
-src/server   MapBuilder, DoorService, NoiseService, MonsterService, ObjectiveService,
+src/server   MapContract, MapBuilder, DoorService, NoiseService, MonsterService, ObjectiveService,
              RoundService, RoundState, PlayerService, Main
 src/client   Movement, Flashlight, Voice, Hud, DangerEffect, Main
 ```
