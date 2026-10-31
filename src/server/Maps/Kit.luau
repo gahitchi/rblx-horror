@@ -173,6 +173,40 @@ local function doorLeaf(parent: Instance, portal: Portal, palette: { wall: Color
     weld.Part0=leaf
     weld.Part1=handle
     weld.Parent=handle
+    local function attachment(name: string, size: Vector3, offset: Vector3,
+        tint: Color3, material: Enum.Material)
+        local item=piece(leaf,name,size,leaf.CFrame*CFrame.new(offset),
+            tint,material,false)
+        item.Anchored=false
+        item.Massless=true
+        item.CastShadow=false
+        local joint=Instance.new("WeldConstraint")
+        joint.Part0=leaf
+        joint.Part1=item
+        joint.Parent=item
+    end
+    -- Hardware moves with the real door leaf; the leaf remains the only collision hull.
+    local hw=leaf.Size.X/2
+    for _, y in {-2.8,2.5} do
+        attachment("SteelHingePlate",Vector3.new(0.19,0.8,0.12),
+            Vector3.new(-hw+0.2,y,-0.36),palette.steel,Enum.Material.Metal)
+        attachment("HingeFastener",Vector3.new(0.06,0.12,0.08),
+            Vector3.new(-hw+0.18,y+0.2,-0.43),palette.accent,Enum.Material.Metal)
+    end
+    attachment("HandleRosette",Vector3.new(0.66,0.66,0.08),
+        Vector3.new(hw-1.05,-0.5,-0.34),palette.steel,Enum.Material.Metal)
+    attachment("GripCylinder",Vector3.new(0.95,0.13,0.19),
+        Vector3.new(hw-0.84,-0.51,-0.58),palette.accent,Enum.Material.Metal)
+    attachment("UpperDoorInlay",Vector3.new(leaf.Size.X-1.45,1.5,0.085),
+        Vector3.new(0,1.65,-0.31),palette.trim,Enum.Material.Metal)
+    attachment("LowerDoorInlay",Vector3.new(leaf.Size.X-1.45,2.5,0.085),
+        Vector3.new(0,-2.25,-0.31),palette.steel,Enum.Material.Metal)
+    if portal.kind=="booth" then
+        attachment("AcousticDoorGasket",Vector3.new(leaf.Size.X-0.48,0.12,0.12),
+            Vector3.new(0,4.15,-0.32),Color3.fromRGB(19,22,22),Enum.Material.SmoothPlastic)
+        attachment("IsolationLabel",Vector3.new(2.2,0.5,0.07),
+            Vector3.new(0,3.24,-0.34),palette.accent,Enum.Material.Metal)
+    end
     return leaf
 end
 local function portalsForEdge(all: { Portal },axis: string,at: number,minAlong: number,maxAlong: number): { Portal }
@@ -240,6 +274,22 @@ local function wall(parent: Instance, axis: string, at: number, a: number, b: nu
             pane:SetAttribute("AcousticGlazing",true)
         elseif portal.kind~="open" then
             segment(left,right,9,h)
+            -- Fixed structural jambs are separate from the swinging leaf.
+            if axis=="X" then
+                for _,x in {left,right} do
+                    box(parent,"SteelDoorJamb",x-0.17,0,at-0.76,
+                        x+0.17,9.12,at+0.76,p.steel,Enum.Material.Metal,false)
+                end
+                box(parent,"SteelDoorHead",left-0.19,9.01,at-0.76,
+                    right+0.19,9.24,at+0.76,p.trim,Enum.Material.Metal,false)
+            else
+                for _,z in {left,right} do
+                    box(parent,"SteelDoorJamb",at-0.76,0,z-0.17,
+                        at+0.76,9.12,z+0.17,p.steel,Enum.Material.Metal,false)
+                end
+                box(parent,"SteelDoorHead",at-0.76,9.01,left-0.19,
+                    at+0.76,9.24,right+0.19,p.trim,Enum.Material.Metal,false)
+            end
         end
         cursor=right
     end
