@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.4.0"
+Config.VERSION = "0.5.0"
 Config.DEBUG = true -- extra Output logging while in development
 Config.DEBUG_AI = false -- shows the monster's state, awareness and path in the world
 
@@ -121,7 +121,46 @@ Config.REWARDS = table.freeze({
 	TAPE_DECK = 40, -- starting the emergency tape
 	DECOY = 15, -- a tape recorder playing back
 	ESCAPE = 100,
+	REVIVE = 30, -- bringing a teammate back
 })
+-- The free reward track (a battle pass nobody has to buy): reaching a level unlocks its reward.
+-- A level lost to a revive relocks its rewards until it's reached again.
+Config.TRACK = table.freeze({
+	{ level = 2, kind = "boost", value = 0.05, id = "", name = "+5% XP" },
+	{ level = 3, kind = "skin", value = 0, id = "cold", name = "Cold white flashlight" },
+	{ level = 4, kind = "boost", value = 0.05, id = "", name = "+5% XP" },
+	{ level = 5, kind = "skin", value = 0, id = "sodium", name = "Sodium amber flashlight" },
+	{ level = 7, kind = "boost", value = 0.1, id = "", name = "+10% XP" },
+	{ level = 8, kind = "skin", value = 0, id = "darkroom", name = "Darkroom red flashlight" },
+	{ level = 10, kind = "boost", value = 0.1, id = "", name = "+10% XP" },
+	{ level = 12, kind = "skin", value = 0, id = "ultraviolet", name = "Ultraviolet flashlight" },
+	{ level = 15, kind = "skin", value = 0, id = "tape", name = "Old tape green flashlight" },
+})
+
+-- Flashlight looks (cosmetic only: the beam's colour, seen by everyone).
+Config.FLASHLIGHT_SKINS = table.freeze({
+	warm = { name = "Warm", color = Color3.fromRGB(255, 244, 222) },
+	cold = { name = "Cold white", color = Color3.fromRGB(225, 236, 255) },
+	sodium = { name = "Sodium amber", color = Color3.fromRGB(255, 196, 120) },
+	darkroom = { name = "Darkroom red", color = Color3.fromRGB(255, 120, 110) },
+	ultraviolet = { name = "Ultraviolet", color = Color3.fromRGB(190, 160, 255) },
+	tape = { name = "Old tape green", color = Color3.fromRGB(190, 255, 190) },
+})
+Config.FLASHLIGHT_SKIN_ORDER =
+	table.freeze({ "warm", "cold", "sodium", "darkroom", "ultraviolet", "tape" })
+
+-- Coming back after being caught: once per round, while teammates are still inside. You put up the
+-- price (a level, normally; Robux is possible but priced as a rare exception), then a teammate has
+-- to reach the walkie you dropped and hold E on it while it screeches back to life. If nobody
+-- comes before the round ends, the price is refunded.
+Config.REVIVE = table.freeze({
+	HOLD_SECONDS = 4,
+	NOISE = 40, -- the reconnecting static, every second of the hold
+
+	PRODUCT_ID = 0, -- the Developer Product id from the Creator Dashboard; 0 hides the Robux option
+	MIN_TIME_LEFT = 45, -- no revives in the last seconds of a round
+})
+
 Config.READY_COUNTDOWN = 3 -- when everyone in the lobby is ready, the round starts this soon
 
 -- Feature switches: turn one off if it misbehaves in a playtest, without losing the rest.

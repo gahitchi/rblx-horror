@@ -10,6 +10,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared:WaitForChild("Config"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Sounds = require(Shared:WaitForChild("Sounds"))
 
@@ -18,6 +19,13 @@ local player = Players.LocalPlayer
 local BEAM_COLOR = Color3.fromRGB(255, 244, 222) -- warm, like an old incandescent torch
 
 local FlashlightController = {}
+
+-- The beam colour of a player's chosen flashlight look (a reward-track cosmetic).
+local function colorOf(owner: Player?): Color3
+	local id = owner and owner:GetAttribute("FlashlightSkin")
+	local skin = if type(id) == "string" then Config.FLASHLIGHT_SKINS[id] else nil
+	return if skin then skin.color else BEAM_COLOR
+end
 
 local function makeBeam(parent: Instance): SpotLight
 	local light = Instance.new("SpotLight")
@@ -70,6 +78,8 @@ local function startOwnBeam()
 				and camera.CameraSubject == own
 			beam.Enabled = on
 			fill.Enabled = on
+			beam.Color = colorOf(player)
+			fill.Color = beam.Color
 			if camera then
 				-- At the eye, a touch low and to the right. Never in front of it: up against a wall,
 				-- a light placed ahead of the camera ends up inside the wall and everything goes dark.
@@ -86,8 +96,13 @@ local function watchCharacter(character: Model)
 		return
 	end
 	local beam = makeBeam(head)
+	local owner = Players:GetPlayerFromCharacter(character)
 	local function refresh()
 		beam.Enabled = character:GetAttribute("FlashlightOn") == true
+		beam.Color = colorOf(owner)
+	end
+	if owner then
+		owner:GetAttributeChangedSignal("FlashlightSkin"):Connect(refresh)
 	end
 	character:GetAttributeChangedSignal("FlashlightOn"):Connect(refresh)
 	refresh()

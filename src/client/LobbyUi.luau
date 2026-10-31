@@ -2,6 +2,7 @@
 -- The screens outside the action: level and coins, the ready button (G), the end-of-round results,
 -- and the optional feedback menu. While any of it is on screen the mouse is free to click it.
 
+local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -290,6 +291,65 @@ function LobbyUi.start()
 		end
 	end)
 
+	-- Coming back after being caught (shown while spectating, once per round).
+	local revive =
+		frame(gui, UDim2.fromOffset(440, 96), UDim2.new(0.5, 0, 1, -230), Vector2.new(0.5, 0))
+	revive.Visible = false
+	local reviveTitle = text(revive, "", UDim2.new(1, -20, 0, 26), UDim2.fromOffset(10, 6), 14)
+	local byLevel =
+		button(revive, "Lose a level (B)", UDim2.fromOffset(160, 40), UDim2.fromOffset(10, 44))
+	local byToken = button(revive, "", UDim2.fromOffset(120, 40), UDim2.fromOffset(176, 44))
+	local byRobux = button(revive, "Robux", UDim2.fromOffset(124, 40), UDim2.fromOffset(306, 44))
+	byRobux.TextColor3 = DIM
+	byLevel.Activated:Connect(function()
+		Remotes.Revive:FireServer("level")
+	end)
+	byToken.Activated:Connect(function()
+		Remotes.Revive:FireServer("token")
+	end)
+	byRobux.Activated:Connect(function()
+		if Config.REVIVE.PRODUCT_ID ~= 0 then
+			MarketplaceService:PromptProductPurchase(player, Config.REVIVE.PRODUCT_ID)
+		end
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if
+			not processed
+			and input.KeyCode == Enum.KeyCode.B
+			and player:GetAttribute("CanRevive")
+		then
+			Remotes.Revive:FireServer("level")
+		end
+	end)
+
+	-- Flashlight look, chosen in the lobby from those unlocked on the reward track.
+	local skinButton = button(gui, "", UDim2.fromOffset(240, 30), UDim2.new(1, -260, 0, 62))
+	skinButton.TextSize = 13
+	local nextReward = text(gui, "", UDim2.fromOffset(320, 18), UDim2.new(1, -340, 0, 36), 13)
+	nextReward.TextXAlignment = Enum.TextXAlignment.Right
+	nextReward.TextColor3 = DIM
+	local function unlockedSkins(): { string }
+		local peak = player:GetAttribute("Level") or 1
+		local list: { string } = {}
+		for _, id in Config.FLASHLIGHT_SKIN_ORDER do
+			local open = id == "warm"
+			for _, reward in Config.TRACK do
+				if reward.kind == "skin" and reward.id == id and peak >= reward.level then
+					open = true
+				end
+			end
+			if open then
+				table.insert(list, id)
+			end
+		end
+		return list
+	end
+	skinButton.Activated:Connect(function()
+		local list = unlockedSkins()
+		local index = table.find(list, player:GetAttribute("FlashlightSkin") or "warm") or 1
+		Remotes.SetSkin:FireServer(list[index % #list + 1])
+	end)
+
 	RunService.RenderStepped:Connect(function()
 		local phase = state:GetAttribute("Phase")
 		local character = player.Character
@@ -306,6 +366,44 @@ function LobbyUi.start()
 				player:GetAttribute("Coins") or 0,
 				if player:GetAttribute("ProgressSaved") == false then "   (not saved)" else ""
 			)
+		end
+
+		-- Reward track: what's next, and the flashlight look.
+		local peak = player:GetAttribute("Level") or 1
+		local upcoming = nil
+		for _, reward in Config.TRACK do
+			if reward.level > peak and (not upcoming or reward.level < upcoming.level) then
+				upcoming = reward
+			end
+		end
+		nextReward.Visible = outside and level ~= nil
+		nextReward.Text = if upcoming
+			then string.format("Next reward at level %d: %s", upcoming.level, upcoming.name)
+			else "Reward track complete"
+		local skin = Config.FLASHLIGHT_SKINS[player:GetAttribute("FlashlightSkin") or "warm"]
+		skinButton.Visible = phase == "Lobby" and outside and level ~= nil
+		skinButton.Text = string.format("Flashlight: %s  >", if skin then skin.name else "Warm")
+		skinButton.Modal = skinButton.Visible
+
+		-- Revive, while spectating.
+		local canRevive = player:GetAttribute("CanRevive") == true
+		local waiting = player:GetAttribute("RevivePending") == true
+		revive.Visible = canRevive
+		reviveTitle.Text = if waiting
+			then "Waiting for a teammate to reach your walkie..."
+			else "Ask your team to bring you back? (once per round)"
+		byLevel.Visible = not waiting
+		byRobux.Visible = not waiting and Config.REVIVE.PRODUCT_ID ~= 0
+		if canRevive and not waiting then
+			local tokens = player:GetAttribute("ReviveTokens") or 0
+			byLevel.AutoButtonColor = (level or 1) >= 2
+			byLevel.TextColor3 = if (level or 1) >= 2 then TEXT else DIM
+			byToken.Visible = tokens > 0
+			byToken.Text = string.format("Use bought (%d)", tokens)
+			byLevel.Modal = true
+		else
+			byToken.Visible = false
+			byLevel.Modal = false
 		end
 
 		-- The lobby bar.

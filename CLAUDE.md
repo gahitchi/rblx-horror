@@ -10,7 +10,7 @@ Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before de
 - Voice loudness feeds the monster when a player has voice (Audio API), but voice is always optional (Roblox requires an age check for chat).
 - Each map has its own peculiarities and its own monster (like Rainbow Six Siege maps): recording studio (the Engineer) first, then a radio station, then a bell foundry.
 - Launch with one map and the full core, then add maps as updates.
-- Fair monetization: cosmetics only, nothing that helps survive.
+- Fair monetization: cosmetics, plus one deliberate exception chosen by Gabriel: a revive can be bought with Robux, priced very high so it stays rare (the normal price is a level). Nothing else that affects survival is sold. The reward track (XP boosts, skins) is free.
 - Ask Gabriel when a direction is unclear; he prefers being asked.
 
 ## Team

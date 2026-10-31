@@ -49,4 +49,6 @@ return table.freeze({
 	Results = event("Results"), -- server -> client: ({ ResultRow }) at the end of a round
 	SendFeedback = event("SendFeedback"), -- client -> server: ({ rating, tags, text })
 	FeedbackReceived = event("FeedbackReceived"), -- server -> client: (ok: boolean, message: string)
+	Revive = event("Revive"), -- client -> server: (method: "level" | "token") come back after being caught
+	SetSkin = event("SetSkin"), -- client -> server: (skinId: string) equip an unlocked flashlight look
 })

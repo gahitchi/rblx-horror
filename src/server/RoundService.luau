@@ -75,6 +75,19 @@ function RoundService.onSpawn(callback: (Player, Model, boolean) -> ())
 	table.insert(spawnListeners, callback)
 end
 
+local caughtListeners: { (Player, Vector3) -> () } = {}
+local roundEndListeners: { () -> () } = {}
+
+-- `callback(player, position)` runs when a player is caught, with where it happened.
+function RoundService.onCaught(callback: (Player, Vector3) -> ())
+	table.insert(caughtListeners, callback)
+end
+
+-- `callback()` runs when a round ends, before results are shown.
+function RoundService.onRoundEnd(callback: () -> ())
+	table.insert(roundEndListeners, callback)
+end
+
 -- `callback()` runs when a round starts, before anyone is spawned into it.
 function RoundService.onRoundStart(callback: () -> ())
 	table.insert(roundStartListeners, callback)
@@ -119,15 +132,45 @@ onDied = function(player: Player)
 		participants[player] = "caught"
 		if r then
 			ObjectiveService.dropFuse(player, r.Position - Vector3.new(0, 2.7, 0))
+			for _, callback in caughtListeners do
+				task.spawn(callback, player, r.Position)
+			end
 		end
 		notifyAll(player.DisplayName .. " was caught.")
 		countAlive()
 	end
 	task.delay(Config.RESPAWN_DELAY, function()
-		if player.Parent == Players then
+		-- Not if they were revived in the meantime.
+		if player.Parent == Players and participants[player] ~= "alive" then
 			sendToLobby(player)
 		end
 	end)
+end
+
+local revived: { [Player]: boolean } = {}
+
+-- Whether a caught player may come back now: once per round, while someone is still inside,
+-- and not in the round's last seconds.
+function RoundService.canRevive(player: Player): boolean
+	return phase == "Playing"
+		and participants[player] == "caught"
+		and not revived[player]
+		and countAlive() > 0
+		and (RoundState.get("TimeLeft") or 0) >= Config.REVIVE.MIN_TIME_LEFT
+end
+
+-- Brings a caught player back at `where` (default: the entrance). The price is already paid.
+function RoundService.revive(player: Player, where: CFrame?): boolean
+	if not RoundService.canRevive(player) then
+		return false
+	end
+	revived[player] = true
+	participants[player] = "alive"
+	player:SetAttribute("CanRevive", false)
+	spawnAt(player, where or layout.spawn, true)
+	countAlive()
+	notifyAll(player.DisplayName .. " is back.")
+	return true
 end
 
 -- Called by the monster when it reaches someone.
@@ -220,8 +263,12 @@ local function runRound()
 	end)
 
 	local timeLeft = Config.ROUND_TIME
+	revived = {}
 	while timeLeft > 0 and countAlive() > 0 do
 		RoundState.set("TimeLeft", timeLeft)
+		for player in participants do
+			player:SetAttribute("CanRevive", RoundService.canRevive(player))
+		end
 		task.wait(1)
 		timeLeft -= 1
 	end
@@ -236,7 +283,13 @@ local function runRound()
 end
 
 local function runResults()
+	for _, callback in roundEndListeners do
+		callback()
+	end
 	setPhase("Results")
+	for player in participants do
+		player:SetAttribute("CanRevive", false)
+	end
 	MonsterService.despawn()
 	local escaped = RoundState.get("Escaped") or 0
 	local total = 0

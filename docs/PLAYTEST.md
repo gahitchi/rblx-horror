@@ -1,4 +1,4 @@
-# Playtest checklist: 0.4.0
+# Playtest checklist: 0.5.0
 
 One session tests everything built since the last playtest. Nothing here has run in Roblox yet,
 so expect some of it to break; that's what this session is for.
@@ -80,3 +80,17 @@ so expect some of it to break; that's what this session is for.
 - [ ] Feedback (lobby or results): pick a rating, tags and a comment, Send; "Thank you!" appears and
       a `[Feedback]` line shows in the Output. Sending twice in a row is politely refused.
 - [ ] The mouse is free to click in the lobby and in the menus, and locked again in the round.
+
+## 9. Added in 0.5.0: teammate revives and the reward track (2 players)
+
+- [ ] When one player is caught, a "Lost walkie" stays where it happened (dark).
+- [ ] The caught player (spectating) sees "Ask your team to bring you back?". At level 1, "Lose a
+      level" is refused; get to level 2 first (play a round or two, or lower the XP numbers).
+- [ ] After paying, the walkie lights up and the other player gets a radio message with the room.
+- [ ] Holding E on it for 4 s crackles loudly (the monster should come), then the caught player
+      reappears there; the reviver earns XP. Only once per player per round.
+- [ ] If nobody reaches it before the round ends, the level comes back ("refunded").
+- [ ] Lobby: "Next reward at level N" and the flashlight button cycling through unlocked looks; the
+      beam colour shows for you and for the other player. Losing a level relocks its look.
+- [ ] Robux revive: needs a Developer Product id in `Config.REVIVE.PRODUCT_ID` (0 hides the button);
+      Studio test purchases are free.
