@@ -7,6 +7,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
 
+local ArtBuilder = require(script.Parent.ArtBuilder)
 local DoorService = require(script.Parent.DoorService)
 local MapBuilder = require(script.Parent.MapBuilder)
 local MonsterService = require(script.Parent.MonsterService)
@@ -41,6 +42,8 @@ for _, child in Lighting:GetChildren() do
 end
 
 local layout = MapBuilder.build()
+-- Pure visual detail; does not move collision, doors, or objective anchors.
+ArtBuilder.build(layout)
 
 NoiseService.init()
 NoiseService.setZones(layout.zones)
