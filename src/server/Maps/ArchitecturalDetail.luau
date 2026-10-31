@@ -26,7 +26,9 @@ local function cylinder(parent: Instance,name: string,x: number,y: number,z: num
     length: number,diameter: number,color: Color3,vertical: boolean?)
     local p=piece(parent,name,x,y,z,length,diameter,diameter,color,Enum.Material.Metal)
     p.Shape=Enum.PartType.Cylinder
-    if vertical then p.CFrame=p.CFrame*CFrame.Angles(0,0,math.rad(90)) end
+    if vertical then
+        p.CFrame=p.CFrame*CFrame.Angles(0,0,math.rad(90))
+    end
 end
 
 local function channel(parent: Instance,x: number,z: number,length: number,p: Palette,h: number)
@@ -40,7 +42,6 @@ local function channel(parent: Instance,x: number,z: number,length: number,p: Pa
     end
 end
 local function studioDetails(parent: Instance,role: string,x1: number,x2: number,z1: number,z2: number,h: number,p: Palette)
-    local cx=(x1+x2)/2
     local cz=(z1+z2)/2
     if role=="live" or role=="stage" or role=="control" or role=="master" or role=="booth" then
         -- Alternating timber slats and deep textile absorbers: macro-geometry first,
