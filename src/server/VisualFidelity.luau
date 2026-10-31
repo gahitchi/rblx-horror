@@ -27,9 +27,8 @@ function VisualFidelity.apply(layout: MapBuilder.Layout)
     if map:GetAttribute("OwnsLighting") == true then
         return -- Never overwrite an authored map's own lighting treatment.
     end
-    -- The studio's art is laid out at the coordinates of the contract greybox.
-    if map:GetAttribute("MapName") ~= "Recording studio (greybox)"
-        and map:GetAttribute("StudioArtPass") ~= true then
+    -- Each production map is complete and opts into the same restrained camera grade.
+    if map:GetAttribute("ProductionGeometry") ~= true then
         return
     end
 
