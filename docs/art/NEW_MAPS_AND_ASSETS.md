@@ -43,6 +43,19 @@ The following source geometry lives under `assets/meshes/`. These are **actual O
 
 A five-file source mesh pack is not a finished AAA asset library: the imported models still need textured materials, baked normal detail, calibrated roughness and Studio lighting tests. It is **incorrect to claim these source files already render as imported meshes**.
 
+## Original PBR texture source pack
+
+`tools/generate_pbr.py` deterministically produces **16 PNG maps** at configurable resolution for four families: aged oak, old plaster, oxidized steel and acoustic weave. Each includes colour, normal, roughness and metalness maps. The script is the editable source of truth; textures are **not yet uploaded as Roblox asset IDs**, so they are not currently displayed on live MeshParts.
+
+The `Source Asset Export` GitHub workflow runs the generator at 1024×1024 and bundles its outputs with the five OBJ meshes into `dead-air-original-asset-pack`. A confirmed successful export is available under [Source Asset Export run #41250991694](https://github.com/gahitchi/rblx-horror/actions/runs/41250991694) (GitHub Actions artifact retention: 30 days). Regenerate with:
+
+```bash
+python -m pip install pillow numpy
+python tools/generate_pbr.py --size 1024 --out assets/generated-textures
+```
+
+These are procedural starter materials, **not scanned photoreal textures**. Replace high-visibility surfaces with measured/photogrammetry PBR data during the final art-quality pass, respecting source licenses and Roblox Studio image import requirements.
+
 ## Contract and gameplay invariants
 
 - `Workspace.Map` must have `Areas`, `Markers`, `Doors`, `Objectives`, `PowerLights`, and optional `Booths`.
@@ -63,4 +76,4 @@ A five-file source mesh pack is not a finished AAA asset library: the imported m
 6. Profile graphics at 1080p on high quality and medium quality. Adjust lighting and heavy static models based on MicroProfiler evidence.
 7. Import the original meshes and realistic PBR textures, then compare in-game before/after screenshots; do not merge as fully finished graphics until the correct assets have been uploaded and approved.
 
-**Status:** three procedural gameplay environments + original source models committed; Rojo and selected lint checks run on CI; **no Roblox Studio client rendering, navigation or frame-rate data has been collected in this authoring session**.
+**Status:** three new procedural gameplay environments, a rebuilt hub, five OBJ hero source models and a reproducible 16-texture PBR source pack authored. Rojo serialization, lint and source-asset topology checks have passed on CI; **no Roblox Studio client rendering, navigation or frame-rate data has been collected in this authoring session**.
