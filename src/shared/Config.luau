@@ -4,8 +4,9 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.1.2-art"
+Config.VERSION = "0.2.1-art"
 Config.DEBUG = true -- extra Output logging while in development
+Config.DEBUG_AI = false -- shows the monster's state, awareness and path in the world
 
 -- Movement
 Config.CROUCH_SPEED = 6 -- silent
@@ -35,29 +36,60 @@ Config.MAX_WALL_HITS = 3
 Config.VOICE_THRESHOLD = 0.04 -- quieter than this counts as silence
 Config.VOICE_SEND_INTERVAL = 0.25
 
--- The monster
--- It starts every chase at a player's walking pace and speeds up the longer the chase lasts, so a
--- sprint buys distance but not escape: running out of breath in its hearing range is fatal. The way
--- out is to break away and go quiet. Up close it lunges, with a warning (sound, glow, vignette).
+-- The monster. It behaves in layers, like the creatures in big horror games:
+--   perception: every noise it hears raises its awareness and gives it a rough idea of where the
+--     sound came from (fainter = vaguer). Its own footsteps mask quiet sounds while it moves.
+--   behaviour: low awareness makes it stop and listen; more makes it investigate, then search the
+--     area; a player heard clearly and close turns it into a hunt.
+--   director: an unseen pacing layer. It keeps the monster away for a grace period after it
+--     arrives, sends it backstage after long or deadly encounters, and nudges it toward the players'
+--     part of the building when it hasn't been near them for a while.
+-- A hunt starts at walking pace and speeds up the longer it lasts, so a sprint buys distance but
+-- not escape: break away and go quiet. Up close it lunges, after a warning.
 Config.MONSTER = table.freeze({
-	WANDER_SPEED = 8,
-	INVESTIGATE_SPEED = Config.WALK_SPEED,
-	CHASE_SPEED = Config.WALK_SPEED, -- at the start of a chase
+	-- Speeds
+	ROAM_SPEED = 7,
+	SEARCH_SPEED = 8,
+	INVESTIGATE_SPEED = 9,
+	HURRY_SPEED = 13, -- investigating something loud or alarming
+	RETREAT_SPEED = 11,
+	CHASE_SPEED = Config.WALK_SPEED, -- at the start of a hunt
 	CHASE_MAX_SPEED = 19, -- still just under a sprint
 	CHASE_RAMP_SECONDS = 8, -- from start to max speed
+	-- Lunge and catch
 	LUNGE_RANGE = 14,
 	LUNGE_WINDUP = 0.45, -- the warning before it leaps
 	LUNGE_SPEED = 32,
 	LUNGE_TIME = 0.6,
 	LUNGE_COOLDOWN = 6,
 	CATCH_DISTANCE = 4.5,
-	CHASE_LOCK_DISTANCE = 55, -- hearing a player this close starts a chase
-	CHASE_MEMORY = 3.5, -- seconds of silence before it loses a chase
-	SEARCH_TIME = 10,
-	SEARCH_RADIUS = 20,
-	DOOR_OPEN_DISTANCE = 6,
-	ARRIVAL_DELAY = 12, -- seconds after the round starts before it appears
-	REPATH_INTERVAL = 0.5,
+	-- Perception (awareness runs from 0 to 100)
+	LISTEN_AT = 12,
+	INVESTIGATE_AT = 35,
+	HURRY_AT = 60,
+	HUNT_AT = 70,
+	AWARENESS_DECAY = 5, -- per second
+	MAX_LOCATION_ERROR = 14, -- how far off its guess is for a barely audible sound
+	CHASE_LOCK_DISTANCE = 55, -- it only hunts a player it hears this close or closer
+	CHASE_MEMORY = 3.5, -- seconds without hearing its target before it loses the hunt
+	TOUCH_DISTANCE = 3.5, -- this close it feels you, silent or not
+	HEARING_STILL = 1, -- hearing range multipliers: best when it stands still and listens
+	HEARING_WALKING = 0.85,
+	HEARING_HURRYING = 0.75,
+	HEARING_HUNTING = 0.7,
+	-- Behaviour timing
+	LISTEN_TIME = 2.2,
+	SEARCH_TIME = 25,
+	SEARCH_POINTS = 5,
+	SEARCH_RADIUS = 22,
+	ARRIVAL_DELAY = 15, -- seconds after the round starts before it appears
+	-- Director
+	GRACE_TIME = 45, -- after arriving, it keeps to the far side of the building
+	NEAR_DISTANCE = 30, -- "near the players" for pacing purposes
+	MENACE_SECONDS = 45, -- of being near players before it backs off for a while
+	MENACE_COOL_SECONDS = 30, -- far from players, the menace drains in this long
+	RETREAT_TIME = 35,
+	HINT_AFTER = 75, -- seconds away from everyone before it drifts toward the players' area
 })
 
 -- Rounds

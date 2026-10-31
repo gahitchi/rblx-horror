@@ -42,7 +42,7 @@ for _, child in Lighting:GetChildren() do
 end
 
 local layout = MapBuilder.build()
--- Pure visual detail; does not move collision, doors, or objective anchors.
+-- Pure visual detail; gameplay anchors and collision remain owned by MapBuilder.
 ArtBuilder.build(layout)
 
 NoiseService.init()
@@ -52,7 +52,7 @@ for _, door in layout.doors do
 	DoorService.register(door, true)
 end
 
-MonsterService.init(layout.wanderNodes, RoundService.isTarget, RoundService.catch)
+MonsterService.init(layout.areas, RoundService.isTarget, RoundService.catch)
 ObjectiveService.init(layout, RoundService.isTarget)
 PlayerService.init()
 RoundService.init(layout)

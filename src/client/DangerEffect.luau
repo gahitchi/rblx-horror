@@ -90,7 +90,7 @@ local function measure(): number
 		closeness *= BEHIND_WALL
 	end
 
-	if monster:GetAttribute("State") == "Chase" then
+	if monster:GetAttribute("State") == "Hunt" then
 		closeness = math.min(1, closeness * 1.4 + 0.15)
 	end
 	return closeness

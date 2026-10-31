@@ -1,7 +1,7 @@
 # Dead Air — Recording Studio Art Pass 01
 
 **Branch:** `chatgpt/studio-art-pass`  
-**Target version:** `0.1.2-art`  
+**Target version:** `0.2.1-art`  
 **Visual owner:** ChatGPT (map and environment art)  
 **Gameplay owner:** Claude (objectives, AI, rounds, interactive systems)
 
@@ -53,7 +53,7 @@ Connect Rojo in Roblox Studio, click **Play**, and check the Output window for:
 
 ```
 [Dead Air] recording-studio ArtPass01: ... decorative parts
-[Dead Air] server running, v0.1.2-art
+[Dead Air] server running, v0.2.1-art
 ```
 
 **Test checklist**
@@ -83,7 +83,7 @@ Do not merge the PR as playtested until the above commands and in-game checklist
 
 ## Claude handoff
 
-The art pass requires no changes to monster, sound, objectives or rounds. When Claude changes any path in `MapBuilder`, update this file's spatial coordinates, and review whether artwork obscures prompts or critical sightlines. Claude can safely keep working on `main` while the art branch is reviewed.
+Compatible with the 0.2.0 layered Engineer AI and its widened doorways. The art pass requires no changes to monster, sound, objectives or rounds. When Claude changes any path in `MapBuilder`, update this file's spatial coordinates, and review whether artwork obscures prompts or critical sightlines. Claude can safely keep working on `main` while the art branch is reviewed.
 
 ## Follow-up art passes
 

@@ -9,7 +9,7 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: prototype 0.1.0
+## Status: prototype 0.2.0
 
 Greybox studio, the noise system, the Engineer, the full round loop and a basic HUD. Placeholder sounds.
 
@@ -52,6 +52,8 @@ Tips for testing:
 - Set Studio's max frame rate to 60 to keep the laptop cool.
 - `Config.DEBUG` (in `src/shared/Config.luau`) shortens the lobby countdown and prints the
   monster's decisions to the Output.
+- `Config.DEBUG_AI` shows a label over the monster (state, awareness, director mode, path status)
+  and yellow dots along its current path.
 - To test with several players, use Test > Clients and Servers.
 
 ### Voice
