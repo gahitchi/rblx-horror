@@ -3,6 +3,7 @@
 -- Every map owns its geometry, patrol spots, doors, markers, power state and a visual theme.
 -- Deliberately no free-floating "ray tracing": Roblox lighting is handled by VisualFidelity.
 local Workspace = game:GetService("Workspace")
+local AssetLibrary = require(script.Parent.AssetLibrary)
 
 local Kit = {}
 export type Room = { name: string, role: string, col: number, row: number }
@@ -306,6 +307,7 @@ function Kit.build(spec: Specification): Model
             Vector3.new((room.x2-room.x1)*0.22,3,(room.z2-room.z1)*0.22),
         } do mark(dir,"Spot",room.center+delta) end
         furnishing(room,spec,detailFolder)
+        AssetLibrary.decorate(detailFolder,room.role,spec.id,room.x1,room.x2,room.z1,room.z2,spec.height,theme)
     end
     local doorByName: { [string]: Part }={}
     for _,p in portals do
