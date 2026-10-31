@@ -1,0 +1,45 @@
+{
+	"name": "rblx-horror",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"Shared": {
+				"$path": "src/shared"
+			}
+		},
+		"ServerScriptService": {
+			"Server": {
+				"$path": "src/server"
+			}
+		},
+		"StarterPlayer": {
+			"$properties": {
+				"CameraMode": "LockFirstPerson",
+				"CharacterWalkSpeed": 11,
+				"CharacterJumpHeight": 4
+			},
+			"StarterPlayerScripts": {
+				"Client": {
+					"$path": "src/client"
+				}
+			}
+		},
+		"Lighting": {
+			"$properties": {
+				"Technology": "Future",
+				"Brightness": 0,
+				"ClockTime": 0,
+				"Ambient": [0, 0, 0],
+				"OutdoorAmbient": [0.02, 0.02, 0.025],
+				"EnvironmentDiffuseScale": 0,
+				"EnvironmentSpecularScale": 0,
+				"GlobalShadows": true
+			}
+		},
+		"VoiceChatService": {
+			"$properties": {
+				"UseAudioApi": "Enabled"
+			}
+		}
+	}
+}

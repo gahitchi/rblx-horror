@@ -1,0 +1,766 @@
+--!strict
+-- Builds map 1, the recording studio, as a greybox: simple shapes that set the layout, scale and
+-- routes before any real art exists. Also builds the lobby. Everything here is placeholder art.
+--
+-- Layout (ground floor at y = 0, basement at y = -14; x grows east, z grows south):
+--   reception (exit doors on its south wall) -> main corridor north -> control rooms A (west) and B (east)
+--   -> cross corridor -> live room (north) with three soundproof booths on its west side and the
+--   tape archive on its east side; break room off the cross corridor; stairwell down to the basement
+--   (generator room and electrical room).
+
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+export type Zone = {
+	name: string,
+	min: Vector3,
+	max: Vector3,
+	door: BasePart,
+}
+
+export type Layout = {
+	spawn: CFrame,
+	lobbySpawn: CFrame,
+	monsterSpawn: Vector3,
+	wanderNodes: { Vector3 },
+	fuseSpots: { Vector3 },
+	speakers: { Vector3 },
+	generator: BasePart,
+	fuseBox: BasePart,
+	tapeDeck: BasePart,
+	exitZone: BasePart,
+	frontDoor: BasePart,
+	doors: { BasePart },
+	zones: { Zone },
+	powerLights: { PointLight },
+	powerLamps: { BasePart },
+}
+
+type Gap = { center: number, width: number, header: boolean? }
+
+local T = 1 -- wall thickness
+local H = 12 -- standard room height
+local LIVE_H = 20 -- the live room is taller
+local DOOR_H = 9
+local BASEMENT_Y = -14
+local BASEMENT_H = 13
+
+local COLORS = table.freeze({
+	wall = Color3.fromRGB(88, 84, 80),
+	foam = Color3.fromRGB(46, 50, 60),
+	carpet = Color3.fromRGB(60, 48, 44),
+	tile = Color3.fromRGB(120, 118, 112),
+	wood = Color3.fromRGB(104, 76, 52),
+	concrete = Color3.fromRGB(78, 78, 80),
+	ceiling = Color3.fromRGB(40, 40, 42),
+	prop = Color3.fromRGB(58, 56, 54),
+	metal = Color3.fromRGB(70, 72, 76),
+	door = Color3.fromRGB(92, 66, 46),
+	boothDoor = Color3.fromRGB(70, 40, 40),
+	fuse = Color3.fromRGB(230, 190, 60),
+})
+
+local MapBuilder = {}
+
+local function newPart(
+	name: string,
+	size: Vector3,
+	cframe: CFrame,
+	color: Color3,
+	material: Enum.Material,
+	parent: Instance
+): Part
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Size = size
+	part.CFrame = cframe
+	part.Color = color
+	part.Material = material
+	part.Anchored = true
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+	part.Parent = parent
+	return part
+end
+
+-- A box from one corner to the opposite corner.
+local function box(
+	name: string,
+	x1: number,
+	y1: number,
+	z1: number,
+	x2: number,
+	y2: number,
+	z2: number,
+	color: Color3,
+	material: Enum.Material,
+	parent: Instance
+): Part
+	local lo = Vector3.new(math.min(x1, x2), math.min(y1, y2), math.min(z1, z2))
+	local hi = Vector3.new(math.max(x1, x2), math.max(y1, y2), math.max(z1, z2))
+	return newPart(name, hi - lo, CFrame.new((lo + hi) / 2), color, material, parent)
+end
+
+-- A wall running along X at a fixed z, with gaps for doors and openings.
+local function wallX(
+	parent: Instance,
+	z: number,
+	x1: number,
+	x2: number,
+	y0: number,
+	h: number,
+	gaps: { Gap }?,
+	color: Color3?
+)
+	local c = color or COLORS.wall
+	local cursor = x1
+	local sorted: { Gap } = table.clone(gaps or {})
+	table.sort(sorted, function(a: Gap, b: Gap)
+		return a.center < b.center
+	end)
+	for _, gap: Gap in sorted do
+		local gStart, gEnd = gap.center - gap.width / 2, gap.center + gap.width / 2
+		if gStart > cursor then
+			box(
+				"Wall",
+				cursor,
+				y0,
+				z - T / 2,
+				gStart,
+				y0 + h,
+				z + T / 2,
+				c,
+				Enum.Material.SmoothPlastic,
+				parent
+			)
+		end
+		if gap.header ~= false and DOOR_H < h then
+			box(
+				"Header",
+				gStart,
+				y0 + DOOR_H,
+				z - T / 2,
+				gEnd,
+				y0 + h,
+				z + T / 2,
+				c,
+				Enum.Material.SmoothPlastic,
+				parent
+			)
+		end
+		cursor = gEnd
+	end
+	if x2 > cursor then
+		box(
+			"Wall",
+			cursor,
+			y0,
+			z - T / 2,
+			x2,
+			y0 + h,
+			z + T / 2,
+			c,
+			Enum.Material.SmoothPlastic,
+			parent
+		)
+	end
+end
+
+-- A wall running along Z at a fixed x, with gaps for doors and openings.
+local function wallZ(
+	parent: Instance,
+	x: number,
+	z1: number,
+	z2: number,
+	y0: number,
+	h: number,
+	gaps: { Gap }?,
+	color: Color3?
+)
+	local c = color or COLORS.wall
+	local cursor = z1
+	local sorted: { Gap } = table.clone(gaps or {})
+	table.sort(sorted, function(a: Gap, b: Gap)
+		return a.center < b.center
+	end)
+	for _, gap: Gap in sorted do
+		local gStart, gEnd = gap.center - gap.width / 2, gap.center + gap.width / 2
+		if gStart > cursor then
+			box(
+				"Wall",
+				x - T / 2,
+				y0,
+				cursor,
+				x + T / 2,
+				y0 + h,
+				gStart,
+				c,
+				Enum.Material.SmoothPlastic,
+				parent
+			)
+		end
+		if gap.header ~= false and DOOR_H < h then
+			box(
+				"Header",
+				x - T / 2,
+				y0 + DOOR_H,
+				gStart,
+				x + T / 2,
+				y0 + h,
+				gEnd,
+				c,
+				Enum.Material.SmoothPlastic,
+				parent
+			)
+		end
+		cursor = gEnd
+	end
+	if z2 > cursor then
+		box(
+			"Wall",
+			x - T / 2,
+			y0,
+			cursor,
+			x + T / 2,
+			y0 + h,
+			z2,
+			c,
+			Enum.Material.SmoothPlastic,
+			parent
+		)
+	end
+end
+
+local function room(
+	parent: Instance,
+	name: string,
+	x1: number,
+	z1: number,
+	x2: number,
+	z2: number,
+	y0: number,
+	h: number,
+	floorColor: Color3,
+	floorMaterial: Enum.Material
+)
+	box(name .. "Floor", x1, y0 - 1, z1, x2, y0, z2, floorColor, floorMaterial, parent)
+	box(
+		name .. "Ceiling",
+		x1,
+		y0 + h,
+		z1,
+		x2,
+		y0 + h + 1,
+		z2,
+		COLORS.ceiling,
+		Enum.Material.SmoothPlastic,
+		parent
+	)
+end
+
+-- A prop resting on the floor at (x, z), with its base at y.
+local function prop(
+	parent: Instance,
+	name: string,
+	x: number,
+	y: number,
+	z: number,
+	sx: number,
+	sy: number,
+	sz: number,
+	color: Color3?,
+	material: Enum.Material?
+): Part
+	return newPart(
+		name,
+		Vector3.new(sx, sy, sz),
+		CFrame.new(x, y + sy / 2, z),
+		color or COLORS.prop,
+		material or Enum.Material.SmoothPlastic,
+		parent
+	)
+end
+
+-- A door filling a gap. `alongZ` doors lie along the Z axis. DoorService makes them open and close.
+local function door(
+	parent: Instance,
+	name: string,
+	x: number,
+	y0: number,
+	z: number,
+	width: number,
+	alongZ: boolean,
+	kind: string
+): Part
+	local rotation = if alongZ then CFrame.Angles(0, math.rad(90), 0) else CFrame.identity
+	local color = if kind == "booth" then COLORS.boothDoor else COLORS.door
+	local part = newPart(
+		name,
+		Vector3.new(width - 0.2, DOOR_H, 0.5),
+		CFrame.new(x, y0 + DOOR_H / 2, z) * rotation,
+		color,
+		Enum.Material.WoodPlanks,
+		parent
+	)
+	part:SetAttribute("Kind", kind)
+	part:SetAttribute("Open", false)
+	-- Lets the monster plan paths through closed doors; it opens them when it gets there.
+	local modifier = Instance.new("PathfindingModifier")
+	modifier.PassThrough = true
+	modifier.Parent = part
+	return part
+end
+
+local function powerLight(
+	parent: Instance,
+	position: Vector3,
+	lights: { PointLight },
+	lamps: { BasePart }
+)
+	local lamp = newPart(
+		"EmergencyLamp",
+		Vector3.new(1.2, 0.4, 1.2),
+		CFrame.new(position),
+		Color3.fromRGB(60, 30, 26),
+		Enum.Material.SmoothPlastic,
+		parent
+	)
+	lamp.CanCollide = false
+	local light = Instance.new("PointLight")
+	light.Color = Color3.fromRGB(255, 110, 80)
+	light.Brightness = 1.2
+	light.Range = 24
+	light.Shadows = true
+	light.Enabled = false
+	light.Parent = lamp
+	table.insert(lights, light)
+	table.insert(lamps, lamp)
+end
+
+local function buildLobby(): CFrame
+	local lobby = Instance.new("Model")
+	lobby.Name = "Lobby"
+	local o = Config.LOBBY_ORIGIN
+	box(
+		"Floor",
+		o.X - 20,
+		o.Y - 1,
+		o.Z - 20,
+		o.X + 20,
+		o.Y,
+		o.Z + 20,
+		COLORS.carpet,
+		Enum.Material.Fabric,
+		lobby
+	)
+	box(
+		"Ceiling",
+		o.X - 20,
+		o.Y + H,
+		o.Z - 20,
+		o.X + 20,
+		o.Y + H + 1,
+		o.Z + 20,
+		COLORS.ceiling,
+		Enum.Material.SmoothPlastic,
+		lobby
+	)
+	wallX(lobby, o.Z - 20, o.X - 20, o.X + 20, o.Y, H)
+	wallX(lobby, o.Z + 20, o.X - 20, o.X + 20, o.Y, H)
+	wallZ(lobby, o.X - 20, o.Z - 20, o.Z + 20, o.Y, H)
+	wallZ(lobby, o.X + 20, o.Z - 20, o.Z + 20, o.Y, H)
+
+	local lamp = newPart(
+		"Lamp",
+		Vector3.new(4, 0.4, 4),
+		CFrame.new(o + Vector3.new(0, H - 0.3, 0)),
+		Color3.fromRGB(255, 220, 170),
+		Enum.Material.Neon,
+		lobby
+	)
+	lamp.CanCollide = false
+	local light = Instance.new("PointLight")
+	light.Color = Color3.fromRGB(255, 205, 150)
+	light.Brightness = 1.5
+	light.Range = 40
+	light.Parent = lamp
+
+	local sign = newPart(
+		"Sign",
+		Vector3.new(16, 5, 0.5),
+		CFrame.new(o + Vector3.new(0, 7, -19.4)),
+		Color3.fromRGB(30, 26, 24),
+		Enum.Material.SmoothPlastic,
+		lobby
+	)
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Back -- the +Z face, toward the room
+	gui.PixelsPerStud = 40
+	gui.Parent = sign
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Text = string.upper(Config.GAME_NAME)
+	label.TextColor3 = Color3.fromRGB(230, 70, 60)
+	label.Font = Enum.Font.GothamBlack
+	label.TextScaled = true
+	label.Parent = gui
+
+	lobby.Parent = Workspace
+	return CFrame.lookAt(o + Vector3.new(0, 3, 8), o + Vector3.new(0, 3, -20))
+end
+
+function MapBuilder.build(): Layout
+	local studio = Instance.new("Model")
+	studio.Name = "Studio"
+	local structure = Instance.new("Folder")
+	structure.Name = "Structure"
+	structure.Parent = studio
+	local props = Instance.new("Folder")
+	props.Name = "Props"
+	props.Parent = studio
+	local doorsFolder = Instance.new("Folder")
+	doorsFolder.Name = "Doors"
+	doorsFolder.Parent = studio
+	local lightsFolder = Instance.new("Folder")
+	lightsFolder.Name = "EmergencyLights"
+	lightsFolder.Parent = studio
+
+	-- Floors and ceilings
+	room(structure, "Reception", -20, 0, 20, 30, 0, H, COLORS.tile, Enum.Material.Marble)
+	room(structure, "Corridor", -5, -60, 5, 0, 0, H, COLORS.carpet, Enum.Material.Fabric)
+	room(structure, "ControlA", -35, -40, -5, -10, 0, H, COLORS.carpet, Enum.Material.Fabric)
+	room(structure, "ControlB", 5, -40, 35, -10, 0, H, COLORS.carpet, Enum.Material.Fabric)
+	room(structure, "CrossCorridor", -60, -70, 60, -60, 0, H, COLORS.carpet, Enum.Material.Fabric)
+	room(
+		structure,
+		"LiveRoom",
+		-40,
+		-130,
+		40,
+		-70,
+		0,
+		LIVE_H,
+		COLORS.wood,
+		Enum.Material.WoodPlanks
+	)
+	room(structure, "Booths", -55, -130, -40, -70, 0, H, COLORS.foam, Enum.Material.Fabric)
+	room(structure, "Archive", 40, -130, 70, -70, 0, H, COLORS.concrete, Enum.Material.Concrete)
+	room(structure, "BreakRoom", 35, -60, 60, -35, 0, H, COLORS.tile, Enum.Material.Marble)
+	box(
+		"StairwellCeiling",
+		-60,
+		H,
+		-60,
+		-40,
+		H + 1,
+		-40,
+		COLORS.ceiling,
+		Enum.Material.SmoothPlastic,
+		structure
+	)
+	-- Basement: floor, and a thin ceiling under the ground-floor rooms above it
+	box(
+		"BasementFloor",
+		-60,
+		BASEMENT_Y - 1,
+		-40,
+		-20,
+		BASEMENT_Y,
+		10,
+		COLORS.concrete,
+		Enum.Material.Concrete,
+		structure
+	)
+	box(
+		"BasementCeiling",
+		-60,
+		-1.5,
+		-40,
+		-20,
+		-1,
+		10,
+		COLORS.ceiling,
+		Enum.Material.SmoothPlastic,
+		structure
+	)
+
+	-- Walls along X
+	wallX(structure, 30, -20, 20, 0, H, { { center = 0, width = 10 } }) -- reception south: the exit doors
+	wallX(structure, 0, -20, 20, 0, H, { { center = 0, width = 10, header = false } }) -- reception into corridor
+	wallX(structure, -10, -35, -5, 0, H)
+	wallX(structure, -10, 5, 35, 0, H)
+	wallX(structure, -40, -35, -5, 0, H)
+	wallX(structure, -40, 5, 35, 0, H)
+	wallX(structure, -60, -60, -5, 0, H, { { center = -50, width = 5 } }) -- stairwell door
+	wallX(structure, -60, 5, 60, 0, H, { { center = 47.5, width = 5 } }) -- break room door
+	wallX(structure, -70, -60, -40, 0, H)
+	wallX(structure, -70, -40, 40, 0, LIVE_H, { { center = 0, width = 8 } }) -- live room doors
+	wallX(structure, -70, 40, 60, 0, H, { { center = 55, width = 5 } }) -- archive door
+	wallX(structure, -70, 60, 70, 0, H)
+	wallX(structure, -130, -55, -40, 0, H, nil, COLORS.foam)
+	wallX(structure, -130, -40, 40, 0, LIVE_H)
+	wallX(structure, -130, 40, 70, 0, H)
+	wallX(structure, -110, -55, -40, 0, H, nil, COLORS.foam) -- booth separators
+	wallX(structure, -90, -55, -40, 0, H, nil, COLORS.foam)
+	wallX(structure, -35, 35, 60, 0, H) -- break room south
+	wallX(structure, -40, -60, -40, 0, H) -- stairwell south, above the basement
+
+	-- Walls along Z
+	wallZ(structure, -20, 0, 30, 0, H)
+	wallZ(structure, 20, 0, 30, 0, H)
+	wallZ(structure, -5, -60, 0, 0, H, { { center = -25, width = 5 } }) -- control room A door
+	wallZ(structure, 5, -60, 0, 0, H, { { center = -25, width = 5 } }) -- control room B door
+	wallZ(structure, -35, -40, -10, 0, H)
+	wallZ(structure, 35, -60, -10, 0, H)
+	wallZ(structure, -60, -70, -60, 0, H)
+	wallZ(structure, -60, -60, -40, BASEMENT_Y, H - BASEMENT_Y) -- stairwell sides reach down to the basement
+	wallZ(structure, -40, -60, -40, BASEMENT_Y, H - BASEMENT_Y)
+	wallZ(structure, -40, -130, -70, 0, LIVE_H, { -- booth doors
+		{ center = -120, width = 5 },
+		{ center = -100, width = 5 },
+		{ center = -80, width = 5 },
+	})
+	wallZ(structure, -55, -130, -70, 0, H, nil, COLORS.foam)
+	wallZ(structure, 40, -130, -70, 0, LIVE_H, { { center = -100, width = 5 } }) -- live room to archive
+	wallZ(structure, 70, -130, -70, 0, H)
+	wallZ(structure, 60, -70, -35, 0, H)
+
+	-- Basement walls
+	wallZ(structure, -60, -40, 10, BASEMENT_Y, BASEMENT_H)
+	wallZ(structure, -20, -40, 10, BASEMENT_Y, BASEMENT_H)
+	wallX(structure, 10, -60, -20, BASEMENT_Y, BASEMENT_H)
+	wallX(structure, -40, -40, -20, BASEMENT_Y, BASEMENT_H)
+	wallX(structure, -15, -60, -20, BASEMENT_Y, BASEMENT_H, { { center = -40, width = 6 } })
+
+	-- The stairs: a ramp from the corridor door (high, north) down into the basement (low, south)
+	local ramp = Instance.new("WedgePart")
+	ramp.Name = "Stairs"
+	ramp.Size = Vector3.new(20, -BASEMENT_Y, 20)
+	ramp.CFrame = CFrame.new(-50, BASEMENT_Y / 2, -50)
+	ramp.Color = COLORS.concrete
+	ramp.Material = Enum.Material.Concrete
+	ramp.Anchored = true
+	ramp.Parent = structure
+
+	-- Outside the front doors: a small step and the exit zone
+	box("Outside", -8, -1, 30, 8, 0, 44, COLORS.concrete, Enum.Material.Concrete, structure)
+	local exitZone = box(
+		"ExitZone",
+		-5,
+		0.5,
+		31,
+		5,
+		9,
+		40,
+		Color3.new(0, 1, 0),
+		Enum.Material.SmoothPlastic,
+		studio
+	)
+	exitZone.Transparency = 1
+	exitZone.CanCollide = false
+	exitZone.CanQuery = false
+
+	-- Props: furniture to hide behind, block sight lines and knock into
+	prop(props, "FrontDesk", -12, 0, 10, 10, 3.5, 3)
+	prop(props, "Sofa", 12, 0, 18, 8, 2.5, 3, Color3.fromRGB(70, 50, 50), Enum.Material.Fabric)
+	prop(props, "MixingDeskA", -20, 0, -36, 16, 3.5, 3)
+	prop(props, "MixingDeskB", 20, 0, -36, 16, 3.5, 3)
+	prop(props, "SpeakerA", -32, 0, -12, 2.5, 6, 2.5, Color3.fromRGB(30, 30, 30))
+	prop(props, "SpeakerB", 32, 0, -12, 2.5, 6, 2.5, Color3.fromRGB(30, 30, 30))
+	prop(props, "DrumRiser", -22, 0, -116, 12, 1, 10, COLORS.wood, Enum.Material.WoodPlanks)
+	prop(props, "BassDrum", -22, 1, -117, 3, 3, 3, Color3.fromRGB(120, 30, 30))
+	prop(props, "AmpStack1", -8, 0, -126, 4, 7, 3, Color3.fromRGB(28, 28, 28))
+	prop(props, "AmpStack2", 8, 0, -126, 4, 7, 3, Color3.fromRGB(28, 28, 28))
+	prop(
+		props,
+		"Piano",
+		22,
+		0,
+		-118,
+		7,
+		4,
+		4,
+		Color3.fromRGB(20, 18, 18),
+		Enum.Material.SmoothPlastic
+	)
+	prop(props, "Gobo1", -5, 0, -100, 8, 6, 1, COLORS.foam, Enum.Material.Fabric)
+	prop(props, "Gobo2", 12, 0, -92, 1, 6, 8, COLORS.foam, Enum.Material.Fabric)
+	prop(props, "ChairStack", 30, 0, -80, 3, 5, 3, Color3.fromRGB(60, 60, 64), Enum.Material.Metal)
+	for i, z in { -122, -112, -92, -82 } do
+		local west = i % 2 == 1
+		local x = if west then 51 else 59 -- alternate ends to make a zigzag
+		prop(props, "Shelf", x, 0, z, 20, 9, 2, COLORS.metal, Enum.Material.Metal)
+	end
+	prop(props, "BreakTable", 50, 0, -47, 6, 3, 4, COLORS.wood, Enum.Material.WoodPlanks)
+	prop(props, "Fridge", 57, 0, -38, 3, 7, 3, Color3.fromRGB(200, 200, 196))
+
+	-- Objectives
+	local generator = prop(
+		props,
+		"Generator",
+		-45,
+		BASEMENT_Y,
+		-32,
+		6,
+		5,
+		4,
+		Color3.fromRGB(110, 90, 40),
+		Enum.Material.DiamondPlate
+	)
+	local fuseBox = prop(
+		props,
+		"FuseBox",
+		-59,
+		BASEMENT_Y + 3,
+		-2,
+		0.8,
+		4,
+		3,
+		COLORS.metal,
+		Enum.Material.Metal
+	)
+	local tapeDeck = prop(
+		props,
+		"TapeDeck",
+		-16,
+		3.5,
+		-36,
+		3,
+		1.2,
+		2,
+		Color3.fromRGB(40, 40, 40),
+		Enum.Material.Metal
+	)
+
+	-- Doors
+	local doors: { BasePart } = {}
+	local function addDoor(
+		name: string,
+		x: number,
+		z: number,
+		width: number,
+		alongZ: boolean,
+		kind: string
+	): Part
+		local d = door(doorsFolder, name, x, 0, z, width, alongZ, kind)
+		table.insert(doors, d)
+		return d
+	end
+	local frontDoor = door(doorsFolder, "FrontDoors", 0, 0, 30, 10, false, "front")
+	frontDoor.Color = Color3.fromRGB(60, 62, 66)
+	frontDoor.Material = Enum.Material.Metal
+	addDoor("ControlADoor", -5, -25, 5, true, "normal")
+	addDoor("ControlBDoor", 5, -25, 5, true, "normal")
+	addDoor("StairwellDoor", -50, -60, 5, false, "normal")
+	addDoor("BreakRoomDoor", 47.5, -60, 5, false, "normal")
+	addDoor("LiveRoomDoors", 0, -70, 8, false, "normal")
+	addDoor("ArchiveDoor", 55, -70, 5, false, "normal")
+	addDoor("ArchiveLiveDoor", 40, -100, 5, true, "normal")
+	local booth1 = addDoor("Booth1Door", -40, -120, 5, true, "booth")
+	local booth2 = addDoor("Booth2Door", -40, -100, 5, true, "booth")
+	local booth3 = addDoor("Booth3Door", -40, -80, 5, true, "booth")
+
+	-- Emergency lights: off until the generator runs
+	local powerLights: { PointLight } = {}
+	local powerLamps: { BasePart } = {}
+	for _, p in
+		{
+			Vector3.new(0, H - 0.3, 15),
+			Vector3.new(0, H - 0.3, -30),
+			Vector3.new(-30, H - 0.3, -65),
+			Vector3.new(30, H - 0.3, -65),
+			Vector3.new(0, LIVE_H - 0.3, -100),
+			Vector3.new(-20, H - 0.3, -25),
+			Vector3.new(20, H - 0.3, -25),
+			Vector3.new(55, H - 0.3, -100),
+			Vector3.new(47, H - 0.3, -47),
+			Vector3.new(-40, -1.8, -28),
+			Vector3.new(-40, -1.8, 0),
+		}
+	do
+		powerLight(lightsFolder, p, powerLights, powerLamps)
+	end
+
+	studio.Parent = Workspace
+	local lobbySpawn = buildLobby()
+
+	return {
+		spawn = CFrame.lookAt(Vector3.new(0, 3, 24), Vector3.new(0, 3, 0)),
+		lobbySpawn = lobbySpawn,
+		monsterSpawn = Vector3.new(0, 4.5, -118),
+		wanderNodes = {
+			Vector3.new(0, 3, 15),
+			Vector3.new(0, 3, -20),
+			Vector3.new(0, 3, -48),
+			Vector3.new(-20, 3, -25),
+			Vector3.new(20, 3, -25),
+			Vector3.new(-45, 3, -65),
+			Vector3.new(45, 3, -65),
+			Vector3.new(-20, 3, -88),
+			Vector3.new(20, 3, -108),
+			Vector3.new(0, 3, -100),
+			Vector3.new(50, 3, -105),
+			Vector3.new(62, 3, -76),
+			Vector3.new(44, 3, -50),
+			Vector3.new(-40, BASEMENT_Y + 3, -28),
+			Vector3.new(-40, BASEMENT_Y + 3, 0),
+		},
+		fuseSpots = {
+			Vector3.new(-15, 3.75, 10),
+			Vector3.new(-26, 3.75, -36),
+			Vector3.new(26, 3.75, -36),
+			Vector3.new(30, 0.25, -125),
+			Vector3.new(-25, 0.25, -78),
+			Vector3.new(66, 0.25, -127),
+			Vector3.new(45, 0.25, -86),
+			Vector3.new(52, 3.25, -47),
+			Vector3.new(-48, 0.25, -100),
+			Vector3.new(-56, BASEMENT_Y + 0.25, -37),
+			Vector3.new(-25, BASEMENT_Y + 0.25, 6),
+			Vector3.new(-56, 0.25, -66),
+		},
+		speakers = {
+			Vector3.new(0, 10, 20),
+			Vector3.new(0, 10, -35),
+			Vector3.new(0, 18, -100),
+			Vector3.new(40, 10, -65),
+			Vector3.new(-40, 10, -65),
+			Vector3.new(-40, -3, -25),
+		},
+		generator = generator,
+		fuseBox = fuseBox,
+		tapeDeck = tapeDeck,
+		exitZone = exitZone,
+		frontDoor = frontDoor,
+		doors = doors,
+		zones = {
+			{
+				name = "Booth1",
+				min = Vector3.new(-55, 0, -130),
+				max = Vector3.new(-40, H, -110),
+				door = booth1,
+			},
+			{
+				name = "Booth2",
+				min = Vector3.new(-55, 0, -110),
+				max = Vector3.new(-40, H, -90),
+				door = booth2,
+			},
+			{
+				name = "Booth3",
+				min = Vector3.new(-55, 0, -90),
+				max = Vector3.new(-40, H, -70),
+				door = booth3,
+			},
+		},
+		powerLights = powerLights,
+		powerLamps = powerLamps,
+	}
+end
+
+MapBuilder.FUSE_COLOR = COLORS.fuse
+
+return MapBuilder

@@ -1,0 +1,13 @@
+# Built or saved places (the source of truth is src/, not the .rbxl)
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+
+# Generated files
+sourcemap.json
+roblox.yml
+
+# Editors and OS
+.DS_Store
+*.swp

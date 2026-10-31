@@ -1,0 +1,242 @@
+--!strict
+-- The round loop: lobby countdown -> playing (escape the studio) -> results -> lobby.
+-- Players are spawned by this service only (automatic respawning is off), so it always knows
+-- who is in the round, who was caught and who escaped.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared:WaitForChild("Config"))
+local Remotes = require(Shared:WaitForChild("Remotes"))
+
+local DoorService = require(script.Parent.DoorService)
+local MapBuilder = require(script.Parent.MapBuilder)
+local MonsterService = require(script.Parent.MonsterService)
+local ObjectiveService = require(script.Parent.ObjectiveService)
+local RoundState = require(script.Parent.RoundState)
+
+type Status = "alive" | "caught" | "escaped"
+
+local RoundService = {}
+
+local layout: MapBuilder.Layout
+local phase = "Lobby"
+local participants: { [Player]: Status } = {}
+local roundId = 0
+local rng = Random.new()
+
+local function notifyAll(message: string)
+	Remotes.Notify:FireAllClients(message)
+end
+
+local function setPhase(newPhase: string)
+	phase = newPhase
+	RoundState.set("Phase", newPhase)
+end
+
+local function countAlive(): number
+	local alive = 0
+	for _, status in participants do
+		if status == "alive" then
+			alive += 1
+		end
+	end
+	RoundState.set("Alive", alive)
+	return alive
+end
+
+local function rootOf(player: Player): BasePart?
+	local character = player.Character
+	local r = character and character:FindFirstChild("HumanoidRootPart")
+	if r and r:IsA("BasePart") then
+		return r
+	end
+	return nil
+end
+
+function RoundService.isTarget(player: Player): boolean
+	local character = player.Character
+	return phase == "Playing"
+		and participants[player] == "alive"
+		and character ~= nil
+		and character:GetAttribute("InRound") == true
+end
+
+local onDied: (Player) -> ()
+
+-- Spawns a fresh character at `cframe`, inside the round or not.
+local function spawnAt(player: Player, cframe: CFrame, inRound: boolean)
+	if player.Parent ~= Players then
+		return
+	end
+	player:LoadCharacterAsync()
+	local character = player.Character
+	if not character then
+		return
+	end
+	character:SetAttribute("InRound", inRound)
+	local spread = Vector3.new(rng:NextNumber(-4, 4), 0, rng:NextNumber(-3, 3))
+	character:PivotTo(cframe + spread)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.WalkSpeed = Config.WALK_SPEED
+		humanoid.Died:Once(function()
+			-- Only the current body counts: a replaced character (escape, results) isn't a death.
+			if player.Character == character then
+				onDied(player)
+			end
+		end)
+	end
+end
+
+local function sendToLobby(player: Player)
+	spawnAt(player, layout.lobbySpawn, false)
+end
+
+onDied = function(player: Player)
+	local r = rootOf(player)
+	if phase == "Playing" and participants[player] == "alive" then
+		participants[player] = "caught"
+		if r then
+			ObjectiveService.dropFuse(player, r.Position - Vector3.new(0, 2.7, 0))
+		end
+		notifyAll(player.DisplayName .. " was caught.")
+		countAlive()
+	end
+	task.delay(Config.RESPAWN_DELAY, function()
+		if player.Parent == Players then
+			sendToLobby(player)
+		end
+	end)
+end
+
+-- Called by the monster when it reaches someone.
+function RoundService.catch(player: Player)
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.Health = 0
+	end
+end
+
+local function onExitTouched(hit: BasePart)
+	if phase ~= "Playing" or not RoundState.get("DoorsOpen") then
+		return
+	end
+	local character = hit:FindFirstAncestorOfClass("Model")
+	local player = character and Players:GetPlayerFromCharacter(character)
+	if player and participants[player] == "alive" then
+		participants[player] = "escaped"
+		RoundState.set("Escaped", (RoundState.get("Escaped") or 0) + 1)
+		notifyAll(player.DisplayName .. " escaped!")
+		countAlive()
+		sendToLobby(player)
+	end
+end
+
+local function runLobby()
+	setPhase("Lobby")
+	while true do
+		while #Players:GetPlayers() < Config.MIN_PLAYERS do
+			RoundState.set("Countdown", -1)
+			task.wait(1)
+		end
+		local remaining = Config.LOBBY_COUNTDOWN
+		while remaining > 0 and #Players:GetPlayers() >= Config.MIN_PLAYERS do
+			RoundState.set("Countdown", remaining)
+			task.wait(1)
+			remaining -= 1
+		end
+		if remaining <= 0 then
+			return
+		end
+	end
+end
+
+local function runRound()
+	roundId += 1
+	local myRound = roundId
+	participants = {}
+	for _, player in Players:GetPlayers() do
+		participants[player] = "alive"
+	end
+	RoundState.set("Escaped", 0)
+	DoorService.resetAll()
+	ObjectiveService.reset()
+	MonsterService.despawn()
+	setPhase("Playing")
+	countAlive()
+
+	for player in participants do
+		spawnAt(player, layout.spawn, true)
+	end
+	notifyAll("Find a way out. Stay quiet. It hears everything.")
+
+	task.delay(Config.MONSTER.ARRIVAL_DELAY, function()
+		if roundId == myRound and phase == "Playing" then
+			MonsterService.spawn(layout.monsterSpawn)
+		end
+	end)
+
+	local timeLeft = Config.ROUND_TIME
+	while timeLeft > 0 and countAlive() > 0 do
+		RoundState.set("TimeLeft", timeLeft)
+		task.wait(1)
+		timeLeft -= 1
+	end
+	if timeLeft <= 0 then
+		for player, status in participants do
+			if status == "alive" then
+				participants[player] = "caught"
+			end
+		end
+		notifyAll("Time's up. The studio keeps you.")
+	end
+end
+
+local function runResults()
+	setPhase("Results")
+	MonsterService.despawn()
+	local escaped = RoundState.get("Escaped") or 0
+	local total = 0
+	for _ in participants do
+		total += 1
+	end
+	notifyAll(string.format("%d of %d escaped.", escaped, total))
+	task.wait(Config.RESULTS_TIME)
+	participants = {}
+	for _, player in Players:GetPlayers() do
+		sendToLobby(player)
+	end
+end
+
+function RoundService.init(map: MapBuilder.Layout)
+	layout = map
+	Players.CharacterAutoLoads = false
+
+	Players.PlayerAdded:Connect(sendToLobby)
+	Players.PlayerRemoving:Connect(function(player)
+		local r = rootOf(player)
+		if r then
+			ObjectiveService.dropFuse(player, r.Position - Vector3.new(0, 2.7, 0))
+		end
+		participants[player] = nil
+	end)
+	-- Anyone who joined before this ran (common in Studio) may have an auto-loaded character.
+	for _, player in Players:GetPlayers() do
+		task.spawn(sendToLobby, player)
+	end
+
+	layout.exitZone.Touched:Connect(onExitTouched)
+
+	task.spawn(function()
+		while true do
+			runLobby()
+			runRound()
+			runResults()
+		end
+	end)
+end
+
+return RoundService
