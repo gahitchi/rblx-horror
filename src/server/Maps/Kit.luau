@@ -4,6 +4,7 @@
 -- Deliberately no free-floating "ray tracing": Roblox lighting is handled by VisualFidelity.
 local Workspace = game:GetService("Workspace")
 local AssetLibrary = require(script.Parent.AssetLibrary)
+local PBRMaterials = require(script.Parent.PBRMaterials)
 
 local Kit = {}
 export type Room = { name: string, role: string, col: number, row: number }
@@ -454,6 +455,8 @@ function Kit.build(spec: Specification): Model
     local exit=mark(objectives,"ExitZone",Vector3.new(ex.X,4,entrance.z2+9))
     exit.Size=Vector3.new(9,8,12)
     exit.CanTouch=true
+    -- Import-approved PBR material variants are applied to the finished shell only.
+    PBRMaterials.apply(model)
     model.Parent=Workspace
     return model
 end
