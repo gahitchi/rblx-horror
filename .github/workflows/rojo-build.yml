@@ -1,0 +1,34 @@
+name: Roblox Rojo Build
+
+on:
+  push:
+    branches:
+      - main
+      - chatgpt/studio-art-pass
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Validate Rojo place
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Roblox toolchain
+        uses: paradoxum-games/setup-rokit@v3
+        with:
+          cache: true
+      - name: Tool versions
+        run: |
+          rojo --version
+          stylua --version
+          selene --version
+      - name: Validate source tree and project serialization
+        run: |
+          rojo build default.project.json -o dead-air-validation.rbxl
+          rojo sourcemap default.project.json -o sourcemap.json
+      - name: Confirm place was produced
+        run: test -s dead-air-validation.rbxl
