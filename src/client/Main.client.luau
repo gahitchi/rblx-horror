@@ -2,11 +2,20 @@
 -- Client entry point. Each controller starts in its own thread and its own error guard,
 -- so one that fails or waits (voice, for example) never stops the others.
 
+local StarterGui = game:GetService("StarterGui")
+
 local DangerEffect = require(script.Parent.DangerEffect)
 local FlashlightController = require(script.Parent.FlashlightController)
 local Hud = require(script.Parent.Hud)
+local ItemController = require(script.Parent.ItemController)
 local MovementController = require(script.Parent.MovementController)
+local SpectateController = require(script.Parent.SpectateController)
 local VoiceController = require(script.Parent.VoiceController)
+
+-- No Roblox backpack bar: items are on fixed keys, and 1-4 are walkie callouts.
+pcall(function()
+	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
+end)
 
 local controllers: { [string]: { start: () -> () } } = {
 	MovementController = MovementController,
@@ -14,6 +23,8 @@ local controllers: { [string]: { start: () -> () } } = {
 	VoiceController = VoiceController,
 	Hud = Hud,
 	DangerEffect = DangerEffect,
+	ItemController = ItemController,
+	SpectateController = SpectateController,
 }
 
 for name, controller in controllers do

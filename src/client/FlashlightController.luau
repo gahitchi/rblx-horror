@@ -62,7 +62,12 @@ local function startOwnBeam()
 		function()
 			local camera = Workspace.CurrentCamera
 			local character = player.Character
-			local on = character ~= nil and character:GetAttribute("FlashlightOn") == true
+			local own = character and character:FindFirstChildOfClass("Humanoid")
+			-- Only while the camera is your own eyes (not while spectating someone else).
+			local on = character ~= nil
+				and character:GetAttribute("FlashlightOn") == true
+				and camera ~= nil
+				and camera.CameraSubject == own
 			beam.Enabled = on
 			fill.Enabled = on
 			if camera then

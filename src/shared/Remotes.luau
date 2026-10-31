@@ -40,4 +40,9 @@ return table.freeze({
 	VoiceLevel = event("VoiceLevel"), -- client -> server: (level: number, 0 to 1)
 	NoiseFeedback = event("NoiseFeedback"), -- server -> client: (radius: number) for the noise meter
 	Notify = event("Notify"), -- server -> client: (message: string)
+	WalkieTalk = event("WalkieTalk"), -- client -> server: (talking: boolean)
+	WalkiePower = event("WalkiePower"), -- client -> server: () toggles the walkie on or off
+	WalkieCallout = event("WalkieCallout"), -- client -> server: (index: number) into Config.WALKIE.CALLOUTS
+	Radio = event("Radio"), -- server -> client: (sender: string, room: string, text: string)
+	TapeAction = event("TapeAction"), -- client -> server: () record, or set down a recorded tape
 })

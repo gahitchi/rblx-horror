@@ -53,6 +53,40 @@ local ROOT_HEIGHT = 3 -- spots and spawns are this far above the floor
 
 local MapContract = {}
 
+-- The area a position is in, if any.
+function MapContract.areaAt(areas: { Area }, position: Vector3): Area?
+	for _, area in areas do
+		local lo, hi = area.min, area.max
+		if
+			position.X >= lo.X
+			and position.X <= hi.X
+			and position.Y >= lo.Y
+			and position.Y <= hi.Y
+			and position.Z >= lo.Z
+			and position.Z <= hi.Z
+		then
+			return area
+		end
+	end
+	return nil
+end
+
+-- A readable name for where a position is: its area's name, or the nearest area's.
+function MapContract.placeName(areas: { Area }, position: Vector3): string
+	local inside = MapContract.areaAt(areas, position)
+	if inside then
+		return inside.name
+	end
+	local best, bestDistance = "somewhere", math.huge
+	for _, area in areas do
+		local d = (area.center - position).Magnitude
+		if d < bestDistance then
+			best, bestDistance = area.name, d
+		end
+	end
+	return best
+end
+
 -- Markers and volumes are for scripts only: invisible, intangible, never blocking sound or rays.
 local function makeHelper(part: BasePart)
 	part.Anchored = true

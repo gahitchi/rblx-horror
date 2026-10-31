@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.2.1"
+Config.VERSION = "0.3.0"
 Config.DEBUG = true -- extra Output logging while in development
 Config.DEBUG_AI = false -- shows the monster's state, awareness and path in the world
 
@@ -29,6 +29,9 @@ Config.NOISE = table.freeze({
 	GENERATOR_HUM = 55,
 	ALARM = 400, -- the emergency tape on the speakers: everyone hears it
 	VOICE_MAX = 60, -- shouting
+	WALKIE_CRACKLE = 26, -- a teammate's transmission coming out of your walkie
+	WALKIE_CLICK = 6, -- pressing talk, switching it on or off
+	TAPE_PLACE = 8, -- setting the recorder down
 })
 Config.FOOTSTEP_INTERVAL = 0.4 -- how often movement noise is sampled per player
 Config.WALL_DAMPING = 0.5 -- each wall between the noise and the listener halves its reach
@@ -108,5 +111,41 @@ Config.ALARM_INTERVAL = 1.5
 
 -- Where the lobby floats, far above the map
 Config.LOBBY_ORIGIN = Vector3.new(0, 400, 0)
+
+-- Feature switches: turn one off if it misbehaves in a playtest, without losing the rest.
+Config.FEATURES = table.freeze({
+	WALKIE = true,
+	TAPE = true,
+	MIMICRY = true,
+	SPECTATE = true,
+})
+
+-- Walkie-talkie: hold V to talk through every other walkie; 1 to 4 send quick callouts.
+-- Every other walkie that's switched on crackles at its owner while someone transmits.
+Config.WALKIE = table.freeze({
+	CRACKLE_INTERVAL = 0.6, -- seconds between crackle noises while someone talks
+	MAX_TALK_SECONDS = 12, -- a held talk button lets go by itself after this
+	CALLOUT_COOLDOWN = 2.5,
+	CALLOUTS = table.freeze({ "It's here!", "Need help!", "Found a fuse.", "Going quiet." }),
+})
+
+-- Tape recorder: record the noises around you, set it down, and it plays them back later as a lure.
+Config.TAPE = table.freeze({
+	RECORD_SECONDS = 5,
+	RECORD_RADIUS = 14, -- noises this close to you end up on the tape
+	MAX_EVENTS = 30,
+	PLAY_DELAY = 6, -- seconds after setting it down before it plays
+})
+
+-- The Engineer's mimicry: now and then it replays a player sound it heard, near itself, to lure.
+Config.MIMIC = table.freeze({
+	MIN_INTERVAL = 40,
+	MAX_INTERVAL = 75,
+	MEMORY = 8, -- how many heard sounds it remembers
+	MIN_DISTANCE = 10, -- how far from itself it throws the sound
+	MAX_DISTANCE = 28,
+	PLAYER_RANGE = 55, -- only when a player is close enough to hear it
+	AMBUSH_TIME = 7, -- then it stands still and listens for whoever comes
+})
 
 return table.freeze(Config)

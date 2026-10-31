@@ -19,6 +19,7 @@ export type Noise = {
 	source: Player?,
 	time: number,
 	zone: string?, -- set when the noise is sealed inside a soundproof booth
+	replay: boolean?, -- played back by a tape recorder (never recorded again)
 }
 
 type ZoneInfo = { name: string, min: Vector3, max: Vector3, door: BasePart }
@@ -72,7 +73,13 @@ function NoiseService.onNoise(callback: (Noise) -> ())
 	table.insert(listeners, callback)
 end
 
-function NoiseService.emit(position: Vector3, loudness: number, kind: string, source: Player?)
+function NoiseService.emit(
+	position: Vector3,
+	loudness: number,
+	kind: string,
+	source: Player?,
+	replay: boolean?
+)
 	if loudness <= 0 then
 		return
 	end
@@ -85,6 +92,7 @@ function NoiseService.emit(position: Vector3, loudness: number, kind: string, so
 		source = source,
 		time = os.clock(),
 		zone = if sealed and zone then zone.name else nil,
+		replay = replay,
 	}
 	if source then
 		Remotes.NoiseFeedback:FireClient(source, loudness)

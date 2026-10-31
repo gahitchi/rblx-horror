@@ -14,6 +14,37 @@ Sounds.LUNGE = "rbxasset://sounds/swordlunge.wav" -- needs a proper shriek
 Sounds.FLASHLIGHT = "rbxasset://sounds/switch.wav"
 Sounds.MONSTER_STEP = "rbxasset://sounds/action_footsteps_plastic.mp3" -- played slow and low; needs heavy steps
 Sounds.ALERT = "rbxasset://sounds/swordlunge.wav" -- the Engineer locking on; needs a proper cry
+Sounds.FOOTSTEP = "rbxasset://sounds/action_footsteps_plastic.mp3" -- a person's step (tape, mimicry)
+Sounds.LANDING = "rbxasset://sounds/action_jump_land.mp3"
+Sounds.VOICE_GARBLE = "rbxasset://sounds/uuhhh.mp3" -- a voice played back; needs muffled speech
+Sounds.WALKIE_CRACKLE = "rbxasset://sounds/electronicpingshort.wav" -- needs radio static
+Sounds.WALKIE_CLICK = "rbxasset://sounds/switch.wav" -- needs a push-to-talk click
+Sounds.TAPE_CLUNK = "rbxasset://sounds/switch.wav" -- needs a tape button / setting it down
+
+-- The sound that stands for a kind of noise when it's played back (tape recorder, mimicry), and the
+-- playback speed to use. Empty when there's nothing sensible to play.
+function Sounds.forKind(kind: string): (string, number)
+	if kind == "footsteps" then
+		return Sounds.FOOTSTEP, 1
+	elseif kind == "landing" then
+		return Sounds.LANDING, 1
+	elseif kind == "door" then
+		return Sounds.DOOR, 1
+	elseif kind == "voice" then
+		return Sounds.VOICE_GARBLE, 0.75
+	elseif kind == "walkie" then
+		return Sounds.WALKIE_CRACKLE, 0.5
+	elseif kind == "flashlight" then
+		return Sounds.FLASHLIGHT, 1
+	elseif kind == "generator" then
+		return Sounds.GENERATOR_PULL, 1
+	elseif kind == "fuse" then
+		return Sounds.FUSE, 1
+	elseif kind == "alarm" then
+		return Sounds.ALARM, 1
+	end
+	return "", 1
+end
 
 -- Plays a one-shot sound at a position in the world, heard by everyone nearby.
 function Sounds.playAt(
