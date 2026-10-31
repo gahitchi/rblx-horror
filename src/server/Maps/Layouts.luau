@@ -55,6 +55,7 @@ local function make(spec: any)
     return {
         id=spec.id,name=spec.name,palette=spec.palette,rooms=rooms,links=links,
         x=spec.x,z=spec.z,height=spec.height,booths=booths,
+        windows=spec.windows,
         fuseRooms=spec.fuseRooms,generator=spec.generator,fuseBox=spec.fuseBox,
         tape=spec.tape,spawn=spec.spawn,monster=spec.monster,
     }
@@ -83,6 +84,7 @@ function Layouts.studio()
             {"generator","lounge","reception","store"},
         },
         booths={IsolationWest=true,IsolationEast=true},
+        windows={{"LiveHall","ControlA"},{"TrackingStage","ControlB"}},
         fuseRooms={"MasteringVault","TapeArchive","DrumRoom","TrackingStage","Rehearsal",
             "ControlB","Maintenance","Transfer","Dressing","PatchBay","LoadingDock","StaffBreak"},
         generator="GeneratorPlant",fuseBox="PatchBay",tape="ControlA",
@@ -113,6 +115,7 @@ function Layouts.radio()
             {"generator","lounge","reception","store"},
         },
         booths={OffAirBooth=true,IsolationStudio=true},
+        windows={{"HallwayArchive","MasterControl"}},
         fuseRooms={"MagneticLibrary","TransmitterVault","Newsroom","TalkStudio","BroadcastRack",
             "MasterControl","EditBay","Service","Dressing","EquipmentWorkshop","LoadingBay"},
         generator="GeneratorRoom",fuseBox="Service",tape="MasterControl",
@@ -143,6 +146,7 @@ function Layouts.foundry()
             {"generator","lounge","reception","store"},
         },
         booths={},
+        windows={{"CastingFloor","Inspection"}},
         fuseRooms={"PatternVault","SandMixing","BellTesting","ToolDepot","CastingFloor",
             "FurnaceAnnex","Inspection","HammerShop","CompressorRoom","QualityLab","Receiving"},
         generator="GeneratorHouse",fuseBox="QualityLab",tape="CastingControl",
