@@ -15,7 +15,7 @@ Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before de
 
 ## Team
 - Gabriel: direction, playtesting.
-- ChatGPT: the map and the graphical side (models, textures, lighting look). It may also touch scripts now and then.
+- ChatGPT: the map and the graphical side (models, textures, lighting look), on its own branch (`chatgpt/...`). It may also touch scripts now and then.
 - Claude: scripts and game systems. Keep map-specific data out of the systems where possible, so ChatGPT's map can replace the greybox in `MapBuilder`. Fetch before editing: someone else may have pushed.
 
 ## Workflow
@@ -28,7 +28,7 @@ Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before de
 - Luau `--!strict` everywhere, typed. One responsibility per module.
 - The server is the authority: noise, objectives, catches and rounds happen there. Clients only draw and send input.
 - All tuning numbers live in `src/shared/Config.luau`.
-- The map is currently a greybox built in code (`MapBuilder`); ChatGPT's real map will replace it.
+- Maps follow `docs/MAP_CONTRACT.md`: a `Workspace.Map` with named folders and marker parts, read by `MapContract`. Systems get positions only from the resulting Layout, never hard-coded. The greybox (`MapBuilder`) follows the same contract and is used when no `Workspace.Map` exists. Change the contract doc and `MapContract` together.
 - The monster AI is layered: `Monster/Perception` (awareness, fuzzy hearing), `Monster/Director` (pacing), `Monster/Navigator` (pathing, doors, stuck recovery), `MonsterService` (the state machine). `Config.DEBUG_AI` shows its state and path in the world.
 - Doorways must be at least 6 studs wide or the monster's pathfinding can't fit through.
 - Comments explain why, in plain words.

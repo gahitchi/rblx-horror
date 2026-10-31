@@ -2,6 +2,9 @@
 -- Builds map 1, the recording studio, as a greybox: simple shapes that set the layout, scale and
 -- routes before any real art exists. Also builds the lobby. Everything here is placeholder art.
 --
+-- It builds Workspace.Map exactly as docs/MAP_CONTRACT.md describes, the same way a hand-made map
+-- must be laid out, and MapContract reads it. Main only builds this when no hand-made Map exists.
+--
 -- Layout (ground floor at y = 0, basement at y = -14; x grows east, z grows south):
 --   reception (exit doors on its south wall) -> main corridor north -> control rooms A (west) and B (east)
 --   -> cross corridor -> live room (north) with three soundproof booths on its west side and the
@@ -12,41 +15,12 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+local MapContract = require(script.Parent.MapContract)
 
-export type Zone = {
-	name: string,
-	min: Vector3,
-	max: Vector3,
-	door: BasePart,
-}
-
--- A named part of the map the monster reasons about: where it patrols and searches.
--- `points` are standing spots (root height) inside it, clear of props.
-export type Area = {
-	name: string,
-	min: Vector3,
-	max: Vector3,
-	center: Vector3,
-	points: { Vector3 },
-}
-
-export type Layout = {
-	spawn: CFrame,
-	lobbySpawn: CFrame,
-	monsterSpawn: Vector3,
-	areas: { Area },
-	fuseSpots: { Vector3 },
-	speakers: { Vector3 },
-	generator: BasePart,
-	fuseBox: BasePart,
-	tapeDeck: BasePart,
-	exitZone: BasePart,
-	frontDoor: BasePart,
-	doors: { BasePart },
-	zones: { Zone },
-	powerLights: { PointLight },
-	powerLamps: { BasePart },
-}
+-- Kept so code written against the old names (the art pass) still type-checks.
+export type Layout = MapContract.Layout
+export type Area = MapContract.Area
+export type Zone = MapContract.Zone
 
 type Gap = { center: number, width: number, header: boolean? }
 
@@ -75,7 +49,28 @@ local COLORS = table.freeze({
 
 local MapBuilder = {}
 
+-- An invisible helper part for scripts (markers, volumes). MapContract hides them anyway.
+local function helper(name: string, cframe: CFrame, size: Vector3, parent: Instance): Part
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size
+	p.CFrame = cframe
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.Transparency = 1
+	p.Parent = parent
+	return p
+end
+
+local function marker(name: string, position: Vector3, parent: Instance): Part
+	return helper(name, CFrame.new(position), Vector3.one, parent)
+end
+
+-- One room in Areas: a Bounds box over the room and Spot markers where the monster can stand.
 local function area(
+	parent: Instance,
 	name: string,
 	x1: number,
 	z1: number,
@@ -83,99 +78,98 @@ local function area(
 	z2: number,
 	floorY: number,
 	spots: { { number } }
-): Area
-	local points: { Vector3 } = {}
-	local sum = Vector3.zero
+)
+	local folder = Instance.new("Folder")
+	folder.Name = name
+	local lo = Vector3.new(math.min(x1, x2), floorY - 2, math.min(z1, z2))
+	local hi = Vector3.new(math.max(x1, x2), floorY + 11, math.max(z1, z2))
+	helper("Bounds", CFrame.new((lo + hi) / 2), hi - lo, folder)
 	for _, spot in spots do
-		local point = Vector3.new(spot[1], floorY + 3, spot[2])
-		table.insert(points, point)
-		sum += point
+		marker("Spot", Vector3.new(spot[1], floorY + 3, spot[2]), folder)
 	end
-	return {
-		name = name,
-		min = Vector3.new(math.min(x1, x2), floorY - 2, math.min(z1, z2)),
-		max = Vector3.new(math.max(x1, x2), floorY + 11, math.max(z1, z2)),
-		center = sum / math.max(#points, 1),
-		points = points,
-	}
+	folder.Parent = parent
 end
 
 -- The rooms as the monster knows them. Spots avoid the props placed in build().
-local function buildAreas(): { Area }
+local function buildAreas(parent: Instance)
 	local B = BASEMENT_Y
-	return {
-		area("Reception", -20, 0, 20, 30, 0, { { 0, 15 }, { -14, 22 }, { 14, 8 }, { 0, 4 } }),
-		area("Corridor", -5, -60, 5, 0, 0, { { 0, -10 }, { 0, -30 }, { 0, -50 } }),
-		area(
-			"ControlA",
-			-35,
-			-40,
-			-5,
-			-10,
-			0,
-			{ { -20, -22 }, { -30, -14 }, { -10, -14 }, { -29, -31 } }
-		),
-		area(
-			"ControlB",
-			5,
-			-40,
-			35,
-			-10,
-			0,
-			{ { 20, -22 }, { 30, -14 }, { 10, -14 }, { 29, -31 } }
-		),
-		area(
-			"CrossCorridor",
-			-60,
-			-70,
-			60,
-			-60,
-			0,
-			{ { -45, -65 }, { -20, -65 }, { 20, -65 }, { 45, -65 } }
-		),
-		area("LiveRoom", -40, -130, 40, -70, 0, {
-			{ 0, -80 },
-			{ -25, -82 },
-			{ 28, -84 },
-			{ -32, -100 },
-			{ 0, -110 },
-			{ 30, -106 },
-			{ 0, -123 },
-			{ -34, -124 },
-			{ 12, -123 },
-		}),
-		area("Booth1", -55, -130, -40, -110, 0, { { -48, -120 } }),
-		area("Booth2", -55, -110, -40, -90, 0, { { -48, -100 } }),
-		area("Booth3", -55, -90, -40, -70, 0, { { -48, -80 } }),
-		area(
-			"Archive",
-			40,
-			-130,
-			70,
-			-70,
-			0,
-			{ { 55, -76 }, { 55, -87 }, { 55, -102 }, { 55, -117 }, { 55, -127 } }
-		),
-		area("BreakRoom", 35, -60, 60, -35, 0, { { 42, -42 }, { 42, -55 }, { 55, -53 } }),
-		area(
-			"GeneratorRoom",
-			-60,
-			-40,
-			-20,
-			-15,
-			B,
-			{ { -38, -26 }, { -53, -21 }, { -28, -35 }, { -28, -20 } }
-		),
-		area(
-			"ElectricalRoom",
-			-60,
-			-15,
-			-20,
-			10,
-			B,
-			{ { -40, 0 }, { -52, 5 }, { -28, -6 }, { -50, -8 } }
-		),
-	}
+	area(parent, "Reception", -20, 0, 20, 30, 0, { { 0, 15 }, { -14, 22 }, { 14, 8 }, { 0, 4 } })
+	area(parent, "Corridor", -5, -60, 5, 0, 0, { { 0, -10 }, { 0, -30 }, { 0, -50 } })
+	area(
+		parent,
+		"ControlA",
+		-35,
+		-40,
+		-5,
+		-10,
+		0,
+		{ { -20, -22 }, { -30, -14 }, { -10, -14 }, { -29, -31 } }
+	)
+	area(
+		parent,
+		"ControlB",
+		5,
+		-40,
+		35,
+		-10,
+		0,
+		{ { 20, -22 }, { 30, -14 }, { 10, -14 }, { 29, -31 } }
+	)
+	area(
+		parent,
+		"CrossCorridor",
+		-60,
+		-70,
+		60,
+		-60,
+		0,
+		{ { -45, -65 }, { -20, -65 }, { 20, -65 }, { 45, -65 } }
+	)
+	area(parent, "LiveRoom", -40, -130, 40, -70, 0, {
+		{ 0, -80 },
+		{ -25, -82 },
+		{ 28, -84 },
+		{ -32, -100 },
+		{ 0, -110 },
+		{ 30, -106 },
+		{ 0, -123 },
+		{ -34, -124 },
+		{ 12, -123 },
+	})
+	area(parent, "Booth1", -55, -130, -40, -110, 0, { { -48, -120 } })
+	area(parent, "Booth2", -55, -110, -40, -90, 0, { { -48, -100 } })
+	area(parent, "Booth3", -55, -90, -40, -70, 0, { { -48, -80 } })
+	area(
+		parent,
+		"Archive",
+		40,
+		-130,
+		70,
+		-70,
+		0,
+		{ { 55, -76 }, { 55, -87 }, { 55, -102 }, { 55, -117 }, { 55, -127 } }
+	)
+	area(parent, "BreakRoom", 35, -60, 60, -35, 0, { { 42, -42 }, { 42, -55 }, { 55, -53 } })
+	area(
+		parent,
+		"GeneratorRoom",
+		-60,
+		-40,
+		-20,
+		-15,
+		B,
+		{ { -38, -26 }, { -53, -21 }, { -28, -35 }, { -28, -20 } }
+	)
+	area(
+		parent,
+		"ElectricalRoom",
+		-60,
+		-15,
+		-20,
+		10,
+		B,
+		{ { -40, 0 }, { -52, 5 }, { -28, -6 }, { -50, -8 } }
+	)
 end
 
 local function newPart(
@@ -427,12 +421,7 @@ local function door(
 	return part
 end
 
-local function powerLight(
-	parent: Instance,
-	position: Vector3,
-	lights: { PointLight },
-	lamps: { BasePart }
-)
+local function powerLight(parent: Instance, position: Vector3)
 	local lamp = newPart(
 		"EmergencyLamp",
 		Vector3.new(1.2, 0.4, 1.2),
@@ -449,11 +438,10 @@ local function powerLight(
 	light.Shadows = true
 	light.Enabled = false
 	light.Parent = lamp
-	table.insert(lights, light)
-	table.insert(lamps, lamp)
+	lamp:SetAttribute("OnColor", Color3.fromRGB(255, 120, 90))
 end
 
-local function buildLobby(): CFrame
+function MapBuilder.buildLobby(): CFrame
 	local lobby = Instance.new("Model")
 	lobby.Name = "Lobby"
 	local o = Config.LOBBY_ORIGIN
@@ -526,21 +514,25 @@ local function buildLobby(): CFrame
 	return CFrame.lookAt(o + Vector3.new(0, 3, 8), o + Vector3.new(0, 3, -20))
 end
 
-function MapBuilder.build(): Layout
+-- Builds the greybox studio as Workspace.Map and returns it.
+function MapBuilder.build(): Model
 	local studio = Instance.new("Model")
-	studio.Name = "Studio"
-	local structure = Instance.new("Folder")
-	structure.Name = "Structure"
-	structure.Parent = studio
-	local props = Instance.new("Folder")
-	props.Name = "Props"
-	props.Parent = studio
-	local doorsFolder = Instance.new("Folder")
-	doorsFolder.Name = "Doors"
-	doorsFolder.Parent = studio
-	local lightsFolder = Instance.new("Folder")
-	lightsFolder.Name = "EmergencyLights"
-	lightsFolder.Parent = studio
+	studio.Name = "Map"
+	studio:SetAttribute("MapName", "Recording studio (greybox)")
+	local function folder(name: string, parent: Instance): Folder
+		local f = Instance.new("Folder")
+		f.Name = name
+		f.Parent = parent
+		return f
+	end
+	local structure = folder("Structure", studio)
+	local props = folder("Props", studio)
+	local markers = folder("Markers", studio)
+	local doorsFolder = folder("Doors", studio)
+	local booths = folder("Booths", studio)
+	local objectives = folder("Objectives", studio)
+	local lightsFolder = folder("PowerLights", studio)
+	buildAreas(folder("Areas", studio))
 
 	-- Floors and ceilings
 	room(structure, "Reception", -20, 0, 20, 30, 0, H, COLORS.tile, Enum.Material.Marble)
@@ -678,7 +670,7 @@ function MapBuilder.build(): Layout
 		40,
 		Color3.new(0, 1, 0),
 		Enum.Material.SmoothPlastic,
-		studio
+		objectives
 	)
 	exitZone.Transparency = 1
 	exitZone.CanCollide = false
@@ -719,8 +711,8 @@ function MapBuilder.build(): Layout
 	prop(props, "Fridge", 57, 0, -38, 3, 7, 3, Color3.fromRGB(200, 200, 196))
 
 	-- Objectives
-	local generator = prop(
-		props,
+	prop(
+		objectives,
 		"Generator",
 		-45,
 		BASEMENT_Y,
@@ -731,8 +723,8 @@ function MapBuilder.build(): Layout
 		Color3.fromRGB(110, 90, 40),
 		Enum.Material.DiamondPlate
 	)
-	local fuseBox = prop(
-		props,
+	prop(
+		objectives,
 		"FuseBox",
 		-59,
 		BASEMENT_Y + 3,
@@ -743,8 +735,8 @@ function MapBuilder.build(): Layout
 		COLORS.metal,
 		Enum.Material.Metal
 	)
-	local tapeDeck = prop(
-		props,
+	prop(
+		objectives,
 		"TapeDeck",
 		-16,
 		3.5,
@@ -757,7 +749,6 @@ function MapBuilder.build(): Layout
 	)
 
 	-- Doors
-	local doors: { BasePart } = {}
 	local function addDoor(
 		name: string,
 		x: number,
@@ -766,9 +757,7 @@ function MapBuilder.build(): Layout
 		alongZ: boolean,
 		kind: string
 	): Part
-		local d = door(doorsFolder, name, x, 0, z, width, alongZ, kind)
-		table.insert(doors, d)
-		return d
+		return door(doorsFolder, name, x, 0, z, width, alongZ, kind)
 	end
 	local frontDoor = door(doorsFolder, "FrontDoors", 0, 0, 30, 10, false, "front")
 	frontDoor.Color = Color3.fromRGB(60, 62, 66)
@@ -780,13 +769,18 @@ function MapBuilder.build(): Layout
 	addDoor("LiveRoomDoors", 0, -70, 8, false, "normal")
 	addDoor("ArchiveDoor", 55, -70, DOOR_W, false, "normal")
 	addDoor("ArchiveLiveDoor", 40, -100, DOOR_W, true, "normal")
-	local booth1 = addDoor("Booth1Door", -40, -120, DOOR_W, true, "booth")
-	local booth2 = addDoor("Booth2Door", -40, -100, DOOR_W, true, "booth")
-	local booth3 = addDoor("Booth3Door", -40, -80, DOOR_W, true, "booth")
+	addDoor("Booth1Door", -40, -120, DOOR_W, true, "booth")
+	addDoor("Booth2Door", -40, -100, DOOR_W, true, "booth")
+	addDoor("Booth3Door", -40, -80, DOOR_W, true, "booth")
+
+	-- Soundproof booth volumes, each linked to its door by name
+	for i, z in { -120, -100, -80 } do
+		local volume =
+			helper("Booth" .. i, CFrame.new(-47.5, H / 2, z), Vector3.new(15, H, 20), booths)
+		volume:SetAttribute("Door", "Booth" .. i .. "Door")
+	end
 
 	-- Emergency lights: off until the generator runs
-	local powerLights: { PointLight } = {}
-	local powerLamps: { BasePart } = {}
 	for _, p in
 		{
 			Vector3.new(0, H - 0.3, 15),
@@ -802,18 +796,15 @@ function MapBuilder.build(): Layout
 			Vector3.new(-40, -1.8, 0),
 		}
 	do
-		powerLight(lightsFolder, p, powerLights, powerLamps)
+		powerLight(lightsFolder, p)
 	end
 
-	studio.Parent = Workspace
-	local lobbySpawn = buildLobby()
-
-	return {
-		spawn = CFrame.lookAt(Vector3.new(0, 3, 24), Vector3.new(0, 3, 0)),
-		lobbySpawn = lobbySpawn,
-		monsterSpawn = Vector3.new(0, 4.5, -118),
-		areas = buildAreas(),
-		fuseSpots = {
+	-- Script markers
+	local spawnMarker = marker("PlayerSpawn", Vector3.new(0, 3, 24), markers)
+	spawnMarker.CFrame = CFrame.lookAt(spawnMarker.Position, Vector3.new(0, 3, 0))
+	marker("MonsterSpawn", Vector3.new(0, 3, -118), markers)
+	for _, p in
+		{
 			Vector3.new(-15, 3.75, 10),
 			Vector3.new(-26, 3.75, -36),
 			Vector3.new(26, 3.75, -36),
@@ -826,44 +817,25 @@ function MapBuilder.build(): Layout
 			Vector3.new(-56, BASEMENT_Y + 0.25, -37),
 			Vector3.new(-25, BASEMENT_Y + 0.25, 6),
 			Vector3.new(-56, 0.25, -66),
-		},
-		speakers = {
+		}
+	do
+		marker("FuseSpot", p, markers)
+	end
+	for _, p in
+		{
 			Vector3.new(0, 10, 20),
 			Vector3.new(0, 10, -35),
 			Vector3.new(0, 18, -100),
 			Vector3.new(40, 10, -65),
 			Vector3.new(-40, 10, -65),
 			Vector3.new(-40, -3, -25),
-		},
-		generator = generator,
-		fuseBox = fuseBox,
-		tapeDeck = tapeDeck,
-		exitZone = exitZone,
-		frontDoor = frontDoor,
-		doors = doors,
-		zones = {
-			{
-				name = "Booth1",
-				min = Vector3.new(-55, 0, -130),
-				max = Vector3.new(-40, H, -110),
-				door = booth1,
-			},
-			{
-				name = "Booth2",
-				min = Vector3.new(-55, 0, -110),
-				max = Vector3.new(-40, H, -90),
-				door = booth2,
-			},
-			{
-				name = "Booth3",
-				min = Vector3.new(-55, 0, -90),
-				max = Vector3.new(-40, H, -70),
-				door = booth3,
-			},
-		},
-		powerLights = powerLights,
-		powerLamps = powerLamps,
-	}
+		}
+	do
+		marker("Speaker", p, markers)
+	end
+
+	studio.Parent = Workspace
+	return studio
 end
 
 MapBuilder.FUSE_COLOR = COLORS.fuse

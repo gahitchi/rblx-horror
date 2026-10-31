@@ -11,7 +11,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
-local MapBuilder = require(script.Parent.Parent.MapBuilder)
+local MapContract = require(script.Parent.Parent.MapContract)
 
 local M = Config.MONSTER
 
@@ -83,13 +83,13 @@ end
 
 -- Where to roam next.
 function Director.pickArea(
-	areas: { MapBuilder.Area },
+	areas: { MapContract.Area },
 	now: number,
 	monster: Vector3,
 	players: { Vector3 },
-	current: MapBuilder.Area?
-): MapBuilder.Area
-	local candidates: { MapBuilder.Area } = {}
+	current: MapContract.Area?
+): MapContract.Area
+	local candidates: { MapContract.Area } = {}
 	for _, area in areas do
 		if area ~= current and #area.points > 0 then
 			table.insert(candidates, area)

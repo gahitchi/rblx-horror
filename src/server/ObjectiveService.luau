@@ -13,12 +13,13 @@ local Sounds = require(Shared:WaitForChild("Sounds"))
 
 local DoorService = require(script.Parent.DoorService)
 local MapBuilder = require(script.Parent.MapBuilder)
+local MapContract = require(script.Parent.MapContract)
 local NoiseService = require(script.Parent.NoiseService)
 local RoundState = require(script.Parent.RoundState)
 
 local ObjectiveService = {}
 
-local layout: MapBuilder.Layout
+local layout: MapContract.Layout
 local isTarget: (Player) -> boolean
 local fuseFolder: Folder
 local roundId = 0 -- bumps each reset, so loops from an old round stop
@@ -49,14 +50,24 @@ local function makePrompt(
 	return prompt
 end
 
+-- How each emergency lamp looks with the power off, as the map built it.
+local lampsOff: { [BasePart]: { material: Enum.Material, color: Color3 } } = {}
+
+-- Power on: lights on, lamps glow (in their OnColor if the map gives one). Off: as built.
 local function setPower(on: boolean)
 	RoundState.set("PowerOn", on)
 	for _, light in layout.powerLights do
 		light.Enabled = on
 	end
 	for _, lamp in layout.powerLamps do
-		lamp.Material = if on then Enum.Material.Neon else Enum.Material.SmoothPlastic
-		lamp.Color = if on then Color3.fromRGB(255, 120, 90) else Color3.fromRGB(60, 30, 26)
+		local off = lampsOff[lamp]
+		if not off then
+			off = { material = lamp.Material, color = lamp.Color }
+			lampsOff[lamp] = off
+		end
+		local onColor = lamp:GetAttribute("OnColor")
+		lamp.Material = if on then Enum.Material.Neon else off.material
+		lamp.Color = if on and typeof(onColor) == "Color3" then onColor else off.color
 	end
 end
 
@@ -219,7 +230,7 @@ function ObjectiveService.reset()
 	end
 end
 
-function ObjectiveService.init(map: MapBuilder.Layout, targetCheck: (Player) -> boolean)
+function ObjectiveService.init(map: MapContract.Layout, targetCheck: (Player) -> boolean)
 	layout = map
 	isTarget = targetCheck
 
