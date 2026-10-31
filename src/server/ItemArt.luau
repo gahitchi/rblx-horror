@@ -2,6 +2,8 @@
 -- Item appearance only. Claude's gameplay scripts own the walkie channel, tape recording,
 -- playback, battery and prompts. Returned Parts and their geometry are the stable API.
 
+local PrefabLibrary = require(script.Parent.PrefabLibrary)
+
 local ItemArt = {}
 
 local CHASSIS = Color3.fromRGB(36, 42, 42)
@@ -49,6 +51,10 @@ end
 -- Wearable pocket walkie: return the root, one non-solid Massless Part for belt welding.
 function ItemArt.makeWalkie(): Part
     local body = part("Walkie", Vector3.new(0.38, 0.75, 0.21), CHASSIS, Enum.Material.Metal)
+    if PrefabLibrary.attach(body,"WalkieTalkie",CFrame.new(0,-0.375,0)) then
+        body.Transparency = 1
+        return body
+    end
     -- Antenna housing extends above the chassis but remains in the same rigid assembly.
     accent(body, "RubberAntenna", Vector3.new(0.067, 0.49, 0.067),
         Vector3.new(0.13, 0.59, 0), RUBBER)
@@ -83,6 +89,10 @@ function ItemArt.makeTapeRecorder(): Part
     local body = part("TapeRecorder", Vector3.new(1.25, 0.48, 0.87),
         Color3.fromRGB(92, 86, 73), Enum.Material.Metal)
     body.Anchored = true
+    if PrefabLibrary.attach(body,"CassetteRecorder",CFrame.new(0,-0.24,0)) then
+        body.Transparency = 1
+        return body
+    end
     accent(body, "Faceplate", Vector3.new(1.15, 0.09, 0.75),
         Vector3.new(0, 0.25, 0), CHASSIS, Enum.Material.Metal)
     accent(body, "CassetteWindow", Vector3.new(0.63, 0.023, 0.43),
