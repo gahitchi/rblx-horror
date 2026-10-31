@@ -446,7 +446,7 @@ function Kit.build(spec: Specification): Model
         -- Real buildings retain a few low-intensity, battery-backed egress indicators.
         -- They do not participate in generator power state and cannot obscure the torch.
         if r.name==spec.spawn or r.role=="corridor" or r.name==spec.fuseBox then
-            local battery=piece(detailFolder,"BatteryExitHousing",Vector3.new(2.5,0.6,0.22),
+            piece(detailFolder,"BatteryExitHousing",Vector3.new(2.5,0.6,0.22),
                 CFrame.new(r.center.X,10.2,r.z1+1.4),theme.steel,Enum.Material.Metal,false)
             local lens=piece(detailFolder,"BatteryExitLens",Vector3.new(1.7,0.28,0.07),
                 CFrame.new(r.center.X,10.2,r.z1+1.2),
