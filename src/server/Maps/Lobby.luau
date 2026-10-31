@@ -20,7 +20,9 @@ local function part(parent: Instance,name: string,size: Vector3,at: Vector3,
 end
 function Lobby.build(): CFrame
     local previous=Workspace:FindFirstChild("Lobby")
-    if previous then previous:Destroy() end
+    if previous then
+        previous:Destroy()
+    end
     local root=Instance.new("Model")
     root.Name="Lobby"
     local o=Config.LOBBY_ORIGIN
