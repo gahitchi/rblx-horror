@@ -12,7 +12,9 @@ local function add(a: string,b: string,kind: string?)
 end
 -- The north-west and north-east rooms terminate at their isolation/vault exits.
 for col=1,3 do
-    if col~=2 then add(ref(1,col),ref(1,col+1)) end
+    if col~=2 then
+        add(ref(1,col),ref(1,col+1))
+    end
 end
 for row=2,5 do
     for col=1,3 do
@@ -45,7 +47,11 @@ local function make(spec: any)
         table.insert(links,{one,two,kind})
     end
     local booths={}
-    for name,enabled in spec.booths do if enabled then table.insert(booths,name) end end
+    for name,enabled in spec.booths do
+        if enabled then
+            table.insert(booths,name)
+        end
+    end
     return {
         id=spec.id,name=spec.name,palette=spec.palette,rooms=rooms,links=links,
         x=spec.x,z=spec.z,height=spec.height,booths=booths,
