@@ -8,7 +8,6 @@
 -- The assets are all native Roblox Parts/SurfaceGuis; no marketplace dependencies or asset IDs.
 -- Room accents intentionally leave central walkways and every door threshold unobstructed.
 
-local Lighting = game:GetService("Lighting")
 
 local MapBuilder = require(script.Parent.MapBuilder)
 
@@ -50,7 +49,9 @@ local function detail(
     p.CanCollide = false
     p.CanQuery = false
     p.CanTouch = false
-    p.CastShadow = false
+    -- Large architectural accents cast contact-like directional shadows. Tiny bolts,
+    -- panels and decals should not consume shadow work or create noisy silhouettes.
+    p.CastShadow = size.X > 0.24 and size.Y > 0.8 and size.Z > 0.24
     p.TopSurface = Enum.SurfaceType.Smooth
     p.BottomSurface = Enum.SurfaceType.Smooth
     p.Parent = parent or art
@@ -440,6 +441,88 @@ local function expandedWings()
         Vector3.new(-40, -3.5, 65.35), 0, 11, 1.4, C.darkSteel, C.red)
 end
 
+
+-- Architectural details do not participate in navigation or sound occlusion. Door frames
+-- are static, and their leaf Parts remain solely owned by DoorService.
+local function architecturalRealism(layout: MapBuilder.Layout)
+    local allDoors: { BasePart } = table.clone(layout.doors)
+    table.insert(allDoors, layout.frontDoor)
+    for _, leaf in allDoors do
+        local frame = leaf.CFrame
+        local hw = leaf.Size.X / 2
+        local frameColor = if leaf:GetAttribute("Kind") == "booth" then C.darkSteel else C.timberEdge
+        local material = if leaf:GetAttribute("Kind") == "booth" then Enum.Material.Metal else Enum.Material.Wood
+        for _, side in { -1, 1 } do
+            detail("StudioDoorJamb", Vector3.new(0.26, leaf.Size.Y + 0.22, 0.36),
+                frame * CFrame.new(side * (hw + 0.21), 0, 0),
+                frameColor, material)
+            detail("DoorFrameFastener", Vector3.new(0.07, 0.13, 0.44),
+                frame * CFrame.new(side * (hw + 0.21), 2.5, 0),
+                C.brass, Enum.Material.Metal)
+        end
+        detail("StudioDoorLintel", Vector3.new(leaf.Size.X + 0.8, 0.32, 0.38),
+            frame * CFrame.new(0, leaf.Size.Y / 2 + 0.1, 0),
+            frameColor, material)
+        -- The actual moving leaf is untouched; no anchored detail is welded to it.
+    end
+
+    -- Real studios use cove and desk-edge materials to break up endless planar walls.
+    -- These strips are thin and stay at the perimeter, clear of openings.
+    for _, x in { -34.3, 34.3 } do
+        block("ControlBaseDado", x, 0.55, -24, 0.18, 1.1, 25, C.timberEdge, Enum.Material.Wood)
+        block("ControlCableRaceway", x, 10.7, -24, 0.48, 0.28, 24, C.darkSteel, Enum.Material.Metal)
+    end
+    for _, z in { -151, -173 } do
+        block("MasteringSlatAccent", -38.9, 7.5, z, 0.22, 5.6, 3.8, C.timber, Enum.Material.Wood)
+        block("WorkshopVentGrille", 39.0, 8.3, z, 0.26, 2.8, 3.4, C.steel, Enum.Material.Metal)
+    end
+    for _, z in { -86, -104, -123 } do
+        block("ServiceConduitLid", 88.8, 9.4, z, 0.34, 0.4, 5.5, C.darkSteel, Enum.Material.Metal)
+    end
+end
+
+-- A realistic fixture has a dark metal housing, a thin translucent diffuser and a directed
+-- cone. Generator logic switches on its lens + SpotLight, not the entire housing.
+local function practical(layout: MapBuilder.Layout, name: string, at: Vector3, color: Color3, shadows: boolean)
+    block(name .. "Housing", at.X, at.Y + 0.2, at.Z, 4.6, 0.36, 2.2, C.darkSteel, Enum.Material.Metal)
+    local lens = block(name .. "Diffuser", at.X, at.Y - 0.06, at.Z,
+        3.8, 0.1, 1.45, Color3.fromRGB(43, 42, 39), Enum.Material.SmoothPlastic)
+    local light = Instance.new("SpotLight")
+    light.Name = "PracticalDownlight"
+    light.Face = Enum.NormalId.Bottom
+    light.Angle = 110
+    light.Range = 23
+    light.Brightness = if shadows then 1.15 else 0.8
+    light.Color = color
+    light.Shadows = shadows
+    light.Enabled = false
+    light.Parent = lens
+    table.insert(layout.powerLights, light)
+    table.insert(layout.powerLamps, lens)
+end
+
+local function installPracticalLights(layout: MapBuilder.Layout)
+    -- Four hero pools cast dynamic shadows; remaining fixtures are cheaper fill sources.
+    practical(layout, "MixAKey", Vector3.new(-21, 11.45, -23), Color3.fromRGB(233, 202, 161), true)
+    practical(layout, "MixBKey", Vector3.new(21, 11.45, -23), Color3.fromRGB(224, 200, 165), false)
+    practical(layout, "LiveFloorKey", Vector3.new(-9, 19.25, -107), Color3.fromRGB(231, 196, 153), true)
+    practical(layout, "LiveFloorRim", Vector3.new(20, 19.25, -91), Color3.fromRGB(188, 202, 206), false)
+    practical(layout, "ArchivePractical", Vector3.new(56, 11.45, -101), Color3.fromRGB(212, 211, 189), true)
+    practical(layout, "MasteringPractical", Vector3.new(-21, 11.45, -161), Color3.fromRGB(236, 202, 164), false)
+    practical(layout, "LoadingPractical", Vector3.new(106, 11.45, -113), Color3.fromRGB(210, 205, 188), false)
+    practical(layout, "BasementPractical", Vector3.new(-40, -2.05, 23), Color3.fromRGB(212, 180, 122), true)
+
+    -- Backup exit marker survives a power failure, but it is not a bright safety light.
+    local marker = block("ExitBackupMarker", 0, 10.6, 29.16, 4, 0.55, 0.2,
+        Color3.fromRGB(92, 26, 23), Enum.Material.Neon)
+    local backup = Instance.new("PointLight")
+    backup.Color = Color3.fromRGB(201, 57, 45)
+    backup.Brightness = 0.12
+    backup.Range = 7
+    backup.Shadows = false
+    backup.Parent = marker
+end
+
 function ArtBuilder.build(layout: MapBuilder.Layout)
     if built then
         return
@@ -447,6 +530,12 @@ function ArtBuilder.build(layout: MapBuilder.Layout)
     local studio = layout.map
     if not (studio:IsA("Model") or studio:IsA("Folder")) then
         warn("[Dead Air] ArtBuilder: loaded map must be a Model or Folder")
+        return
+    end
+    -- These decorations use the reference greybox's coordinates. Future hand-made maps
+    -- opt in explicitly, instead of receiving dozens of misplaced objects.
+    if studio:GetAttribute("MapName") ~= "Recording studio (greybox)"
+        and studio:GetAttribute("StudioArtPass") ~= true then
         return
     end
     built = true
@@ -466,6 +555,8 @@ function ArtBuilder.build(layout: MapBuilder.Layout)
     basement(layout)
     objectives(layout)
     expandedWings()
+    architecturalRealism(layout)
+    installPracticalLights(layout)
 
     -- Additional powered fixture accents use ObjectiveService's existing power lifecycle.
     for _, p in {
@@ -476,14 +567,6 @@ function ArtBuilder.build(layout: MapBuilder.Layout)
     } do
         tubeLight(layout, "PoweredStudioFixture", p.X, p.Y, p.Z)
     end
-
-    local grade = Instance.new("ColorCorrectionEffect")
-    grade.Name = "StudioEnvironmentGrade"
-    grade.Brightness = -0.025
-    grade.Contrast = 0.08
-    grade.Saturation = -0.18
-    grade.TintColor = Color3.fromRGB(225, 220, 210)
-    grade.Parent = Lighting
 
     print(string.format("[Dead Air] recording-studio ArtPass01: %d decorative parts", partCount))
 end
