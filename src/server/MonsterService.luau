@@ -31,6 +31,7 @@ local DoorService = require(script.Parent.DoorService)
 local MapContract = require(script.Parent.MapContract)
 local NoiseService = require(script.Parent.NoiseService)
 local Director = require(script.Parent.Monster.Director)
+local EngineerModel = require(script.Parent.Monster.EngineerModel)
 local Navigator = require(script.Parent.Monster.Navigator)
 local Perception = require(script.Parent.Monster.Perception)
 
@@ -181,96 +182,6 @@ local function setState(newState: State)
 end
 
 -- ===== Body =====
-
-local function weld(part: BasePart, to: BasePart)
-	local w = Instance.new("WeldConstraint")
-	w.Part0 = to
-	w.Part1 = part
-	w.Parent = part
-end
-
--- A tall, gaunt figure with studio headphones grown into its skull. Placeholder shapes for now.
-local function buildModel(position: Vector3): (Model, Humanoid, BasePart)
-	local m = Instance.new("Model")
-	m.Name = "Monster"
-	m:SetAttribute("MonsterName", "The Engineer")
-	glows = {}
-
-	local hrp = Instance.new("Part")
-	hrp.Name = "HumanoidRootPart"
-	hrp.Size = Vector3.new(2, 2, 1)
-	hrp.Transparency = 1
-	hrp.CFrame = CFrame.new(position)
-	hrp.Parent = m
-	m.PrimaryPart = hrp
-
-	local skin = Color3.fromRGB(32, 30, 30)
-	local function limb(
-		name: string,
-		size: Vector3,
-		offset: Vector3,
-		color: Color3?,
-		material: Enum.Material?
-	): Part
-		local p = Instance.new("Part")
-		p.Name = name
-		p.Size = size
-		p.CFrame = hrp.CFrame * CFrame.new(offset)
-		p.Color = color or skin
-		p.Material = material or Enum.Material.SmoothPlastic
-		p.CanCollide = false
-		p.Massless = true
-		p.Parent = m
-		weld(p, hrp)
-		return p
-	end
-
-	limb("Torso", Vector3.new(2.2, 3.6, 1.1), Vector3.new(0, 1, 0))
-	local head = limb("Head", Vector3.new(1.4, 1.6, 1.4), Vector3.new(0, 3.6, 0))
-	limb("LeftLeg", Vector3.new(0.7, 4, 0.7), Vector3.new(-0.6, -2, 0))
-	limb("RightLeg", Vector3.new(0.7, 4, 0.7), Vector3.new(0.6, -2, 0))
-	limb("LeftArm", Vector3.new(0.5, 4.8, 0.5), Vector3.new(-1.45, 0.4, 0))
-	limb("RightArm", Vector3.new(0.5, 4.8, 0.5), Vector3.new(1.45, 0.4, 0))
-	limb(
-		"HeadphoneBand",
-		Vector3.new(1.9, 0.3, 0.4),
-		Vector3.new(0, 4.55, 0),
-		Color3.fromRGB(20, 20, 20),
-		Enum.Material.Metal
-	)
-	for _, side in { -1, 1 } do
-		local cup = limb(
-			"Earcup",
-			Vector3.new(0.5, 1, 1),
-			Vector3.new(side * 0.95, 3.6, 0),
-			Color3.fromRGB(18, 18, 18),
-			Enum.Material.Metal
-		)
-		-- A faint red glow from the earcups: just enough to glimpse it in the dark.
-		local glow = Instance.new("PointLight")
-		glow.Color = Color3.fromRGB(255, 40, 30)
-		glow.Brightness = 0.8
-		glow.Range = 7
-		glow.Parent = cup
-		table.insert(glows, glow)
-	end
-	head:SetAttribute("Blind", true)
-
-	local h = Instance.new("Humanoid")
-	h.RigType = Enum.HumanoidRigType.R15
-	h.HipHeight = 3
-	h.WalkSpeed = M.ROAM_SPEED
-	h.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
-	h.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
-	h:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
-	h:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
-	h:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
-	h.Parent = m
-
-	m.Parent = Workspace
-	hrp:SetNetworkOwner(nil) -- the server moves it, not a nearby player's client
-	return m, h, hrp
-end
 
 local function setGlow(brightness: number, range: number)
 	for _, glow in glows do
@@ -838,7 +749,8 @@ end
 -- Brings the monster in at `position` and starts its brain.
 function MonsterService.spawn(position: Vector3)
 	MonsterService.despawn()
-	local m, h, r = buildModel(position)
+	local m, h, r, lights = EngineerModel.build(position)
+	glows = lights
 	model, humanoid, root = m, h, r
 	nav = Navigator.new(h, r, { m }, DoorService.isClosedInnerDoor, DoorService.monsterOpen)
 	NoiseService.setIgnoreList({ m })
