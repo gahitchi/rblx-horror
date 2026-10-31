@@ -301,9 +301,9 @@ local function archive()
     sign("ArchiveInventory", "ARCHIVE / DO NOT DISCARD\nREELS  1978–2004", Vector3.new(69.35, 8, -108), -90, 9, 2.4, C.timberEdge)
     -- Tape spines on the faces of the existing Shelf collision shapes.
     for shelfIndex, z in { -122, -112, -92, -82 } do
-        local xCenter = if shelfIndex % 2 == 1 then 51 else 59
+        local xCenter = if shelfIndex % 2 == 1 then 50 else 60
         for i = 1, 14 do
-            local x = xCenter - 9 + i * 1.2
+            local x = xCenter - 4.6 + i * 0.61
             for _, y in { 3.1, 6.4 } do
                 block("ReelCase", x, y, z + 1.08, 0.82, 2.15, 0.14,
                     if i % 5 == 0 then C.timber else C.darkSteel)
@@ -360,6 +360,82 @@ local function objectives(layout: MapBuilder.Layout)
         Vector3.new(-10, 7.9, -39.38), 0, 8.8, 2.1, C.timberEdge, C.amber)
 end
 
+
+-- Art for the new routes is non-collidable and lies along walls or pre-existing solid props.
+-- Readability: blue-grey mastering, rust-red machine shop, green archive service and ochre basement.
+local function expandedWings()
+    -- Rear gallery: the paired exits should be unmistakable from the live floor.
+    sign("RearGalleryWest", "MASTERING  /  BACKSTAGE", Vector3.new(-25, 10.1, -130.7), 180, 11, 1.25, C.darkSteel)
+    sign("RearGalleryEast", "SERVICE  /  MASTER BUS", Vector3.new(25, 10.1, -130.7), 180, 11, 1.25, C.darkSteel)
+    trimX(-39, 39, -145.4, 0)
+    for _, x in { -32, -10, 12, 34 } do
+        block("RearGalleryCableConduit", x, 10.5, -142, 0.22, 0.24, 7, C.steel, Enum.Material.Metal)
+    end
+    for _, x in { -35, -24, -13 } do
+        acousticPanel(x, 6.2, -177.4, 0, 5, 7.8, math.floor(x))
+    end
+    -- Mastering suite: magnetized tape racks, warm oak console and a clear under-table shelter.
+    block("MasteringDeskTop", -28, 3.08, -173, 11.2, 0.18, 3.3, C.timber, Enum.Material.Wood)
+    for i = 0, 7 do
+        block("MasterChannel", -32.6 + i * 1.3, 3.21, -172.7, 0.75, 0.07, 2.1, C.steel, Enum.Material.Metal)
+        block("MasterFader", -32.6 + i * 1.3, 3.27, -172.6, 0.18, 0.07, 0.35, C.label)
+    end
+    sign("MasteringLabel", "MASTERING / DO NOT RESET", Vector3.new(-39.3, 9, -164), 90, 8, 1.3, C.timberEdge)
+    for _, z in { -155, -165, -174 } do
+        block("MasteringWallDiffuser", -39.3, 5.8, z, 0.22, 7, 4.5, C.acoustic, Enum.Material.Wood)
+    end
+
+    -- Machine shop: tall racks at the perimeter, fuse labels and repair tags.
+    for _, z in { -153, -160, -170 } do
+        block("MachineShopPipe", 38.9, 9.8, z, 0.22, 0.22, 6.5, C.steel, Enum.Material.Metal)
+    end
+    sign("MachineRoomLabel", "EQUIPMENT SERVICE\nHEARING PROTECTION REQUIRED",
+        Vector3.new(39.32, 8.4, -158), -90, 10, 2.7, C.darkSteel, C.amber)
+    for _, x in { -13, -7, 7, 13 } do
+        block("VaultCase", x, 2.2, -198.9, 3.5, 3.7, 0.8, C.darkSteel, Enum.Material.Metal)
+        block("VaultSpine", x, 1.9, -198.4, 2.8, 0.6, 0.05, C.paper)
+    end
+    sign("TapeVaultLabel", "MASTER REELS\nAUTHORIZED ACCESS ONLY",
+        Vector3.new(0, 9.2, -200.34), 0, 12, 2.1, C.timberEdge, C.red)
+
+    -- Service hall is visually distinct from the old archive: exposed conduits and hazard stripes.
+    for _, z in { -123, -108, -93, -78 } do
+        block("ServiceCableTray", 88.9, 10.5, z, 0.35, 0.45, 9, C.steel, Enum.Material.Metal)
+        block("ServiceFloorStripe", 80, 0.045, z, 15, 0.05, 0.18, C.amber)
+    end
+    sign("EastPassageSign", "ARCHIVE  /  SERVICE LOOP",
+        Vector3.new(89.3, 8.4, -119), -90, 8, 1.6, C.darkSteel, C.label)
+    sign("LoadingDoorSign", "LOADING BAY / DEAD END",
+        Vector3.new(90.65, 9.5, -108), 90, 7, 1.2, C.darkSteel, C.red)
+    sign("QuietStoreSign", "QUIET STORE / ONE EXIT",
+        Vector3.new(90.65, 9.5, -80), 90, 7, 1.2, C.darkSteel, C.red)
+    for _, x in { 100, 109, 118 } do
+        block("LoadingDockBeam", x, 11.1, -126, 0.45, 1.3, 7, C.steel, Enum.Material.Metal)
+        block("LoadingWallPanel", x, 5.5, -129.3, 5, 6, 0.15, C.acousticAlt, Enum.Material.Metal)
+    end
+    for _, x in { 98, 108, 118 } do
+        block("StoreShelfFace", x, 6, -89.34, 4.5, 5, 0.15, C.timber, Enum.Material.Wood)
+    end
+
+    -- Basement is recognizable by its oil-rust colour and tunnel conduits.
+    sign("ServiceTunnelSign", "LOWER LEVEL\nCOMPRESSOR  |  COOLING  |  BOILER",
+        Vector3.new(-40, -4.5, 10.65), 180, 10, 2.7, C.darkSteel, C.amber)
+    for _, z in { 15, 24, 34, 40 } do
+        block("BasementConduit", -45.37, -3.4, z, 0.24, 0.3, 5.7, C.steel, Enum.Material.Metal)
+        block("BasementDrain", -40, -13.94, z, 8, 0.08, 0.2, C.trim, Enum.Material.Metal)
+    end
+    for _, z in { 22, 32 } do
+        cylinder("AirCompressorTube", Vector3.new(-73.1, -6.5, z), 5, 0.4, C.steel, true)
+        cylinder("CoolingTube", Vector3.new(-6.1, -6.5, z), 5, 0.4, C.steel, true)
+    end
+    sign("CompressorMark", "AIR PLANT / NO THROUGH ROUTE",
+        Vector3.new(-75.36, -4.5, 24), 90, 9.5, 1.3, C.darkSteel, C.amber)
+    sign("ColdStoreMark", "COLD STORE / ONE WAY OUT",
+        Vector3.new(-4.64, -4.5, 24), -90, 9.5, 1.3, C.darkSteel, C.amber)
+    sign("BoilerRoomMark", "BOILER / PRESSURE 1.8 BAR",
+        Vector3.new(-40, -3.5, 65.35), 0, 11, 1.4, C.darkSteel, C.red)
+end
+
 function ArtBuilder.build(layout: MapBuilder.Layout)
     if built then
         return
@@ -385,6 +461,7 @@ function ArtBuilder.build(layout: MapBuilder.Layout)
     breakRoom()
     basement(layout)
     objectives(layout)
+    expandedWings()
 
     -- Additional powered fixture accents use ObjectiveService's existing power lifecycle.
     for _, p in {
