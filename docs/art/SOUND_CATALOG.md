@@ -21,9 +21,16 @@ The recording studio must sound *believable* when quiet. Use decaying mechanical
 | `MONSTER_STEP` | Slow heavy uneven boots plus loose headset/cable rattle; recognizable through thin walls | `heavy boots concrete slow`, `industrial work boots footsteps`, `metal scrape step` | Layer light drag/rattle over distinct steps; no music |
 | `ALERT` | Engineer locks onto a sound: throatless headset squeal, magnetic tape braking, angry electrical groan | `radio feedback scream`, `tape brake squeal`, `electronic horror alert` | Different from lunge: longer and lower, obvious change in AI intention |
 
-## Anticipated new entries — verify their exact names after Claude's milestone lands
+| `FOOTSTEP` | Human step recorded onto tape or reproduced by mimicry; lighter than Engineer boots | `carpet walking steps`, `shoe on concrete`, `shoe wood floor` | Replay/mimic cue; later add surface-specific variants |
+| `LANDING` | Weighty shoe landing and fabric rustle | `human landing thud`, `boot land concrete`, `soft landing` | Short distinct transient |
+| `VOICE_GARBLE` | Muffled, unintelligible analog-recorded speech and pitch wobble | `garbled old radio speech`, `cassette voice fragment` | Slowed for playback; avoid copyrighted speech |
+| `WALKIE_CRACKLE` | Narrowband radio hiss, clipped bursts and squelch | `walkie squelch analog`, `two way radio static burst` | Plays at receiving walkies; some calls at half speed |
+| `WALKIE_CLICK` | Dry thumb push-to-talk spring click | `walkie PTT click`, `two way radio button` | Repeated at call start/end; keep quiet |
+| `TAPE_CLUNK` | Plastic transport key and metal portable deck placed on floor | `cassette transport button`, `tape recorder set down` | Short one-shot; separate from fuse snap |
 
-The following are **proposed audio cues**, not claims that these identifiers already exist in `Sounds.luau`. Match Claude's actual additions rather than introducing duplicate constants.
+## Additional anticipated cues — verify their exact names after Claude's milestone lands
+
+Claude's v0.3.0 additions are listed above. The following are further ideas, not additional existing constants. Coordinate new identifiers with Claude.
 
 | Planned effect | Desired sound | Search terms | Implementation coordination |
 | --- | --- | --- | --- |
