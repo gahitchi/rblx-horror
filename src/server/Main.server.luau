@@ -9,7 +9,6 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
 
-local ArtBuilder = require(script.Parent.ArtBuilder)
 local VisualFidelity = require(script.Parent.VisualFidelity)
 local DoorService = require(script.Parent.DoorService)
 local MapBuilder = require(script.Parent.MapBuilder)
@@ -75,7 +74,7 @@ if not map then
 		copy.Parent = Workspace
 		map = copy
 	else
-		map = MapBuilder.build()
+		map = MapBuilder.build(mapId)
 	end
 end
 local loaded, problems = MapContract.read(map :: Instance, lobbySpawn)
@@ -87,7 +86,7 @@ if not loaded then
 	warn("[Map] Workspace.Map doesn't follow docs/MAP_CONTRACT.md; using the greybox instead")
 	local broken = map :: Instance
 	broken.Name = "Map (unusable)"
-	local greybox, greyboxProblems = MapContract.read(MapBuilder.build(), lobbySpawn)
+	local greybox, greyboxProblems = MapContract.read(MapBuilder.build(mapId), lobbySpawn)
 	for _, problem in greyboxProblems do
 		warn("[Map] greybox: " .. problem)
 	end
@@ -95,7 +94,6 @@ if not loaded then
 end
 assert(loaded, "the greybox map failed its own contract")
 local layout = loaded
-ArtBuilder.build(layout)
 
 -- Darkness, unless the map has its own lighting (attribute OwnsLighting on the Map).
 -- (Lighting technology is set to Future in the project file.)
