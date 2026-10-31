@@ -32,6 +32,7 @@ local MapContract = require(script.Parent.MapContract)
 local NoiseService = require(script.Parent.NoiseService)
 local Director = require(script.Parent.Monster.Director)
 local EngineerModel = require(script.Parent.Monster.EngineerModel)
+local Mimicry = require(script.Parent.Monster.Mimicry)
 local Navigator = require(script.Parent.Monster.Navigator)
 local Perception = require(script.Parent.Monster.Perception)
 
@@ -122,20 +123,7 @@ local function targetPositions(): { Vector3 }
 end
 
 local function areaAt(position: Vector3): MapContract.Area?
-	for _, area in areas do
-		local lo, hi = area.min, area.max
-		if
-			position.X >= lo.X
-			and position.X <= hi.X
-			and position.Y >= lo.Y
-			and position.Y <= hi.Y
-			and position.Z >= lo.Z
-			and position.Z <= hi.Z
-		then
-			return area
-		end
-	end
-	return nil
+	return MapContract.areaAt(areas, position)
 end
 
 local function hasLineOfSight(from: Vector3, to: Vector3, ignore: { Instance }): boolean
@@ -259,12 +247,12 @@ local function startRetreat()
 	log("retreating to", area.name)
 end
 
-local function startListen(toward: Vector3)
+local function startListen(toward: Vector3, duration: number?)
 	if state ~= "Listen" then
 		resumeState = if state == "Search" then "Search" else "Roam"
 	end
 	listenToward = toward
-	listenUntil = os.clock() + M.LISTEN_TIME + rng:NextNumber(-0.4, 0.6)
+	listenUntil = os.clock() + (duration or M.LISTEN_TIME + rng:NextNumber(-0.4, 0.6))
 	if nav then
 		nav.stop()
 	end
@@ -358,6 +346,7 @@ end
 local function react(stimulus: Perception.Stimulus)
 	local now = os.clock()
 	local source = stimulus.source
+	Mimicry.remember(stimulus.kind, source ~= nil)
 
 	if state == "Hunt" then
 		-- Focused on its target; everyone else's sounds wash past it.
@@ -700,6 +689,14 @@ local function step(now: number, dt: number)
 	end
 	Director.update(dt, now, r.Position, state == "Hunt", targetPositions())
 	feelAround()
+	if state == "Roam" or state == "Search" then
+		-- Now and then: throw a remembered sound nearby, then wait for whoever comes to look.
+		local lure = Mimicry.tryPerform(now, r.Position, areas, targetPositions())
+		if lure then
+			log("mimicking near", MapContract.placeName(areas, lure))
+			startListen(lure, Config.MIMIC.AMBUSH_TIME)
+		end
+	end
 	think(now)
 	n.update(now)
 	updateFootsteps(dt)
@@ -756,6 +753,7 @@ function MonsterService.spawn(position: Vector3)
 	NoiseService.setIgnoreList({ m })
 	Director.reset(os.clock())
 	Perception.reset()
+	Mimicry.reset(os.clock())
 	currentArea = areaAt(position)
 	startRoam()
 

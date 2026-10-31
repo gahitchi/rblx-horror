@@ -9,9 +9,11 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: prototype 0.2.0
+## Status: prototype 0.3.0
 
-Greybox studio, the noise system, the Engineer, the full round loop and a basic HUD. Placeholder sounds.
+Greybox studio, the noise system, the Engineer (layered AI with mimicry), the full round loop,
+walkie-talkies, the tape recorder decoy, spectating and a basic HUD. Placeholder sounds. Before a
+playtest, see [docs/PLAYTEST.md](docs/PLAYTEST.md).
 
 What a round looks like:
 1. Wait in the lobby for the countdown.
@@ -19,9 +21,7 @@ What a round looks like:
 3. Find three fuses around the studio (one at a time) and fit them in the basement fuse box.
 4. Play the emergency tape in control room A. Every speaker blasts an alarm for 20 seconds.
 5. The front doors unlock. Get out through reception.
-
-Coming next: walkie-talkies, the tape recorder, the Engineer replaying sounds it heard, spectating,
-real sounds and models.
+6. Caught players watch the others until the round ends.
 
 ## Controls
 
@@ -32,6 +32,11 @@ real sounds and models.
 | C or Ctrl | Crouch (slow, silent) |
 | F | Flashlight (a quiet click) |
 | E (hold) | Interact |
+| V (hold) | Talk on the walkie: teammates' walkies crackle (and carry your voice) |
+| 1 to 4 | Walkie callouts: "It's here!", "Need help!", "Found a fuse.", "Going quiet." |
+| N | Walkie on or off |
+| R | Tape recorder: record nearby noise, then set it down as a decoy |
+| Q / E | While spectating: switch player |
 
 ## Setup
 
@@ -71,9 +76,9 @@ one, the game builds the greybox studio, which follows the same rules.
 
 ```
 src/shared   Config (all tuning numbers), Remotes, Sounds
-src/server   MapContract, MapBuilder, DoorService, NoiseService, MonsterService, ObjectiveService,
-             RoundService, RoundState, PlayerService, Main
-src/client   Movement, Flashlight, Voice, Hud, DangerEffect, Main
+src/server   MapContract, MapBuilder, DoorService, NoiseService, MonsterService (+ Monster/),
+             ObjectiveService, RoundService, RoundState, PlayerService, Items/, ItemArt, Main
+src/client   Movement, Flashlight, Voice, Items, Spectate, Hud, DangerEffect, Main
 ```
 
 ## Checks before pushing

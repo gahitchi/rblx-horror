@@ -12,6 +12,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 
 local MovementController = require(script.Parent.MovementController)
+local SpectateController = require(script.Parent.SpectateController)
 local VoiceController = require(script.Parent.VoiceController)
 
 local player = Players.LocalPlayer
@@ -20,6 +21,7 @@ local FONT = Enum.Font.RobotoMono
 local TEXT = Color3.fromRGB(225, 220, 210)
 local DIM = Color3.fromRGB(130, 125, 118)
 local DONE = Color3.fromRGB(120, 200, 140)
+local RADIO = Color3.fromRGB(235, 190, 110)
 local NOISE_FULL = 60 -- a noise this loud fills the meter
 local TOAST_SECONDS = 4.5
 
@@ -101,7 +103,22 @@ function Hud.start()
 	local help = label(gui, UDim2.fromOffset(520, 18), UDim2.new(0, 20, 1, -32), 13)
 	help.TextXAlignment = Enum.TextXAlignment.Left
 	help.TextColor3 = DIM
-	help.Text = "Shift run · C crouch · F flashlight · E interact"
+	local keys = { "Shift run", "C crouch", "F light", "E interact" }
+	if Config.FEATURES.WALKIE then
+		table.insert(keys, "V talk")
+		table.insert(keys, "1-4 callouts")
+		table.insert(keys, "N radio off")
+	end
+	if Config.FEATURES.TAPE then
+		table.insert(keys, "R tape")
+	end
+	help.Size = UDim2.fromOffset(760, 18)
+	help.Text = table.concat(keys, " · ")
+
+	-- Bottom left, above the controls: the items' state.
+	local items = label(gui, UDim2.fromOffset(620, 18), UDim2.new(0, 20, 1, -54), 14)
+	items.TextXAlignment = Enum.TextXAlignment.Left
+	items.RichText = true
 
 	-- Right: messages, newest at the bottom.
 	local toasts = Instance.new("Frame")
@@ -118,7 +135,7 @@ function Hud.start()
 	list.Parent = toasts
 	local toastCount = 0
 
-	Remotes.Notify.OnClientEvent:Connect(function(message: string)
+	local function showToast(message: string, color: Color3?, seconds: number?)
 		toastCount += 1
 		local toast = label(toasts, UDim2.new(1, 0, 0, 20), UDim2.new(), 15)
 		toast.TextXAlignment = Enum.TextXAlignment.Right
@@ -126,7 +143,8 @@ function Hud.start()
 		toast.AutomaticSize = Enum.AutomaticSize.Y
 		toast.LayoutOrder = toastCount
 		toast.Text = message
-		task.delay(TOAST_SECONDS, function()
+		toast.TextColor3 = color or TEXT
+		task.delay(seconds or TOAST_SECONDS, function()
 			local fade = TweenService:Create(
 				toast,
 				TweenInfo.new(1),
@@ -136,6 +154,12 @@ function Hud.start()
 			fade.Completed:Wait()
 			toast:Destroy()
 		end)
+	end
+	Remotes.Notify.OnClientEvent:Connect(function(message: string)
+		showToast(message)
+	end)
+	Remotes.Radio.OnClientEvent:Connect(function(sender: string, room: string, text: string)
+		showToast(string.format("[radio] %s, %s: %s", sender, room, text), RADIO, TOAST_SECONDS + 2)
 	end)
 
 	local noise = 0
@@ -165,7 +189,10 @@ function Hud.start()
 				state:GetAttribute("Alive") or 0
 			)
 			if not inRound then
-				centre.Text = "You're out. The next round starts soon."
+				local watching = SpectateController.getTarget()
+				centre.Text = if watching
+					then string.format("Watching %s   ·   Q / E to switch", watching.DisplayName)
+					else "You're out. The next round starts soon."
 			end
 		elseif phase == "Results" then
 			status.Text = "ROUND OVER"
@@ -219,6 +246,45 @@ function Hud.start()
 			then Color3.fromRGB(220, 70, 60)
 			elseif noise > 0.3 then Color3.fromRGB(225, 170, 70)
 			else TEXT
+
+		-- Items
+		if phase == "Playing" and inRound then
+			local parts: { string } = {}
+			if Config.FEATURES.WALKIE then
+				local walkie = if player:GetAttribute("WalkieTalking")
+					then string.format('<font color="#%s">TALKING</font>', RADIO:ToHex())
+					elseif player:GetAttribute("WalkieOn") then "on"
+					else "off"
+				local incoming: { string } = {}
+				if player:GetAttribute("WalkieOn") then
+					for _, other in Players:GetPlayers() do
+						if other ~= player and other:GetAttribute("WalkieTalking") then
+							table.insert(incoming, other.DisplayName)
+						end
+					end
+				end
+				if #incoming > 0 then
+					walkie ..= string.format(
+						'  <font color="#%s">%s on the radio</font>',
+						RADIO:ToHex(),
+						table.concat(incoming, ", ")
+					)
+				end
+				table.insert(parts, "Walkie: " .. walkie)
+			end
+			if Config.FEATURES.TAPE then
+				local tapeState = player:GetAttribute("TapeState")
+				local tapeText = if tapeState == "recording"
+					then string.format('<font color="#%s">RECORDING</font>', RADIO:ToHex())
+					elseif tapeState == "ready" then "recorded (R to set down)"
+					elseif tapeState == "placed" then "set down"
+					else "blank (R to record)"
+				table.insert(parts, "Tape: " .. tapeText)
+			end
+			items.Text = table.concat(parts, "     ")
+		else
+			items.Text = ""
+		end
 
 		local stamina = MovementController.getStamina()
 		staminaFill.Size = UDim2.fromScale(stamina, 1)

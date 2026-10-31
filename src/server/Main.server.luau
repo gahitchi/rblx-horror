@@ -16,6 +16,9 @@ local ObjectiveService = require(script.Parent.ObjectiveService)
 local PlayerService = require(script.Parent.PlayerService)
 local RoundService = require(script.Parent.RoundService)
 
+local TapeService = require(script.Parent.Items.TapeService)
+local WalkieService = require(script.Parent.Items.WalkieService)
+
 -- The Baseplate template's baseplate and spawn don't belong here; removed only while running.
 local baseplate = Workspace:FindFirstChild("Baseplate")
 if baseplate then
@@ -79,6 +82,8 @@ end
 MonsterService.init(layout.areas, RoundService.isTarget, RoundService.catch)
 ObjectiveService.init(layout, RoundService.isTarget)
 PlayerService.init()
+WalkieService.init(layout.areas)
+TapeService.init()
 RoundService.init(layout)
 
 print(string.format("[%s] server running, v%s", Config.GAME_NAME, Config.VERSION))

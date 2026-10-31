@@ -65,6 +65,20 @@ end
 
 local onDied: (Player) -> ()
 
+-- Other systems (items) hear about spawns and new rounds through these.
+local spawnListeners: { (Player, Model, boolean) -> () } = {}
+local roundStartListeners: { () -> () } = {}
+
+-- `callback(player, character, inRound)` runs after every spawn, in the round or in the lobby.
+function RoundService.onSpawn(callback: (Player, Model, boolean) -> ())
+	table.insert(spawnListeners, callback)
+end
+
+-- `callback()` runs when a round starts, before anyone is spawned into it.
+function RoundService.onRoundStart(callback: () -> ())
+	table.insert(roundStartListeners, callback)
+end
+
 -- Spawns a fresh character at `cframe`, inside the round or not.
 local function spawnAt(player: Player, cframe: CFrame, inRound: boolean)
 	if player.Parent ~= Players then
@@ -79,6 +93,9 @@ local function spawnAt(player: Player, cframe: CFrame, inRound: boolean)
 	character:SetAttribute("FlashlightOn", true) -- everyone starts with the torch lit
 	local spread = Vector3.new(rng:NextNumber(-4, 4), 0, rng:NextNumber(-3, 3))
 	character:PivotTo(cframe + spread)
+	for _, callback in spawnListeners do
+		task.spawn(callback, player, character, inRound)
+	end
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if humanoid then
 		humanoid.WalkSpeed = Config.WALK_SPEED
@@ -166,6 +183,9 @@ local function runRound()
 	DoorService.resetAll()
 	ObjectiveService.reset()
 	MonsterService.despawn()
+	for _, callback in roundStartListeners do
+		task.spawn(callback)
+	end
 	setPhase("Playing")
 	countAlive()
 
