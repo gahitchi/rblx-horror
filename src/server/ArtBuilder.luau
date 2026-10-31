@@ -173,7 +173,10 @@ end
 local function tubeLight(
     layout: MapBuilder.Layout, name: string, x: number, y: number, z: number
 )
-    local lamp = block(name, x, y, z, 2.2, 0.16, 0.55, C.darkSteel, Enum.Material.Metal)
+    block(name .. "Housing", x, y + 0.12, z, 2.2, 0.23, 0.55, C.darkSteel, Enum.Material.Metal)
+    local lamp = block(name .. "Lens", x, y - 0.045, z, 1.9, 0.07, 0.34,
+        Color3.fromRGB(55, 28, 24), Enum.Material.SmoothPlastic)
+    lamp:SetAttribute("OnColor", Color3.fromRGB(255, 115, 79))
     local fixture = Instance.new("PointLight")
     fixture.Color = Color3.fromRGB(255, 104, 73)
     fixture.Range = 14
@@ -487,6 +490,7 @@ local function practical(layout: MapBuilder.Layout, name: string, at: Vector3, c
     block(name .. "Housing", at.X, at.Y + 0.2, at.Z, 4.6, 0.36, 2.2, C.darkSteel, Enum.Material.Metal)
     local lens = block(name .. "Diffuser", at.X, at.Y - 0.06, at.Z,
         3.8, 0.1, 1.45, Color3.fromRGB(43, 42, 39), Enum.Material.SmoothPlastic)
+    lens:SetAttribute("OnColor", color)
     local light = Instance.new("SpotLight")
     light.Name = "PracticalDownlight"
     light.Face = Enum.NormalId.Bottom
