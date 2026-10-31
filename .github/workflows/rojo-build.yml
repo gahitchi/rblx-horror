@@ -28,7 +28,7 @@ jobs:
           selene --version
       - name: Lint art and rendering Lua sources
         run: |
-          selene src/server/VisualFidelity.luau src/server/ArtBuilder.luau src/server/ItemArt.luau src/server/Monster/EngineerModel.luau src/server/MapBuilder.luau src/server/Maps/Kit.luau src/server/Maps/Layouts.luau src/server/Maps/Lobby.luau src/server/Maps/AssetLibrary.luau
+          selene src/server/VisualFidelity.luau src/server/ItemArt.luau src/server/Monster/EngineerModel.luau src/server/MapBuilder.luau src/server/Maps/Kit.luau src/server/Maps/Layouts.luau src/server/Maps/Lobby.luau src/server/Maps/AssetLibrary.luau
       - name: Validate source tree and project serialization
         run: |
           rojo build default.project.json -o dead-air-validation.rbxl
