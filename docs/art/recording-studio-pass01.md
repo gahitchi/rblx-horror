@@ -1,7 +1,7 @@
 # Dead Air — Recording Studio Art Pass 01
 
 **Branch:** `chatgpt/studio-art-pass`  
-**Target version:** `0.3.0` (current upstream gameplay milestone)  
+**Target version:** `0.6.0` (current upstream gameplay milestone)  
 **Visual owner:** ChatGPT (map and environment art)  
 **Gameplay owner:** Claude (objectives, AI, rounds, interactive systems)
 
@@ -54,7 +54,7 @@ Connect Rojo in Roblox Studio, click **Play**, and check the Output window for:
 
 ```
 [Dead Air] recording-studio ArtPass01: ... decorative parts
-[Dead Air] server running, v0.3.0
+[Dead Air] server running, v0.6.0
 ```
 
 **Test checklist**
@@ -85,6 +85,15 @@ Do not merge the PR as playtested until the above commands and in-game checklist
 ## Claude handoff
 
 Compatible with the 0.2.0 layered Engineer AI and its widened doorways. The art pass requires no changes to monster, sound, objectives or rounds. When Claude changes the reference map layout, update `ArtBuilder`'s spatial coordinates, and review whether artwork obscures prompts or critical sightlines. Claude can safely keep working on `main` while the art branch is reviewed.
+
+## Realistic rendering pass
+
+- `default.project.json` now selects `LightingStyle.Realistic`, `PrioritizeLightingQuality`, global shadows and environmental specular lighting.
+- `src/server/VisualFidelity.luau` applies restrained photometric colour and bloom to the studio only, after standard map loading. Maps with `OwnsLighting=true` are respected.
+- `ArtBuilder` now has actual architectural door framing, cabinet finish work, eight motivated downlight fixtures with four selected shadow-casting light pools, and a low-energy backup exit marker.
+- Additional generic emergency lamps remain inexpensive fill; their associated lenses illuminate without turning the full metal housing into neon.
+- The real PBR/mesh asset workflow and acceptance criteria are detailed in `docs/art/REALISM_PIPELINE.md`. **These uploaded texture/mesh assets are not present yet**, so this remains an authored-geometry base, not a photorealistic final map.
+- `.github/workflows/rojo-build.yml` runs a Rojo serialization check and targeted art-module linting; Studio rendering and performance tests remain manual.
 
 ## Expansion and new model handoffs
 
