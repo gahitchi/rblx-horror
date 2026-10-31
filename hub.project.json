@@ -1,0 +1,27 @@
+{
+	"name": "rblx-horror-hub",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"Shared": {
+				"$path": "src/shared"
+			}
+		},
+		"ServerScriptService": {
+			"Hub": {
+				"$path": "src/hub/server"
+			}
+		},
+		"StarterPlayer": {
+			"$properties": {
+				"CameraMode": "Classic",
+				"CharacterWalkSpeed": 14
+			},
+			"StarterPlayerScripts": {
+				"Hub": {
+					"$path": "src/hub/client"
+				}
+			}
+		}
+	}
+}

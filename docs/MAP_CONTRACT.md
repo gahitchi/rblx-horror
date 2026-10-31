@@ -125,7 +125,10 @@ Also:
 Work on your own branch (for example `chatgpt/studio-art-pass`) and bring in `main` regularly
 (`git merge main` or `git rebase main`), so script changes and map changes don't drift apart.
 
-The map has to end up as `Workspace.Map`. Either:
+The map has to end up as `Workspace.Map`. With several maps, store each one in the match place as
+`ServerStorage.Maps.<map id>` (ids in `Config.MAPS`): the server copies the chosen one into
+`Workspace.Map` when a match starts. For a single map in Studio, `Workspace.Map` directly also works.
+Either way, the map gets there by:
 
 1. **A model file in the repo** (recommended): save the map from Studio as a model file
    (right-click `Map` > Save to File > `.rbxmx`) at `assets/maps/Map.rbxmx`, and add it to

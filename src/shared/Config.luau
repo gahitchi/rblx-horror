@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.3.0"
+Config.VERSION = "0.6.0"
 Config.DEBUG = true -- extra Output logging while in development
 Config.DEBUG_AI = false -- shows the monster's state, awareness and path in the world
 
@@ -99,7 +99,7 @@ Config.MONSTER = table.freeze({
 Config.MIN_PLAYERS = 1
 Config.LOBBY_COUNTDOWN = if Config.DEBUG then 8 else 20 -- short while testing alone
 Config.ROUND_TIME = 1200
-Config.RESULTS_TIME = 8
+Config.RESULTS_TIME = 12 -- long enough to read the results
 Config.RESPAWN_DELAY = 3
 
 -- Objectives
@@ -112,12 +112,90 @@ Config.ALARM_INTERVAL = 1.5
 -- Where the lobby floats, far above the map
 Config.LOBBY_ORIGIN = Vector3.new(0, 400, 0)
 
+-- Experience for what players do in a round (coins are a fifth of it). Rewards teamwork and
+-- objectives, not only escaping, so a round where you got caught still moves you forward.
+Config.REWARDS = table.freeze({
+	ROUND = 20, -- for playing a round
+	GENERATOR_PULL = 10,
+	FUSE = 25,
+	TAPE_DECK = 40, -- starting the emergency tape
+	DECOY = 15, -- a tape recorder playing back
+	ESCAPE = 100,
+	REVIVE = 30, -- bringing a teammate back
+})
+-- The free reward track (a battle pass nobody has to buy): reaching a level unlocks its reward.
+-- A level lost to a revive relocks its rewards until it's reached again.
+Config.TRACK = table.freeze({
+	{ level = 2, kind = "boost", value = 0.05, id = "", name = "+5% XP" },
+	{ level = 3, kind = "skin", value = 0, id = "cold", name = "Cold white flashlight" },
+	{ level = 4, kind = "boost", value = 0.05, id = "", name = "+5% XP" },
+	{ level = 5, kind = "skin", value = 0, id = "sodium", name = "Sodium amber flashlight" },
+	{ level = 7, kind = "boost", value = 0.1, id = "", name = "+10% XP" },
+	{ level = 8, kind = "skin", value = 0, id = "darkroom", name = "Darkroom red flashlight" },
+	{ level = 10, kind = "boost", value = 0.1, id = "", name = "+10% XP" },
+	{ level = 12, kind = "skin", value = 0, id = "ultraviolet", name = "Ultraviolet flashlight" },
+	{ level = 15, kind = "skin", value = 0, id = "tape", name = "Old tape green flashlight" },
+})
+
+-- Flashlight looks (cosmetic only: the beam's colour, seen by everyone).
+Config.FLASHLIGHT_SKINS = table.freeze({
+	warm = { name = "Warm", color = Color3.fromRGB(255, 244, 222) },
+	cold = { name = "Cold white", color = Color3.fromRGB(225, 236, 255) },
+	sodium = { name = "Sodium amber", color = Color3.fromRGB(255, 196, 120) },
+	darkroom = { name = "Darkroom red", color = Color3.fromRGB(255, 120, 110) },
+	ultraviolet = { name = "Ultraviolet", color = Color3.fromRGB(190, 160, 255) },
+	tape = { name = "Old tape green", color = Color3.fromRGB(190, 255, 190) },
+})
+Config.FLASHLIGHT_SKIN_ORDER =
+	table.freeze({ "warm", "cold", "sodium", "darkroom", "ultraviolet", "tape" })
+
+-- Coming back after being caught: once per round, while teammates are still inside. You put up the
+-- price (a level, normally; Robux is possible but priced as a rare exception), then a teammate has
+-- to reach the walkie you dropped and hold E on it while it screeches back to life. If nobody
+-- comes before the round ends, the price is refunded.
+Config.REVIVE = table.freeze({
+	HOLD_SECONDS = 4,
+	NOISE = 40, -- the reconnecting static, every second of the hold
+
+	PRODUCT_ID = 0, -- the Developer Product id from the Creator Dashboard; 0 hides the Robux option
+	MIN_TIME_LEFT = 45, -- no revives in the last seconds of a round
+})
+
+Config.READY_COUNTDOWN = 3 -- when everyone in the lobby is ready, the round starts this soon
+
+-- The experience's places (ids from the Creator Dashboard > your experience > Places). While they
+-- are 0, or in Studio, nothing teleports: the match place plays on its own as before.
+Config.PLACES = table.freeze({
+	HUB = 0, -- the start place, where players gather and make lobbies
+	MATCH = 0, -- the place rounds are played in (reserved servers)
+})
+
+-- The maps players can pick. `id` is what MapBuilder/ServerStorage.Maps use.
+Config.MAPS = table.freeze({
+	table.freeze({ id = "studio", name = "Recording studio", monster = "The Engineer" }),
+})
+
+-- Hub lobbies.
+Config.LOBBY = table.freeze({
+	MAX_PLAYERS = 4,
+	LIST_INTERVAL = 2, -- how often each player's lobby list is refreshed
+	PUBLISH_INTERVAL = 10, -- how often a hub tells other hubs about its lobbies (for friends)
+	EXPIRY = 35, -- a published lobby disappears this long after its hub stops refreshing it
+})
+
+-- After a round in a match server.
+Config.REPLAY = table.freeze({
+	VOTE_TIME = 15, -- seconds to answer "play again?" and vote; no answer means back to the hub
+})
+
 -- Feature switches: turn one off if it misbehaves in a playtest, without losing the rest.
 Config.FEATURES = table.freeze({
 	WALKIE = true,
 	TAPE = true,
 	MIMICRY = true,
 	SPECTATE = true,
+	FEEDBACK = true,
+	REPLAY = true, -- "play again?" and the map vote after each round in a match server
 })
 
 -- Walkie-talkie: hold V to talk through every other walkie; 1 to 4 send quick callouts.

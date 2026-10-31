@@ -18,6 +18,7 @@ local Remotes = require(Shared:WaitForChild("Remotes"))
 local Sounds = require(Shared:WaitForChild("Sounds"))
 
 local ItemArt = require(script.Parent.Parent.ItemArt)
+local ProgressService = require(script.Parent.Parent.ProgressService)
 local NoiseService = require(script.Parent.Parent.NoiseService)
 local RoundService = require(script.Parent.Parent.RoundService)
 
@@ -107,7 +108,8 @@ local function startRecording(player: Player, tape: Tape)
 	end)
 end
 
-local function playBack(tape: Tape, part: BasePart)
+local function playBack(player: Player, tape: Tape, part: BasePart)
+	ProgressService.award(player, "Decoy played", Config.REWARDS.DECOY)
 	local light = part:FindFirstChildOfClass("PointLight")
 	if light then
 		light.Enabled = true
@@ -218,7 +220,7 @@ local function setDown(player: Player, tape: Tape)
 			and tape.part == part
 			and part.Parent
 		then
-			playBack(tape, part)
+			playBack(player, tape, part)
 		end
 	end)
 end

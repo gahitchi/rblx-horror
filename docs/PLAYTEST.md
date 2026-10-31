@@ -1,4 +1,4 @@
-# Playtest checklist: 0.3.0
+# Playtest checklist: 0.6.0
 
 One session tests everything built since the last playtest. Nothing here has run in Roblox yet,
 so expect some of it to break; that's what this session is for.
@@ -69,3 +69,39 @@ so expect some of it to break; that's what this session is for.
 - [ ] Lobby, results and a second round all work.
 - [ ] Frame rate stays at 60 on the laptop.
 - [ ] How it feels: too hard, too easy, too dark? Which moments were tense, and which were boring?
+
+## 8. Added in 0.4.0: progress, results, ready-up, feedback
+
+- [ ] Top right in the lobby: your level and coins. With API access off it says "(not saved)".
+- [ ] Ready up (button or G): the count updates; when everyone's ready the countdown drops to 3.
+- [ ] At the end of a round, the results panel lists each player's outcome and what they earned,
+      with your own breakdown (round, generator pulls, fuses, emergency tape, decoys, escape).
+- [ ] With API access on: level and coins are still there after leaving and rejoining.
+- [ ] Feedback (lobby or results): pick a rating, tags and a comment, Send; "Thank you!" appears and
+      a `[Feedback]` line shows in the Output. Sending twice in a row is politely refused.
+- [ ] The mouse is free to click in the lobby and in the menus, and locked again in the round.
+
+## 9. Added in 0.5.0: teammate revives and the reward track (2 players)
+
+- [ ] When one player is caught, a "Lost walkie" stays where it happened (dark).
+- [ ] The caught player (spectating) sees "Ask your team to bring you back?". At level 1, "Lose a
+      level" is refused; get to level 2 first (play a round or two, or lower the XP numbers).
+- [ ] After paying, the walkie lights up and the other player gets a radio message with the room.
+- [ ] Holding E on it for 4 s crackles loudly (the monster should come), then the caught player
+      reappears there; the reviver earns XP. Only once per player per round.
+- [ ] If nobody reaches it before the round ends, the level comes back ("refunded").
+- [ ] Lobby: "Next reward at level N" and the flashlight button cycling through unlocked looks; the
+      beam colour shows for you and for the other player. Losing a level relocks its look.
+- [ ] Robux revive: needs a Developer Product id in `Config.REVIVE.PRODUCT_ID` (0 hides the button);
+      Studio test purchases are free.
+
+## 10. Added in 0.6.0: the hub and replays (published game, see docs/HUB.md)
+
+- [ ] In Studio, hub place: create a lobby (map, size, public or friends only); it shows as "Your
+      lobby"; Leave works; a second test player sees and joins it; the next member becomes host
+      when the host leaves.
+- [ ] Published: Start teleports everyone in the lobby together into a match on the chosen map.
+- [ ] A friend's lobby in another hub server shows "(friend, other server)", and Join gets you there.
+- [ ] After a round: "Play again?" No sends you to the hub; Yes shows the map vote; with everyone
+      on Yes and the same map, the next round starts in the same server.
+- [ ] In Studio, the vote appears and everyone stays (no teleports there).

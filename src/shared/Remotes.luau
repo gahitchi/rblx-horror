@@ -45,4 +45,19 @@ return table.freeze({
 	WalkieCallout = event("WalkieCallout"), -- client -> server: (index: number) into Config.WALKIE.CALLOUTS
 	Radio = event("Radio"), -- server -> client: (sender: string, room: string, text: string)
 	TapeAction = event("TapeAction"), -- client -> server: () record, or set down a recorded tape
+	SetReady = event("SetReady"), -- client -> server: (ready: boolean) in the lobby
+	Results = event("Results"), -- server -> client: ({ ResultRow }) at the end of a round
+	SendFeedback = event("SendFeedback"), -- client -> server: ({ rating, tags, text })
+	FeedbackReceived = event("FeedbackReceived"), -- server -> client: (ok: boolean, message: string)
+	Revive = event("Revive"), -- client -> server: (method: "level" | "token") come back after being caught
+	SetSkin = event("SetSkin"), -- client -> server: (skinId: string) equip an unlocked flashlight look
+	-- Hub
+	CreateLobby = event("CreateLobby"), -- client -> server: ({ map, max, friendsOnly })
+	JoinLobby = event("JoinLobby"), -- client -> server: (lobbyId: string)
+	LeaveLobby = event("LeaveLobby"), -- client -> server: ()
+	StartLobby = event("StartLobby"), -- client -> server: () host only
+	LobbyList = event("LobbyList"), -- server -> client: ({ LobbyEntry }, myLobbyId: string?)
+	-- Match: after a round
+	ReplayChoice = event("ReplayChoice"), -- client -> server: (again: boolean)
+	MapVote = event("MapVote"), -- client -> server: (mapId: string)
 })
