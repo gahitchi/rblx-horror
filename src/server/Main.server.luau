@@ -10,6 +10,7 @@ local Workspace = game:GetService("Workspace")
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
 
 local ArtBuilder = require(script.Parent.ArtBuilder)
+local VisualFidelity = require(script.Parent.VisualFidelity)
 local DoorService = require(script.Parent.DoorService)
 local MapBuilder = require(script.Parent.MapBuilder)
 local MapContract = require(script.Parent.MapContract)
@@ -112,6 +113,9 @@ if layout.map:GetAttribute("OwnsLighting") ~= true then
 		end
 	end
 end
+
+-- Studio-specific realistic rendering; does not override hand-authored maps that own lighting.
+VisualFidelity.apply(layout)
 
 NoiseService.init()
 NoiseService.setZones(layout.zones)
