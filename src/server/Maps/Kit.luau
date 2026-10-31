@@ -154,8 +154,6 @@ end
 local function doorLeaf(parent: Instance, portal: Portal, h: number, palette: { wall: Color3, floor: Color3, ceiling: Color3, trim: Color3, steel: Color3, accent: Color3 }): Part
     local x = if portal.axis=="X" then portal.along else portal.at
     local z = if portal.axis=="X" then portal.at else portal.along
-    local cf=CFrame.new(x,h/2,z)
-        * (if portal.axis=="Z" then CFrame.Angles(0,math.rad(90),0) else CFrame.identity)
     local leaf=piece(parent,portal.name,Vector3.new(portal.width-0.2,9,0.55),
         CFrame.new(x,4.5,z)*(if portal.axis=="Z" then CFrame.Angles(0,math.rad(90),0) else CFrame.identity),
         if portal.kind=="booth" then palette.steel else palette.trim,Enum.Material.Metal,true)
@@ -303,9 +301,9 @@ function Kit.build(spec: Specification): Model
             room.x2-room.x1,spec.height+1,room.z2-room.z1)
         -- Avoid machinery at the north-west and leave clear patrol routes.
         for _,delta in {
-            Vector3.new(0,3,0),
-            Vector3.new((room.x2-room.x1)*0.18,3,(room.z2-room.z1)*0.18),
-            Vector3.new(-(room.x2-room.x1)*0.18,3,(room.z2-room.z1)*0.18),
+            Vector3.new((room.x2-room.x1)*0.22,3,-(room.z2-room.z1)*0.22),
+            Vector3.new(-(room.x2-room.x1)*0.22,3,(room.z2-room.z1)*0.22),
+            Vector3.new((room.x2-room.x1)*0.22,3,(room.z2-room.z1)*0.22),
         } do mark(dir,"Spot",room.center+delta) end
         furnishing(room,spec,detailFolder)
     end
@@ -336,8 +334,10 @@ function Kit.build(spec: Specification): Model
     end
     for _,r in roomList do
         mark(markers,"Speaker",Vector3.new(r.center.X,spec.height-2,r.center.Z))
-        local housing=piece(lights,"Pendant_"..r.name,Vector3.new(2.8,0.32,1.2),
-            CFrame.new(r.center.X,spec.height-1.1,r.center.Z),theme.steel,Enum.Material.Metal,false)
+        piece(detailFolder,"FixtureHousing_"..r.name,Vector3.new(2.8,0.32,1.2),
+            CFrame.new(r.center.X,spec.height-1.0,r.center.Z),theme.steel,Enum.Material.Metal,false)
+        local housing=piece(lights,"FixtureLens_"..r.name,Vector3.new(2.4,0.07,0.95),
+            CFrame.new(r.center.X,spec.height-1.23,r.center.Z),theme.trim,Enum.Material.SmoothPlastic,false)
         housing:SetAttribute("OnColor",theme.accent)
         local spot=Instance.new("SpotLight")
         spot.Face=Enum.NormalId.Bottom
