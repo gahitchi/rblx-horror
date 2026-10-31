@@ -16,6 +16,8 @@ local ObjectiveService = require(script.Parent.ObjectiveService)
 local PlayerService = require(script.Parent.PlayerService)
 local RoundService = require(script.Parent.RoundService)
 
+local FeedbackService = require(script.Parent.FeedbackService)
+local ProgressService = require(script.Parent.ProgressService)
 local TapeService = require(script.Parent.Items.TapeService)
 local WalkieService = require(script.Parent.Items.WalkieService)
 
@@ -82,6 +84,8 @@ end
 MonsterService.init(layout.areas, RoundService.isTarget, RoundService.catch)
 ObjectiveService.init(layout, RoundService.isTarget)
 PlayerService.init()
+ProgressService.init()
+FeedbackService.init()
 WalkieService.init(layout.areas)
 TapeService.init()
 RoundService.init(layout)

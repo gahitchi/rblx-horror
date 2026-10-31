@@ -1,4 +1,4 @@
-# Playtest checklist: 0.3.0
+# Playtest checklist: 0.4.0
 
 One session tests everything built since the last playtest. Nothing here has run in Roblox yet,
 so expect some of it to break; that's what this session is for.
@@ -69,3 +69,14 @@ so expect some of it to break; that's what this session is for.
 - [ ] Lobby, results and a second round all work.
 - [ ] Frame rate stays at 60 on the laptop.
 - [ ] How it feels: too hard, too easy, too dark? Which moments were tense, and which were boring?
+
+## 8. Added in 0.4.0: progress, results, ready-up, feedback
+
+- [ ] Top right in the lobby: your level and coins. With API access off it says "(not saved)".
+- [ ] Ready up (button or G): the count updates; when everyone's ready the countdown drops to 3.
+- [ ] At the end of a round, the results panel lists each player's outcome and what they earned,
+      with your own breakdown (round, generator pulls, fuses, emergency tape, decoys, escape).
+- [ ] With API access on: level and coins are still there after leaving and rejoining.
+- [ ] Feedback (lobby or results): pick a rating, tags and a comment, Send; "Thank you!" appears and
+      a `[Feedback]` line shows in the Output. Sending twice in a row is politely refused.
+- [ ] The mouse is free to click in the lobby and in the menus, and locked again in the round.

@@ -9,10 +9,10 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: prototype 0.3.0
+## Status: prototype 0.4.0
 
 Greybox studio, the noise system, the Engineer (layered AI with mimicry), the full round loop,
-walkie-talkies, the tape recorder decoy, spectating and a basic HUD. Placeholder sounds. Before a
+walkie-talkies, the tape recorder decoy, spectating, saved levels and coins, round results, ready-up, an optional feedback menu (see docs/FEEDBACK.md) and a basic HUD. Placeholder sounds. Before a
 playtest, see [docs/PLAYTEST.md](docs/PLAYTEST.md).
 
 What a round looks like:
@@ -37,6 +37,7 @@ What a round looks like:
 | N | Walkie on or off |
 | R | Tape recorder: record nearby noise, then set it down as a decoy |
 | Q / E | While spectating: switch player |
+| G | In the lobby: ready up |
 
 ## Setup
 

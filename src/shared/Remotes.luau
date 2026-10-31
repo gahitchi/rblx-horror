@@ -45,4 +45,8 @@ return table.freeze({
 	WalkieCallout = event("WalkieCallout"), -- client -> server: (index: number) into Config.WALKIE.CALLOUTS
 	Radio = event("Radio"), -- server -> client: (sender: string, room: string, text: string)
 	TapeAction = event("TapeAction"), -- client -> server: () record, or set down a recorded tape
+	SetReady = event("SetReady"), -- client -> server: (ready: boolean) in the lobby
+	Results = event("Results"), -- server -> client: ({ ResultRow }) at the end of a round
+	SendFeedback = event("SendFeedback"), -- client -> server: ({ rating, tags, text })
+	FeedbackReceived = event("FeedbackReceived"), -- server -> client: (ok: boolean, message: string)
 })

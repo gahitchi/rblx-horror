@@ -14,6 +14,7 @@ local DoorService = require(script.Parent.DoorService)
 local MapContract = require(script.Parent.MapContract)
 local MonsterService = require(script.Parent.MonsterService)
 local ObjectiveService = require(script.Parent.ObjectiveService)
+local ProgressService = require(script.Parent.ProgressService)
 local RoundState = require(script.Parent.RoundState)
 
 type Status = "alive" | "caught" | "escaped"
@@ -146,6 +147,7 @@ local function onExitTouched(hit: BasePart)
 	local player = character and Players:GetPlayerFromCharacter(character)
 	if player and participants[player] == "alive" then
 		participants[player] = "escaped"
+		ProgressService.award(player, "Escaped", Config.REWARDS.ESCAPE)
 		RoundState.set("Escaped", (RoundState.get("Escaped") or 0) + 1)
 		notifyAll(player.DisplayName .. " escaped!")
 		countAlive()
@@ -162,6 +164,18 @@ local function runLobby()
 		end
 		local remaining = Config.LOBBY_COUNTDOWN
 		while remaining > 0 and #Players:GetPlayers() >= Config.MIN_PLAYERS do
+			-- Everyone ready: no need to wait out the whole countdown.
+			local players = Players:GetPlayers()
+			local ready = 0
+			for _, player in players do
+				if player:GetAttribute("Ready") == true then
+					ready += 1
+				end
+			end
+			RoundState.set("Ready", ready)
+			if ready == #players then
+				remaining = math.min(remaining, Config.READY_COUNTDOWN)
+			end
 			RoundState.set("Countdown", remaining)
 			task.wait(1)
 			remaining -= 1
@@ -180,6 +194,11 @@ local function runRound()
 		participants[player] = "alive"
 	end
 	RoundState.set("Escaped", 0)
+	ProgressService.startRound()
+	for player in participants do
+		player:SetAttribute("Ready", false)
+		ProgressService.award(player, "Played a round", Config.REWARDS.ROUND)
+	end
 	DoorService.resetAll()
 	ObjectiveService.reset()
 	MonsterService.despawn()
@@ -225,6 +244,21 @@ local function runResults()
 		total += 1
 	end
 	notifyAll(string.format("%d of %d escaped.", escaped, total))
+
+	-- Everyone sees everyone's outcome and what they earned.
+	local rows = {}
+	for player, status in participants do
+		local gain = ProgressService.finishRound(player, status == "escaped")
+		table.insert(rows, {
+			name = player.DisplayName,
+			outcome = status,
+			xp = gain.xp,
+			coins = gain.coins,
+			lines = gain.lines,
+		})
+	end
+	Remotes.Results:FireAllClients(rows)
+	ProgressService.saveAll()
 	task.wait(Config.RESULTS_TIME)
 	participants = {}
 	for _, player in Players:GetPlayers() do
@@ -237,6 +271,11 @@ function RoundService.init(map: MapContract.Layout)
 	Players.CharacterAutoLoads = false
 
 	Players.PlayerAdded:Connect(sendToLobby)
+	Remotes.SetReady.OnServerEvent:Connect(function(player, ready)
+		if type(ready) == "boolean" and phase == "Lobby" then
+			player:SetAttribute("Ready", ready)
+		end
+	end)
 	Players.PlayerRemoving:Connect(function(player)
 		local r = rootOf(player)
 		if r then

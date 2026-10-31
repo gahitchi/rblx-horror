@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.3.0"
+Config.VERSION = "0.4.0"
 Config.DEBUG = true -- extra Output logging while in development
 Config.DEBUG_AI = false -- shows the monster's state, awareness and path in the world
 
@@ -99,7 +99,7 @@ Config.MONSTER = table.freeze({
 Config.MIN_PLAYERS = 1
 Config.LOBBY_COUNTDOWN = if Config.DEBUG then 8 else 20 -- short while testing alone
 Config.ROUND_TIME = 1200
-Config.RESULTS_TIME = 8
+Config.RESULTS_TIME = 12 -- long enough to read the results
 Config.RESPAWN_DELAY = 3
 
 -- Objectives
@@ -112,12 +112,25 @@ Config.ALARM_INTERVAL = 1.5
 -- Where the lobby floats, far above the map
 Config.LOBBY_ORIGIN = Vector3.new(0, 400, 0)
 
+-- Experience for what players do in a round (coins are a fifth of it). Rewards teamwork and
+-- objectives, not only escaping, so a round where you got caught still moves you forward.
+Config.REWARDS = table.freeze({
+	ROUND = 20, -- for playing a round
+	GENERATOR_PULL = 10,
+	FUSE = 25,
+	TAPE_DECK = 40, -- starting the emergency tape
+	DECOY = 15, -- a tape recorder playing back
+	ESCAPE = 100,
+})
+Config.READY_COUNTDOWN = 3 -- when everyone in the lobby is ready, the round starts this soon
+
 -- Feature switches: turn one off if it misbehaves in a playtest, without losing the rest.
 Config.FEATURES = table.freeze({
 	WALKIE = true,
 	TAPE = true,
 	MIMICRY = true,
 	SPECTATE = true,
+	FEEDBACK = true,
 })
 
 -- Walkie-talkie: hold V to talk through every other walkie; 1 to 4 send quick callouts.

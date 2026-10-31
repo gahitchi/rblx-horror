@@ -15,6 +15,7 @@ local DoorService = require(script.Parent.DoorService)
 local MapBuilder = require(script.Parent.MapBuilder)
 local MapContract = require(script.Parent.MapContract)
 local NoiseService = require(script.Parent.NoiseService)
+local ProgressService = require(script.Parent.ProgressService)
 local RoundState = require(script.Parent.RoundState)
 
 local ObjectiveService = {}
@@ -124,6 +125,7 @@ local function onGeneratorPull(player: Player)
 	end
 	local pulls = (RoundState.get("GeneratorPulls") or 0) + 1
 	RoundState.set("GeneratorPulls", pulls)
+	ProgressService.award(player, "Generator pull", Config.REWARDS.GENERATOR_PULL)
 	Sounds.playAt(Sounds.GENERATOR_PULL, layout.generator.Position, 1, 200)
 	NoiseService.emit(layout.generator.Position, Config.NOISE.GENERATOR_PULL, "generator", player)
 	if pulls >= Config.GENERATOR_PULLS then
@@ -146,6 +148,7 @@ local function onInsertFuse(player: Player)
 	player:SetAttribute("CarryingFuse", false)
 	local placed = (RoundState.get("FusesPlaced") or 0) + 1
 	RoundState.set("FusesPlaced", placed)
+	ProgressService.award(player, "Fuse fitted", Config.REWARDS.FUSE)
 	Sounds.playAt(Sounds.FUSE, layout.fuseBox.Position, 1)
 	NoiseService.emit(layout.fuseBox.Position, Config.NOISE.FUSE, "fuse", player)
 	if placed >= Config.FUSES_NEEDED then
@@ -169,6 +172,7 @@ local function onPlayTape(player: Player, prompt: ProximityPrompt)
 	end
 
 	tapeRunning = true
+	ProgressService.award(player, "Emergency tape", Config.REWARDS.TAPE_DECK)
 	prompt.Enabled = false
 	notifyAll("The emergency tape is playing on every speaker. Hold on until the doors unlock!")
 	local myRound = roundId
