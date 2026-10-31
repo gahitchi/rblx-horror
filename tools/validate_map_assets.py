@@ -83,6 +83,22 @@ def check_map(mapid):
         assert b in flattened
         j=flattened.index(b)
         assert (j//4+1,j%4+1) in leaves,(mapid,"booth has alternate exit",b)
+    # Observation glazing must join real neighboring rooms; a window must never
+    # secretly create a monster route or collide with the door on the same wall.
+    windows=room_rows(brace_chunk(block,"windows"))
+    assert len(windows)>=1,(mapid,"no observation glazing")
+    assert all(len(pair)==2 and pair[0]!=pair[1] for pair in windows)
+    room_coords={name:(r+1,c+1) for r,row in enumerate(names) for c,name in enumerate(row)}
+    for first,second in windows:
+        assert first in room_coords and second in room_coords,(mapid,"unknown window room")
+        a,b=room_coords[first],room_coords[second]
+        assert abs(a[0]-b[0])+abs(a[1]-b[1])==1,(mapid,"window on nonadjacent rooms")
+        pair=(a,b) if a<b else (b,a)
+        is_open=pair in edges or (pair[1],pair[0]) in edges
+        if is_open:
+            span=(xs[1]-xs[0]) if a[0]!=b[0] else (zs[1]-zs[0])
+            assert span>=30,(mapid,"door and glazing have insufficient wall")
+    assert len(set(tuple(sorted(window)) for window in windows))==len(windows)
     print(f"PASS {mapid}: 20 rooms, {len(edges)} links, {len(leaves)} dead ends, "
           f"{len(fuse)} fuse sites, {len(booth_names)} booths")
 
