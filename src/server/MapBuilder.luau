@@ -154,11 +154,11 @@ local function buildAreas(parent: Instance)
 	area(parent, "RearGallery", -40, -146, 40, -130, 0, { { -30, -139 }, { 0, -139 }, { 30, -139 } })
 	area(parent, "MasteringSuite", -40, -178, -5, -146, 0, { { -30, -152 }, { -30, -170 }, { -12, -165 } })
 	area(parent, "NorthSpine", -5, -178, 5, -146, 0, { { 0, -154 }, { 0, -170 } })
-	area(parent, "MachineShop", 5, -178, 40, -146, 0, { { 13, -154 }, { 30, -165 }, { 30, -173 } })
+	area(parent, "MachineShop", 5, -178, 40, -146, 0, { { 13, -154 }, { 30, -165 }, { 15, -173 } })
 	area(parent, "TapeVault", -18, -201, 18, -178, 0, { { 0, -188 }, { -12, -193 }, { 12, -193 } })
 	-- Archive -> service hall -> archive is a second independent chase loop.
 	area(parent, "EastServiceHall", 70, -130, 90, -70, 0, { { 80, -80 }, { 80, -100 }, { 80, -120 } })
-	area(parent, "LoadingBay", 90, -130, 122, -90, 0, { { 99, -106 }, { 115, -112 }, { 113, -123 } })
+	area(parent, "LoadingBay", 90, -130, 122, -90, 0, { { 99, -106 }, { 115, -112 }, { 104, -123 } })
 	area(parent, "QuietStore", 90, -90, 122, -70, 0, { { 100, -79 }, { 114, -84 } })
 	area(
 		parent,
@@ -182,8 +182,8 @@ local function buildAreas(parent: Instance)
 	)
 	-- A long, intentionally hazardous lower-level branch: rooms are searchable, not safe lockers.
 	area(parent, "ServiceTunnel", -46, 10, -34, 43, B, { { -40, 18 }, { -40, 35 } })
-	area(parent, "CompressorRoom", -76, 14, -46, 43, B, { { -55, 28 }, { -69, 35 } })
-	area(parent, "ColdStore", -34, 14, -4, 43, B, { { -25, 28 }, { -11, 36 } })
+	area(parent, "CompressorRoom", -76, 14, -46, 43, B, { { -55, 28 }, { -65, 20 } })
+	area(parent, "ColdStore", -34, 14, -4, 43, B, { { -25, 28 }, { -18, 36 } })
 	area(parent, "BoilerRoom", -55, 43, -25, 66, B, { { -40, 54 }, { -49, 61 }, { -29, 60 } })
 end
 
@@ -552,8 +552,19 @@ local function buildExpansion(
 	prop(props, "Compressor", -70, BASEMENT_Y, 34, 7, 6, 5, COLORS.metal, Enum.Material.DiamondPlate)
 	prop(props, "CoolingUnit", -8, BASEMENT_Y, 36, 7, 6, 5, COLORS.metal, Enum.Material.Metal)
 	prop(props, "Boiler", -40, BASEMENT_Y, 62, 7, 7, 4, COLORS.metal, Enum.Material.DiamondPlate)
-	-- Under-desk hiding works because the desks use an open central clearance: keep their
-	-- collision to legs/top in future art; do not use a fully solid box for hiding furniture.
+	-- Open-bottom industrial worktable. A player can take shelter beneath or behind it;
+	-- unlike box props it has four legs and no collision in its middle.
+	local function coverTable(name: string, x: number, y: number, z: number)
+		box(name .. "Top", x - 4.8, y + 6.0, z - 2.4, x + 4.8, y + 6.4, z + 2.4, COLORS.metal, Enum.Material.Metal, props)
+		for _, dx in { -4.3, 4.3 } do
+			for _, dz in { -1.9, 1.9 } do
+				box(name .. "Leg", x + dx - 0.2, y, z + dz - 0.2, x + dx + 0.2, y + 6.0, z + dz + 0.2, COLORS.metal, Enum.Material.Metal, props)
+			end
+		end
+	end
+	coverTable("MasteringUnderTable", -17, 0, -173)
+	coverTable("WorkshopUnderTable", 17, 0, -173)
+	coverTable("UtilityUnderTable", -22, BASEMENT_Y, 58)
 
 	for _, p in {
 		Vector3.new(-27, 0.25, -172), Vector3.new(-11, 0.25, -190),
