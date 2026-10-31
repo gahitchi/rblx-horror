@@ -115,6 +115,28 @@ def check_mesh(name):
             assert 1<=int(pos)<=nv and 1<=int(uv)<=nu,(name,component)
     print(f"PASS OBJ {name}: {nv} vertices, {len(faces)} faces, UV indices valid")
 
+def check_pbr_asset_wiring():
+    glb_script=(ROOT/"tools/build_glb_assets.py").read_text()
+    kit=(ROOT/"src/server/Maps/Kit.luau").read_text()
+    asset_lib=(ROOT/"src/server/Maps/AssetLibrary.luau").read_text()
+    monster=(ROOT/"src/server/Monster/EngineerModel.luau").read_text()
+    items=(ROOT/"src/server/ItemArt.luau").read_text()
+    prefabs=(ROOT/"src/server/PrefabLibrary.luau").read_text()
+    studio=(ROOT/"tools/studio/InstallImportedModels.luau").read_text()
+    for key in ("MixingConsole","BroadcastMicrophone","FoundryBell",
+                "CassetteRecorder","EngineerHeadset","WalkieTalkie",
+                "AnalogRack","NearfieldMonitor","TapeReel"):
+        assert key in glb_script,("GLB exporter missing",key)
+        assert key in studio,("Studio installer missing",key)
+        assert any(key in text for text in (kit,asset_lib,monster,items)),("No scene uses",key)
+    assert 'local ServerStorage = game:GetService("ServerStorage")' in prefabs
+    assert "p.CanCollide = false" in prefabs
+    assert "p.CanQuery = false" in prefabs
+    assert "p.Massless = true" in prefabs
+    assert "joint.Part0 = root" in prefabs
+    print("PASS prefab integrations: nine asset keys, non-solid welded visual roots")
+
 if __name__=="__main__":
     for ident in ("studio","radio","foundry"):check_map(ident)
     for item in files:check_mesh(item)
+    check_pbr_asset_wiring()
