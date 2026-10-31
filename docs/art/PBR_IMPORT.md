@@ -1,4 +1,86 @@
-# PBR and hero-mesh integration — Roblox Studio
+# Studio import: high-fidelity mesh and PBR deployment
+
+**Status:** The game-side mesh swap is implemented and nine real GLB files have been
+exported successfully. They are *not* live in Roblox until imported and approved
+under the experience's creator account. Rojo and server Scripts cannot directly
+assign `MeshPart.MeshId` at runtime. <https://create.roblox.com/docs/reference/engine/classes/MeshPart>
+
+## Step 1 — Get the source asset pack
+
+Open [successful GitHub Source Asset Export](https://github.com/gahitchi/rblx-horror/actions/runs/41252355685)
+and download `dead-air-import-ready-mesh-pbr-pack`. The ZIP contains:
+
+- `roblox-glb/`: nine GLB prefab models, ready for Studio's 3D Importer;
+- `materials/`: 16 PNG PBR maps (four materials × color, normal, roughness, metalness);
+- `meshes/`: the original five OBJ and MTL source models for further hand editing.
+
+If the Actions archive has expired, run locally:
+
+```bash
+python -m pip install pillow numpy trimesh
+python tools/generate_pbr.py --size 1024 --out build/materials
+python tools/build_glb_assets.py --out build/roblox-glb
+```
+
+## Step 2 — Import the nine GLBs into the MATCH place
+
+In Roblox Studio's 3D Importer, import these files. Keep the names below **exactly**,
+and check each GLB contains one or more MeshParts. Keep their origin at the intended
+object pivot before import (ground at y=0 for static props, local head origin for
+EngineerHeadset). Use the importer to review scale and material orientation.
+
+| Studio prefab name | GLB filename | Where the runtime uses it |
+| --- | --- | --- |
+| `MixingConsole` | `MixingConsole.glb` | Studio and radio control rooms |
+| `BroadcastMicrophone` | `BroadcastMicrophone.glb` | Studio and broadcast microphones |
+| `FoundryBell` | `FoundryBell.glb` | Foundry visual landmarks |
+| `CassetteRecorder` | `CassetteRecorder.glb` | Objective tape deck and movable decoy |
+| `EngineerHeadset` | `EngineerHeadset.glb` | Welded to the Engineer's original root |
+| `WalkieTalkie` | `WalkieTalkie.glb` | Welded to the walkie gameplay root |
+| `AnalogRack` | `AnalogRack.glb` | Studio/broadcast equipment racks |
+| `NearfieldMonitor` | `NearfieldMonitor.glb` | Control room monitor speakers |
+| `TapeReel` | `TapeReel.glb` | Tape archive prop details |
+
+Select all nine correctly named imports in Explorer. Open Studio's **Command Bar**
+and run the contents of `tools/studio/InstallImportedModels.luau`. The command
+checks each asset contains a MeshPart and creates `ServerStorage.ArtLibrary`
+without overwriting existing approved imports. The runtime's
+`src/server/PrefabLibrary.luau` then automatically uses them. Missing assets
+fall back to procedural visuals; gameplay collision and prompts remain unchanged.
+
+**Save the Studio place after importing.** For reproducible Rojo builds, export
+the approved `ServerStorage.ArtLibrary` as a binary/model package under a
+new `assets/roblox/` path and explicitly link it in the Rojo project. Until that
+export step is done, cloning only GitHub source will use procedural fallbacks.
+
+## Step 3 — Import PBR image maps
+
+Upload the 16 source PNG files into your Roblox experience's Asset Manager.
+Open `tools/studio/InstallMaterialVariants.luau`, replace each placeholder
+numeric `0` with the **real uploaded image asset ID** for that image, then run
+the script in Studio's Command Bar. It installs six approved MaterialVariants
+and never invents asset IDs or silently overwrites non-variant objects.
+
+The runtime `Maps/PBRMaterials.luau` automatically assigns imported variants
+to generated parts when their exact names and BaseMaterial match. Objects
+without imported textures keep their native look.
+
+## Step 4 — Verify the actual in-game upgrade
+
+At high graphics quality, enter each map and inspect control desks, acoustic
+surfaces, machinery, door hardware and the Engineer silhouette. Check the
+Output lines `[Dead Air] Importable visuals: 9 approved prefabs ready` and
+`[Dead Air] PBR: assigned ... parts from ... approved MaterialVariants`.
+Make sure the Model pivots and scale are correct, and that imported surfaces
+do not look unnaturally reflective or metallic.
+
+The GLBs are **author-made procedural starter meshes**, not scanned photogrammetry
+or finished cinematic character assets. Their material and silhouette quality
+will need additional Blender artist work to meet a truly high-end realism target.
+
+--- 
+
+## Background reference
 
 **This procedure is required for the final-quality materials to appear in the game.** The GitHub source pack is not an automatically published Roblox asset pack. All image and mesh asset IDs must come from the user's own Studio import and permissions.
 
