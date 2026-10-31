@@ -593,77 +593,104 @@ local function buildExpansion(
 	end
 end
 
+-- A waiting area above the playable map. Quiet, legible, and unsettling: the place looks like
+-- a studio that still expects the next session, not a disconnected bright spawn box.
 function MapBuilder.buildLobby(): CFrame
 	local lobby = Instance.new("Model")
 	lobby.Name = "Lobby"
 	local o = Config.LOBBY_ORIGIN
-	box(
-		"Floor",
-		o.X - 20,
-		o.Y - 1,
-		o.Z - 20,
-		o.X + 20,
-		o.Y,
-		o.Z + 20,
-		COLORS.carpet,
-		Enum.Material.Fabric,
-		lobby
-	)
-	box(
-		"Ceiling",
-		o.X - 20,
-		o.Y + H,
-		o.Z - 20,
-		o.X + 20,
-		o.Y + H + 1,
-		o.Z + 20,
-		COLORS.ceiling,
-		Enum.Material.SmoothPlastic,
-		lobby
-	)
+	local function localPart(
+		name: string, pos: Vector3, size: Vector3, color: Color3,
+		material: Enum.Material, solid: boolean?
+	): Part
+		local p = newPart(name, size, CFrame.new(o + pos), color, material, lobby)
+		p.CanCollide = solid == true
+		p.CanQuery = solid == true
+		p.CanTouch = false
+		return p
+	end
+	local function plaque(text: string, pos: Vector3, size: Vector3, yaw: number, red: boolean?)
+		local p = localPart("LobbyPlaque", pos, size, Color3.fromRGB(28, 28, 29), Enum.Material.Metal)
+		p.CFrame = CFrame.new(o + pos) * CFrame.Angles(0, math.rad(yaw), 0)
+		local surface = Instance.new("SurfaceGui")
+		surface.Face = Enum.NormalId.Back
+		surface.PixelsPerStud = 42
+		surface.LightInfluence = 0.45
+		surface.Parent = p
+		local letters = Instance.new("TextLabel")
+		letters.Size = UDim2.fromScale(1, 1)
+		letters.BackgroundTransparency = 1
+		letters.Text = text
+		letters.TextWrapped = true
+		letters.TextColor3 = if red then Color3.fromRGB(228, 77, 62) else Color3.fromRGB(205, 191, 165)
+		letters.Font = Enum.Font.RobotoMono
+		letters.TextScaled = true
+		letters.Parent = surface
+	end
+	box("Floor", o.X - 20, o.Y - 1, o.Z - 20, o.X + 20, o.Y, o.Z + 20,
+		Color3.fromRGB(57, 46, 43), Enum.Material.WoodPlanks, lobby)
+	box("Ceiling", o.X - 20, o.Y + H, o.Z - 20, o.X + 20, o.Y + H + 1, o.Z + 20,
+		Color3.fromRGB(27, 30, 32), Enum.Material.Concrete, lobby)
 	wallX(lobby, o.Z - 20, o.X - 20, o.X + 20, o.Y, H)
 	wallX(lobby, o.Z + 20, o.X - 20, o.X + 20, o.Y, H)
 	wallZ(lobby, o.X - 20, o.Z - 20, o.Z + 20, o.Y, H)
 	wallZ(lobby, o.X + 20, o.Z - 20, o.Z + 20, o.Y, H)
-
-	local lamp = newPart(
-		"Lamp",
-		Vector3.new(4, 0.4, 4),
-		CFrame.new(o + Vector3.new(0, H - 0.3, 0)),
-		Color3.fromRGB(255, 220, 170),
-		Enum.Material.Neon,
-		lobby
-	)
-	lamp.CanCollide = false
-	local light = Instance.new("PointLight")
-	light.Color = Color3.fromRGB(255, 205, 150)
-	light.Brightness = 1.5
-	light.Range = 40
-	light.Parent = lamp
-
-	local sign = newPart(
-		"Sign",
-		Vector3.new(16, 5, 0.5),
-		CFrame.new(o + Vector3.new(0, 7, -19.4)),
-		Color3.fromRGB(30, 26, 24),
-		Enum.Material.SmoothPlastic,
-		lobby
-	)
-	local gui = Instance.new("SurfaceGui")
-	gui.Face = Enum.NormalId.Back -- the +Z face, toward the room
-	gui.PixelsPerStud = 40
-	gui.Parent = sign
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.fromScale(1, 1)
-	label.BackgroundTransparency = 1
-	label.Text = string.upper(Config.GAME_NAME)
-	label.TextColor3 = Color3.fromRGB(230, 70, 60)
-	label.Font = Enum.Font.GothamBlack
-	label.TextScaled = true
-	label.Parent = gui
-
+	-- The quiet red "ON AIR" signature is deliberately visible at spawn.
+	plaque("D E A D   A I R", Vector3.new(0, 8.4, -19.34), Vector3.new(17, 3.7, 0.15), 0, true)
+	plaque("RECORDING SESSION   /   IN PROGRESS", Vector3.new(0, 5.4, -19.3),
+		Vector3.new(17, 1.4, 0.15), 0)
+	plaque("WAITING ROOM\nPlease keep your voice down.\nThe Engineer is listening.",
+		Vector3.new(-19.32, 6.4, -3), Vector3.new(9, 4.8, 0.15), 90)
+	plaque("SESSION RULES\nFind the generator.\nRecover the fuses.\nPlay the emergency master.\nReach the front doors.",
+		Vector3.new(19.32, 6.1, -4), Vector3.new(10.5, 5.8, 0.15), -90)
+	-- Narrow floor runners orient the camera toward the sign and keep the centre unobstructed.
+	localPart("LobbyRunner", Vector3.new(0, 0.04, -4),
+		Vector3.new(6, 0.06, 21), Color3.fromRGB(42, 36, 38), Enum.Material.Fabric)
+	for _, side in { -1, 1 } do
+		local x = side * 13
+		localPart("WaitingBench", Vector3.new(x, 1.55, 5.5),
+			Vector3.new(8, 0.4, 3.1), Color3.fromRGB(84, 54, 43), Enum.Material.Wood)
+		localPart("WaitingBenchBack", Vector3.new(x, 2.5, 6.8),
+			Vector3.new(8, 2, 0.4), Color3.fromRGB(72, 52, 45), Enum.Material.Wood)
+		for _, dx in { -3.5, 3.5 } do
+			localPart("BenchLeg", Vector3.new(x + dx, 0.8, 6),
+				Vector3.new(0.32, 1.4, 2.5), Color3.fromRGB(36, 40, 42), Enum.Material.Metal)
+		end
+		for _, z in { -15, -7, 1 } do
+			localPart("AcousticWallPanel", Vector3.new(side * 19.2, 6, z),
+				Vector3.new(0.25, 6, 5), Color3.fromRGB(43, 47, 49), Enum.Material.Fabric)
+		end
+	end
+	-- Reception counter at the north wall; a cold monitor is the only sign of life.
+	localPart("WaitingCounter", Vector3.new(0, 1.9, -14.5),
+		Vector3.new(12, 3.8, 2.5), Color3.fromRGB(65, 48, 40), Enum.Material.Wood, true)
+	localPart("CounterTop", Vector3.new(0, 3.9, -14.5),
+		Vector3.new(12.4, 0.24, 2.7), Color3.fromRGB(117, 92, 67), Enum.Material.Wood)
+	localPart("FrontTerminal", Vector3.new(0, 5.15, -15.2),
+		Vector3.new(2.5, 2, 0.27), Color3.fromRGB(34, 41, 40), Enum.Material.Metal)
+	localPart("TerminalScreen", Vector3.new(0, 5.15, -15.03),
+		Vector3.new(2.15, 1.62, 0.04), Color3.fromRGB(36, 92, 77), Enum.Material.Glass)
+	-- Hanging incandescent emergency practicals: enough to read signs without erasing contrast.
+	for _, x in { -13, 0, 13 } do
+		local lamp = localPart("LobbyHangingLamp", Vector3.new(x, H - 1, 3),
+			Vector3.new(3.2, 0.22, 3.2), Color3.fromRGB(135, 88, 57), Enum.Material.Metal)
+		local light = Instance.new("PointLight")
+		light.Color = Color3.fromRGB(242, 170, 105)
+		light.Brightness = if x == 0 then 1.1 else 0.75
+		light.Range = 24
+		light.Shadows = false
+		light.Parent = lamp
+	end
+	-- One red pilot indicator above the desk, deliberately not a disorienting strobe.
+	local pilot = localPart("OnAirLamp", Vector3.new(0, 10.9, -18.9),
+		Vector3.new(4, 0.7, 0.15), Color3.fromRGB(172, 44, 37), Enum.Material.Neon)
+	local pilotLight = Instance.new("PointLight")
+	pilotLight.Color = Color3.fromRGB(226, 65, 47)
+	pilotLight.Range = 9
+	pilotLight.Brightness = 0.45
+	pilotLight.Parent = pilot
 	lobby.Parent = Workspace
-	return CFrame.lookAt(o + Vector3.new(0, 3, 8), o + Vector3.new(0, 3, -20))
+	return CFrame.lookAt(o + Vector3.new(0, 3, 11), o + Vector3.new(0, 3, -20))
 end
 
 -- Builds the greybox studio as Workspace.Map and returns it.
