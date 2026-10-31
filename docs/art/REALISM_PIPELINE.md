@@ -1,8 +1,8 @@
 # Dead Air — realistic rendering and asset production standard
 
-**Scope:** recording studio, Engineer, portable items and any later maps.  
+**Scope:** rebuilt recording complex, broadcast station, bell foundry, Engineer and portable items.  
 **Goal:** believable, high-fidelity horror within Roblox's production renderer, with measurable runtime performance.  
-**Status:** native-lighting and architectural pass implemented in code; **scanned/hand-authored PBR textures, UV-mapped meshes and in-Studio photometric acceptance are not yet complete**.
+**Status:** three original generated environments and five OBJ hero meshes committed, with native-lighting and architectural passes implemented in code; **scanned/hand-authored PBR textures, UV-mapped meshes and in-Studio photometric acceptance are not yet complete**.
 
 ## Renderer: what actually works
 
@@ -11,7 +11,7 @@
 - `ColorCorrectionEffect` and small `BloomEffect` values approximate camera response. Avoid always-on depth of field, fake film grain, cartoon chromatic aberration, extreme vignette or strobing. Do not apply another global color grade through individual map art.
 - **No real-time RTX/path tracing toggle** is exposed to Roblox creators. Do not claim ray-traced reflections or global illumination; Roblox raycasts are gameplay geometry queries, not image rendering and will not approximate path tracing at acceptable cost.
 
-**Current code:** `default.project.json`, `src/server/VisualFidelity.luau`, `src/server/ArtBuilder.luau`, `src/server/MapBuilder.luau`. The `OwnsLighting` attribute remains respected: maps that own their lighting opt out of the studio treatment. The current coordinate-specific art only runs on the prototype studio or maps with `StudioArtPass=true`.
+**Current code:** `default.project.json`, `src/server/VisualFidelity.luau`, `src/server/Maps/Kit.luau`, `src/server/Maps/AssetLibrary.luau`, `src/server/MapBuilder.luau`. The `OwnsLighting` attribute remains respected: maps that own their lighting opt out of the studio treatment. The generated environments opt into calibrated Realistic lighting via `ProductionGeometry=true`. Imported Studio maps may supply independent lighting with `OwnsLighting=true`.
 
 ## Physical materials: PBR asset manifest (not uploaded)
 
