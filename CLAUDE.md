@@ -17,6 +17,7 @@ Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before de
 - Gabriel: direction, playtesting.
 - ChatGPT: the map and the graphical side (models, textures, lighting look), on its own branch (`chatgpt/...`). It may also touch scripts now and then.
 - Claude: scripts and game systems. Keep map-specific data out of the systems where possible, so ChatGPT's map can replace the greybox in `MapBuilder`. Fetch before editing: someone else may have pushed.
+- Claude and ChatGPT are teammates, not rivals (Gabriel's rule). The focus areas are about who leads on what, not ownership: either can change any file. Make the other's work easier: keep things compatible with their branch, explain changes that affect them, offer help, credit their work, and describe untested work the same way for both. Never frame their work as competing or lesser.
 
 ## Workflow
 - Claude writes code here and pushes to `main`. Gabriel runs `rojo serve` on his Arch laptop (Studio through Vinegar) and plays.
