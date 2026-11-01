@@ -181,6 +181,25 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 			end
 		end
 	end
+	-- Studio-imported full-body sculpt is visual-only. Keep the original welded
+	-- humanoid body as a collision/behavior fallback; when the sculpt exists,
+	-- hide its primitive forms but RETAIN the two earcup PointLights that the
+	-- monster's lunge/audio state machine controls.
+	if PrefabLibrary.attach(hrp,"EngineerBody",CFrame.identity) then
+		local hidden=0
+		for _,child in m:GetChildren() do
+			if child:IsA("BasePart") and child~=hrp then
+				child.Transparency=1
+				child.CastShadow=false
+				hidden+=1
+			end
+		end
+		m:SetAttribute("CharacterVisualTier","ImportedBodyPrototype")
+		m:SetAttribute("HiddenFallbackPieces",hidden)
+	else
+		m:SetAttribute("CharacterVisualTier","ProceduralFallback")
+	end
+
 	head:SetAttribute("Blind", true)
 
 	local h = Instance.new("Humanoid")
