@@ -1,6 +1,11 @@
 # Dead Air — Blackline recording complex: authored level-design brief (LD-00)
 
-**Stage:** design baseline for the next phase, **not an implemented map change**.
+**Historical design basis (LD-00):** this document records the initial conceptual proposal.
+**Update:** Blackline's actual nonuniform 19-room, 26-connection implementation now lives in
+[BLACKLINE_LD02_IMPLEMENTATION.md](BLACKLINE_LD02_IMPLEMENTATION.md) and
+`src/server/Maps/BlacklineLayout.luau`. Some adjacency/room scheduling proposals below
+were revised during real geometry implementation. The runtime code and synchronized
+`docs/design/blackline_graph.json` are authoritative. Studio qualification is pending.
 **Target map ID:** `studio`. **Owner branch:** `chatgpt/studio-art-pass`.
 **Priority:** develop ONE coherent flagship map before applying its lessons to the radio station or foundry.
 
