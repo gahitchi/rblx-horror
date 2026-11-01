@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Produce a *genuinely skinned* glTF 2.0 Engineer from original source meshes.
+"""Produce Q02 *genuinely skinned* glTF 2.0 from the grounded technician mesh.
 
 A skeleton without JOINTS_0 / WEIGHTS_0 does not deform. This builder inserts
 both per-vertex attributes, a valid glTF skin, inverse bind matrices and an
@@ -21,21 +21,21 @@ from build_character_assets import engineer_body
 # Coordinates are in source-engine studs; forward is -Z.
 BONES = [
     ("EngineerRoot", None, (0.0, 0.0, 0.0)),  # nondeforming hierarchy root
-    ("Spine", "EngineerRoot", (0.0, 0.55, 0.0)),
-    ("Neck", "Spine", (0.0, 2.65, -0.04)),
-    ("Head", "Neck", (0.0, 3.70, -0.08)),
-    ("LeftShoulder", "Spine", (-1.38, 1.70, 0.0)),
-    ("LeftElbow", "LeftShoulder", (-1.73, -0.20, -0.12)),
-    ("LeftWrist", "LeftElbow", (-1.95, -2.13, -0.20)),
-    ("RightShoulder", "Spine", (1.38, 1.70, 0.0)),
-    ("RightElbow", "RightShoulder", (1.73, -0.20, -0.12)),
-    ("RightWrist", "RightElbow", (1.95, -2.13, -0.20)),
-    ("LeftHip", "Spine", (-0.55, -1.42, 0.0)),
-    ("LeftKnee", "LeftHip", (-0.61, -3.06, -0.03)),
-    ("LeftAnkle", "LeftKnee", (-0.65, -4.20, -0.29)),
-    ("RightHip", "Spine", (0.55, -1.42, 0.0)),
-    ("RightKnee", "RightHip", (0.61, -3.06, -0.03)),
-    ("RightAnkle", "RightKnee", (0.65, -4.20, -0.29)),
+    ("Spine", "EngineerRoot", (0.0, 0.46, 0.05)),
+    ("Neck", "Spine", (0.0, 1.97, -0.04)),
+    ("Head", "Neck", (0.0, 2.54, -0.04)),
+    ("LeftShoulder", "Spine", (-1.09, 1.11, 0.02)),
+    ("LeftElbow", "LeftShoulder", (-1.26, -0.25, -0.06)),
+    ("LeftWrist", "LeftElbow", (-1.34, -1.55, -0.10)),
+    ("RightShoulder", "Spine", (1.09, 1.11, 0.02)),
+    ("RightElbow", "RightShoulder", (1.26, -0.25, -0.06)),
+    ("RightWrist", "RightElbow", (1.34, -1.55, -0.10)),
+    ("LeftHip", "Spine", (-0.43, -1.47, 0.08)),
+    ("LeftKnee", "LeftHip", (-0.49, -2.93, 0.06)),
+    ("LeftAnkle", "LeftKnee", (-0.53, -4.30, 0.02)),
+    ("RightHip", "Spine", (0.43, -1.47, 0.08)),
+    ("RightKnee", "RightHip", (0.49, -2.93, 0.06)),
+    ("RightAnkle", "RightKnee", (0.53, -4.30, 0.02)),
 ]
 WEIGHTED_BONES = [b[0] for b in BONES if b[0] != "EngineerRoot"]
 INDEX = {name: i for i, name in enumerate(WEIGHTED_BONES)}
@@ -57,26 +57,26 @@ def weights_for(point: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
     # Only distal portions of limbs use distal bones; blend through a local
     # bend region to prevent hard joint cracks in the skin.
-    arm = smooth(ax, 0.84, 1.33) * (1-smooth(y, 1.85, 2.35)) * smooth(y, -3.1, -2.5)
-    leg = (1-arm)*smooth(-y, 1.25, 1.92)*smooth(ax, 0.11, 0.40)
-    head = (1-arm-leg)*smooth(y, 2.36, 2.97)
+    arm = smooth(ax, 0.76, 1.07) * (1-smooth(y, 1.43, 1.85)) * smooth(y, -2.63, -2.28)
+    leg = (1-arm)*smooth(-y, 1.02, 1.58)*smooth(ax, 0.10, 0.29)
+    head = (1-arm-leg)*smooth(y, 1.83, 2.30)
     body = max(0.0, 1-arm-leg-head)
     assign("Spine", body)
 
     # Head/neck blend has 2 joints plus a little shoulder-following torso.
-    neck_t = smooth(y, 3.05, 3.55)
+    neck_t = smooth(y, 2.16, 2.47)
     assign("Neck", head*(1-neck_t))
     assign("Head", head*neck_t)
 
     if arm:
-        elbow = 1-smooth(y, -0.82, 0.35)
-        wrist = 1-smooth(y, -2.37, -1.72)
+        elbow = 1-smooth(y, -0.58, 0.32)
+        wrist = 1-smooth(y, -1.88, -1.36)
         assign(side+"Shoulder", arm*(1-elbow))
         assign(side+"Elbow", arm*elbow*(1-wrist))
         assign(side+"Wrist", arm*elbow*wrist)
     if leg:
-        knee = 1-smooth(y, -2.44, -1.90)
-        ankle = 1-smooth(y, -3.85, -3.13)
+        knee = 1-smooth(y, -2.62, -1.97)
+        ankle = 1-smooth(y, -3.99, -3.45)
         assign(side+"Hip", leg*(1-knee))
         assign(side+"Knee", leg*knee*(1-ankle))
         assign(side+"Ankle", leg*knee*ankle)
