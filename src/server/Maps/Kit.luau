@@ -5,6 +5,7 @@
 local Workspace = game:GetService("Workspace")
 local AssetLibrary = require(script.Parent.AssetLibrary)
 local ArchitecturalDetail = require(script.Parent.ArchitecturalDetail)
+local FinishDetail = require(script.Parent.FinishDetail)
 local PBRMaterials = require(script.Parent.PBRMaterials)
 local PrefabLibrary = require(script.Parent.Parent.PrefabLibrary)
 
@@ -88,19 +89,28 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
     local front=z+hd-4.5
     local role=r.role
     if role=="control" or role=="broadcast" or role=="master" then
-        local collider=box(parent,"DeskPlinth",left-2,0,back-1,left+5,2.7,back+2.5,p.steel,Enum.Material.Metal,true)
-        if PrefabLibrary.place(parent,"MixingConsole",CFrame.new(left+1.5,0,back+0.7)) then
-            -- The invisible proxy alone owns the console's collision/monster navigation.
-            collider.Transparency=1
-        else
-            box(parent,"ConsoleSurface",left-2.5,2.7,back-1.4,left+5.5,3.05,back+3,p.trim,Enum.Material.Metal,false)
+        -- Exactly one invisible collision proxy. Visual worktops, cabinet framing
+        -- and imported consoles are separate from navigation and sound occlusion.
+        local collider=box(parent,"DeskPlinth",left-2,0,back-1,left+5,2.7,back+2.5,
+            p.steel,Enum.Material.Metal,true)
+        collider.Transparency=1
+        collider:SetAttribute("DisablePBR",true)
+        FinishDetail.counter(parent,theme.id,"control",left-2,back-1,left+5,back+2.5,2.7,p)
+        if not PrefabLibrary.place(parent,"MixingConsole",CFrame.new(left+1.5,0,back+0.7)) then
+            -- Native fallback uses the same worktop rather than the old noisy
+            -- "ConsoleSurface" slab that covered a large area with rust tiling.
             for i=1,8 do
                 local fx=left-1.8+i*0.79
-                box(parent,"ConsoleFader",fx,3.09,back+0.1,fx+0.24,3.16,back+1.9,p.accent,Enum.Material.Metal,false)
+                local fader=box(parent,"ConsoleFader",fx,3.01,back+0.1,fx+0.24,3.11,back+1.9,
+                    p.accent,Enum.Material.SmoothPlastic,false)
+                fader:SetAttribute("DisablePBR",true)
             end
             for i=0,2 do
-                box(parent,"MeterFrame",left-1+i*2.4,3.5,back-1.1,left+0.7+i*2.4,5.2,back-0.8,p.steel,Enum.Material.Metal,false)
-                box(parent,"MeterGlow",left-0.9+i*2.4,3.65,back-1.17,left+0.55+i*2.4,5.05,back-1.13,
+                local frame=box(parent,"MeterFrame",left-1+i*2.4,3.45,back-1.1,
+                    left+0.7+i*2.4,5.2,back-0.8,p.steel,Enum.Material.SmoothPlastic,false)
+                frame:SetAttribute("DisablePBR",true)
+                box(parent,"MeterGlow",left-0.9+i*2.4,3.65,back-1.17,
+                    left+0.55+i*2.4,5.05,back-1.13,
                     Color3.fromRGB(36,92,72),Enum.Material.Glass,false)
             end
         end
@@ -145,8 +155,12 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
         -- Restrained, believable wall-mounted cable trays, leaving at least 8 studs clear.
         box(parent,"ServiceConduit",r.x1+0.55,9.3,r.z1+3,r.x1+0.88,9.8,r.z2-3,p.steel,Enum.Material.Metal,false)
     elseif role=="reception" or role=="lounge" then
-        box(parent,"ReceptionCounter",left-1,0,back-1,left+7,3.3,back+2.6,p.trim,Enum.Material.Wood,true)
-        box(parent,"CounterTop",left-1.4,3.3,back-1.3,left+7.4,3.53,back+2.8,p.accent,Enum.Material.Wood,false)
+        local counterProxy=box(parent,"ReceptionCounter",left-1,0,back-1,
+            left+7,3.3,back+2.6,p.trim,Enum.Material.Wood,true)
+        counterProxy.Transparency=1
+        counterProxy:SetAttribute("DisablePBR",true)
+        FinishDetail.counter(parent,theme.id,"reception",left-1,back-1,
+            left+7,back+2.6,3.3,p)
         for _, sx in {right-2,right+1} do
             box(parent,"WaitingSeat",sx-1,0,front-2,sx+1,1.9,front+1,p.steel,Enum.Material.Fabric,true)
         end
@@ -209,22 +223,10 @@ local function doorLeaf(parent: Instance, portal: Portal, palette: { wall: Color
         Vector3.new(hw-1.05,-0.5,-0.34),palette.steel,Enum.Material.Metal)
     attachment("GripCylinder",Vector3.new(0.95,0.13,0.19),
         Vector3.new(hw-0.84,-0.51,-0.58),palette.accent,Enum.Material.Metal)
-    -- Physically separated two-sided inset surfaces. Close range retains the PBR maps,
-    -- while the uninterrupted painted frame reads as one stable door at long range.
-    local faceMaterial=if portal.kind=="booth" then Enum.Material.Fabric
-        else if mapId=="studio" then Enum.Material.Wood else Enum.Material.Metal
-    for _, side in {-1,1} do
-        local upper=attachment("UpperDoorInlay",Vector3.new(leaf.Size.X-1.45,1.5,0.1),
-            Vector3.new(0,1.65,side*0.40),palette.trim,faceMaterial)
-        upper:SetAttribute("DisablePBR",false)
-        local lower=attachment("LowerDoorInlay",Vector3.new(leaf.Size.X-1.45,2.5,0.1),
-            Vector3.new(0,-2.25,side*0.40),palette.steel,faceMaterial)
-        lower:SetAttribute("DisablePBR",false)
-        attachment("PanelHeaderRail",Vector3.new(leaf.Size.X-0.8,0.18,0.15),
-            Vector3.new(0,3.48,side*0.46),palette.steel,Enum.Material.SmoothPlastic)
-        attachment("PanelMiddleRail",Vector3.new(leaf.Size.X-0.8,0.18,0.15),
-            Vector3.new(0,-0.24,side*0.46),palette.steel,Enum.Material.SmoothPlastic)
-    end
+    -- A dedicated finishing pass gives door panels a map-specific painted,
+    -- pressed-metal silhouette, without repeating the wall/wood/steel PBR
+    -- across their small inset rectangles.
+    FinishDetail.doorFields(leaf,mapId,portal.kind,attachment)
     if portal.kind=="booth" then
         attachment("AcousticDoorGasket",Vector3.new(leaf.Size.X-0.48,0.12,0.12),
             Vector3.new(0,4.15,-0.32),Color3.fromRGB(19,22,22),Enum.Material.SmoothPlastic)
