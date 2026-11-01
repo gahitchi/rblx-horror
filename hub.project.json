@@ -22,6 +22,26 @@
 					"$path": "src/hub/client"
 				}
 			}
+		},
+		"Lighting": {
+			"$properties": {
+				"LightingStyle": "Realistic",
+				"PrioritizeLightingQuality": true,
+				"GlobalShadows": true,
+				"ClockTime": 0,
+				"Brightness": 0.35,
+				"Ambient": [
+					0.078,
+					0.071,
+					0.071
+				],
+				"OutdoorAmbient": [
+					0.078,
+					0.071,
+					0.071
+				],
+				"EnvironmentSpecularScale": 0.75
+			}
 		}
 	}
 }
