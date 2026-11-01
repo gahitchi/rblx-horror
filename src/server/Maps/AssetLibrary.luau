@@ -118,7 +118,8 @@ local function acousticWall(parent: Instance, x: number, z: number, length: numb
     end
 end
 function Assets.decorate(parent: Instance, role: string, id: string,
-    x1: number,x2: number,z1: number,z2: number,height: number,p: any)
+    x1: number,x2: number,z1: number,z2: number,height: number,p: any,
+    roomName: string?)
     local x=(x1+x2)/2
     local z=(z1+z2)/2
     local left=x1+3.1
@@ -137,7 +138,7 @@ function Assets.decorate(parent: Instance, role: string, id: string,
     end
 
     if id=="studio" then
-        if role=="control" or role=="master" then
+        if (role=="control" or role=="master") and roomName~="MasteringVault" then
             meshSpeaker(parent,right-4,2.35,north,p)
             meshSpeaker(parent,left+4,2.35,north,p)
             analogRack(parent,right-2,north+5,p)
