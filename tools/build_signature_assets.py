@@ -264,13 +264,13 @@ def blackline_master_reference():
         # A shallow waveguide with a genuine stepped driver/surround,
         # rather than one flat round printed albedo.
         m.link((x,6.42,-.84),(x,6.42,-1.01),
-               1.78,1.65,"rubber",48)
+               1.78,1.65,"rubber",84)
         m.link((x,6.42,-1.02),(x,6.42,-1.13),
-               1.34,1.03,"iron",48)
+               1.34,1.03,"iron",84)
         m.link((x,6.42,-1.13),(x,6.42,-1.23),
-               .39,.35,"coat_dark",30)
+               .39,.35,"coat_dark",42)
         m.link((x,6.42,-1.24),(x,6.42,-1.29),
-               .16,.16,"brass",20)
+               .16,.16,"brass",32)
         for dx in (-1.88,1.88):
             for dy in (-1.82,1.82):
                 m.link((x+dx,6.42+dy,-.87),
@@ -281,6 +281,11 @@ def blackline_master_reference():
         for v in range(3):
             m.box((x-1.62+v*1.62,4.14,-.87),
                   (1.04,.10,.055),"rubber")
+        # Actual slotted heat vent on the outside wall of each driver pod.
+        vent_x=side*6.13
+        for row in range(8):
+            m.box((vent_x,4.90+row*.42,-.86),
+                  (.20,.15,.055),"coat_dark")
     m.box((0,6.37,-.81),(2.80,3.14,.12),"coat_dark")
     m.box((0,7.15,-.92),(2.41,.70,.06),"iron")
     for i in range(9):
