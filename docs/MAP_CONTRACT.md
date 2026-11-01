@@ -1,5 +1,8 @@
 # Map contract
 
+Contract v2 (1 November 2026): chapters choose the objectives they need; the generator, fuse box,
+fuse spots, emergency tape deck and power lights are gone (see `docs/BUILD_PLAN.md`).
+
 How a map must be laid out so the game's scripts can use it: the monster, the noise system, the
 objectives and the rounds all read the map from this structure and nothing else. Follow it and a new
 map works with no script changes.
@@ -9,7 +12,7 @@ every rule below. When the game starts it looks for `Workspace.Map`. If there is
 if not, the greybox is built instead. Any problem with the map is printed in Studio's Output window
 as a line starting with `[Map]`.
 
-## Structure
+## Structure (contract v2, chapter 1)
 
 ```
 Workspace
@@ -17,28 +20,51 @@ Workspace
    ├─ Markers               Folder
    │  ├─ PlayerSpawn        Part: where players start, facing the part's front
    │  ├─ MonsterSpawn       Part: where the monster appears
-   │  ├─ FuseSpot           Part, at least 3 (more is better): where a fuse can appear
-   │  └─ Speaker            Part, at least 1: where the emergency alarm plays from
+   │  ├─ Speaker            Part, at least 1: where the building's speakers are
+   │  ├─ ReelSpot           Part, 3 or more: archive shelf places a reel can sit (attribute Shelf = "4")
+   │  ├─ OptionalTapeSpot   Part, 3 or more: where optional story tapes can appear
+   │  └─ Throwable          Part, any number: a bottle, can or pipe lies here (attribute Item, optional)
    ├─ Areas                 Folder: one Folder per room, named after the room
    │  └─ <Room>             Folder
    │     ├─ Bounds          Part: a box covering the room, floor to ceiling
    │     └─ Spot            Part, 1 or more: places the monster walks to and stands
-   ├─ Doors                 Folder: every door that opens
-   │  └─ <any name>         Part (the door leaf), attribute Kind = "normal" | "booth" | "front"
+   ├─ Doors                 Folder: every door
+   │  └─ <any name>         Part (the door leaf), attribute Kind (see Doors below)
    ├─ Booths                Folder (optional): soundproof rooms
    │  └─ <any name>         Part: a box covering the booth, attribute Door = name of its door
-   ├─ Objectives            Folder
-   │  ├─ Generator          Part: players hold E here to pull the starter
-   │  ├─ FuseBox            Part: players fit fuses here
-   │  ├─ TapeDeck           Part: plays the emergency tape
-   │  └─ ExitZone           Part: a box players walk into to escape (just outside the front door)
-   ├─ PowerLights           Folder (optional): lamps that come on with the generator
+   ├─ HidingSpots           Folder (optional): wardrobes and lockers
+   │  └─ <any name>         Part: the wardrobe itself, its front (-Z) face is the door; attribute Kind = "wardrobe" | "locker"
+   ├─ Shutters              Folder (optional): navy quarantine shutters
+   │  └─ <any name>         Part, built CLOSED (blocking the way); attributes Route, StartsOpen
+   ├─ Lamps                 Folder (optional, old name PowerLights also works)
    │  └─ <any name>         Part with Light objects inside (PointLight, SpotLight, SurfaceLight)
+   ├─ Objectives            Folder: the parts the chapter uses, by name (list below)
    └─ everything else       walls, floors, props, decoration: any folders, any names
 ```
 
 Names of folders and of the special parts must match exactly (they're case-sensitive). Everything
 else in the map can be organised however you like.
+
+### Objectives for chapter 1 (The Last Session)
+
+Each one is the actual prop (or an invisible part placed on it); its prompt appears there. Players
+must be able to stand within 8 studs of each. The chapter refuses a map missing any of them and the
+greybox is used instead (the Output says which are missing).
+
+| Name | What it is |
+| --- | --- |
+| `BookingDiary` | The studio's booking diary, on the reception desk |
+| `SessionLog` | The engineer's session log, in control room A |
+| `TapeMachine` | The big multitrack tape machine (control room A): rethreaded, then reels load here |
+| `Spares` | The maintenance cupboard with spare parts (break room) |
+| `CardIndex` | The archive's card index cabinet |
+| `RoadCase` | A road case in the live room; three instruments get piled on its top by script |
+| `Safe` | The engineer's desk safe (control room B) |
+| `MemorialProgramme` | The order of service from the wife's memorial (break room) |
+| `PatchBay` | The patch bay next to the mixing desk |
+| `MixingDesk` | The mixing desk (control room A): the last session is held here |
+| `MailSlot` | The mail slot in the front doors, reachable from inside |
+| `ExitZone` | A box just outside the front doors: touching it during Last Call is an escape |
 
 ## The pieces
 
@@ -50,10 +76,13 @@ invisible and non-solid when it starts, so they can be visible while you build.
   under them has to be part of the Map.
 - **PlayerSpawn** faces the way its front face points: point it into the building.
 - **MonsterSpawn** should be far from PlayerSpawn. The monster appears there 15 seconds into the round.
-- **FuseSpot:** the fuse appears with its centre exactly where the marker's centre is (on a desk, a
-  shelf, the floor). Spread them across the map. Each round picks 3 at random.
-- **Speaker:** put one at each place the building's speakers would be (ceilings, walls). The alarm
-  sound and its noise come from these.
+- **Speaker:** put one at each place the building's speakers would be (ceilings, walls). Reel
+  tracks, the full recording and the second shock's replayed sounds come from these.
+- **ReelSpot:** a reel appears with its centre exactly at the marker (on a shelf). One holds the
+  real reel A each round, the others hold ordinary reels. Give each an attribute **Shelf** with the
+  label on that shelf (the card index points to it), and put a matching sign on the shelf.
+- **OptionalTapeSpot:** spread them around; each round picks three.
+- **Throwable:** optional attribute **Item** = `bottle`, `can` or `pipe` (random otherwise).
 
 **Areas** are how the monster understands the building: it patrols from room to room, and searches
 the spots near where it heard something.
@@ -64,6 +93,8 @@ the spots near where it heard something.
   Big rooms need more; a small booth needs one.
 - At least 2 Areas need Spots. Every place a player can hide should be near a Spot, or the monster
   will never look there.
+- Rooms the chapter keeps shut (the basement and the flat in chapter 1) get **no Area**, or the
+  monster will try to walk there.
 
 **Doors**
 
@@ -72,22 +103,34 @@ the spots near where it heard something.
 - The leaf must be **Anchored**. Handles, panels and other decoration can be added as separate parts
   that are **not anchored**, have **CanCollide off**, and are joined to the leaf with a
   **WeldConstraint**; they then swing with it.
-- Set the attribute **Kind** to `normal`, `booth` (a soundproof booth's door) or `front` (the exit,
-  locked until the emergency tape finishes). There must be exactly one `front` door.
+- Set the attribute **Kind**:
+  - `normal`: an ordinary door;
+  - `booth`: a soundproof booth's door;
+  - `front`: the exit, locked until Last Call. There must be exactly one;
+  - `sealed`: shut in plain sight for this chapter (the basement stairwell, chained behind the
+    navy's quarantine seal). Never opens; it's a wall to the monster;
+  - `barricaded`: also never opens, and something thumps behind it now and then (the door to the
+    engineer's flat, barricaded from inside).
 - The game adds the prompt, the swing and the pathfinding settings itself.
 
 **Booths** (soundproof rooms): while a booth's door is shut, nothing said or done inside reaches the
 monster, wherever it is. Make a box Part covering the inside of the booth, level with the world axes,
 and give it the attribute **Door** with the exact name of its door in `Doors` (a `booth` door).
 
-**Objectives:** Generator, FuseBox and TapeDeck are where the hold-E prompts appear, so make them
-the actual machine (or an invisible part placed on it). Players must be able to stand within 8 studs
-of each. The ExitZone is a box just outside the front door; touching it after the doors open is an
-escape.
+**Hiding spots**: the part is the wardrobe or locker itself, anchored and solid. Its front face
+(-Z, the direction its LookVector points) is the door: point it into the room and leave about 3
+studs clear in front of it. A hidden player stands at its centre, so make it at least 3 × 7 × 2.5.
+The monster opens hiding spots near where it searches, so keep each one near an Area `Spot`.
 
-**PowerLights:** each child is a lamp Part with lights inside. With the power off the lights are off
-and the lamp keeps its own look. When the generator runs the lights switch on and the lamp turns Neon.
-Give the lamp a Color3 attribute **OnColor** to choose its lit colour.
+**Shutters**: build each shutter where it stands when **closed**. The script lifts it by its own
+height to open it, so leave that much room above it (inside the ceiling is fine). Attributes:
+**Route** (a name; chapter 1 drops the one with `Route = "short"` during Last Call, so put it on the
+short way from control room A to reception and make sure a longer way exists) and **StartsOpen**
+(true by default).
+
+**Lamps**: each child is a lamp Part with lights inside. The scripts switch them between three
+states: **dead** (off; the lamp keeps its own look), **woken** (dim, warm and flickering, after the
+first shock) and **red** (emergency red, after the second shock).
 
 ## Rules the scripts depend on
 

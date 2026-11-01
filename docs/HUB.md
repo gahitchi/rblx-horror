@@ -11,7 +11,13 @@ The game is two places in one Roblox experience:
   hub; Yes votes on the next map. Same map: the next round starts in the same server. Another map:
   the group moves to a fresh match server on it.
 
-Shared code (`src/shared`: Config, Remotes, Sounds) is synced into both places.
+Shared code (`src/shared`: Config, Remotes, Sounds, Chapters) is synced into both places.
+
+**Chapters.** Every crew (lobby) plays one chapter, and lobbies are strict: everyone in it must have
+that chapter unlocked (the one before it cleared). The hub reads each player's cleared chapters
+from the match place's progress save (`Progress_v1`). Quick join puts a player in a public crew on
+their next unplayed chapter, or makes one. The teleport carries `{ map, chapter }`; "play again"
+keeps the chapter.
 
 ## One-time setup
 

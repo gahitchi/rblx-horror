@@ -9,35 +9,45 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: prototype 0.4.0
+## Status: prototype 0.7.0 (untested)
 
-Greybox studio, the noise system, the Engineer (layered AI with mimicry), the full round loop,
-walkie-talkies, the tape recorder decoy, spectating, saved levels and coins, round results, ready-up, an optional feedback menu (see docs/FEEDBACK.md) and a basic HUD. Placeholder sounds. Before a
-playtest, see [docs/PLAYTEST.md](docs/PLAYTEST.md).
+The design is in the design doc (link in `CLAUDE.md`) and `docs/DIRECTION.md`. 0.7.0 rebuilds the
+round as **chapter 1, The Last Session**, set in the engineer's studio in Wrenmouth: greybox map,
+placeholder sounds, no round timer. Before a playtest, see [docs/PLAYTEST.md](docs/PLAYTEST.md).
+What's built and what's next: [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md).
 
-What a round looks like:
-1. Wait in the lobby for the countdown.
-2. Start the generator in the basement (three pulls, each one loud). The emergency lights come on.
-3. Find three fuses around the studio (one at a time) and fit them in the basement fuse box.
-4. Play the emergency tape in control room A. Every speaker blasts an alarm for 20 seconds.
-5. The front doors unlock. Get out through reception.
-6. Caught players watch the others until the round ends.
+What a round looks like (about 20 to 25 minutes):
+1. The front doors' quarantine locks slam behind the crew. The handler talks on the walkies.
+2. The booking diary points to control room A; the session log there names three reels.
+3. Fix the tape machine: spare parts from the break room, then rethread it by hand.
+4. Find the reels: the archive (card index, then the right shelf), the live room (a road case under
+   instruments), control room B (a safe; the date is on the memorial programme). Each reel plays out
+   loud when it's loaded.
+5. Two shocks: the building wakes at the first reel; blackout, fog and red lights at the second.
+6. Patch the desk at the patch bay, then hold the desk while the recording dubs onto the cassette,
+   riding the faders.
+7. Last Call: 45 seconds to get out the front doors with the cassette, the long way round.
+8. Caught players become echoes: their body stays, humming; they float, mark the monster and whisper.
+   A teammate can put their headset back on.
 
 ## Controls
 
 | Key | Action |
 | --- | --- |
 | WASD | Walk (makes some noise) |
-| Shift | Run (fast, loud, tiring) |
+| Shift | Run (fast, loud, tiring; shorter and slower while carrying something heavy) |
 | C or Ctrl | Crouch (slow, silent) |
 | F | Flashlight (a quiet click) |
-| E (hold) | Interact |
+| E (hold) | Interact: read, take, use, hide in a wardrobe or locker |
+| G | Put down what you're holding |
+| T | Throw what you're holding (bottles, cans, pipes) |
+| Space | While hiding with the monster close: hold your breath |
 | V (hold) | Talk on the walkie: teammates' walkies crackle (and carry your voice) |
-| 1 to 4 | Walkie callouts: "It's here!", "Need help!", "Found a fuse.", "Going quiet." |
+| 1 to 4 | Walkie callouts: "It's here!", "Need help!", "Found a reel.", "Going quiet." |
 | N | Walkie on or off |
 | R | Tape recorder: record nearby noise, then set it down as a decoy |
-| Q / E | While spectating: switch player |
-| G | In the lobby: ready up |
+| As an echo | Move as usual (forward follows your look); P marks the monster; 5 to 8 whisper |
+| G (lobby) | Ready up |
 
 ## Setup
 

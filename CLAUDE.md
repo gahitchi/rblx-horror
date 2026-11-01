@@ -34,6 +34,8 @@ Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before de
 - The server is the authority: noise, objectives, catches and rounds happen there. Clients only draw and send input.
 - All tuning numbers live in `src/shared/Config.luau`.
 - Maps follow `docs/MAP_CONTRACT.md`: a `Workspace.Map` with named folders and marker parts, read by `MapContract`. Systems get positions only from the resulting Layout, never hard-coded. The greybox (`MapBuilder`) follows the same contract and is used when no `Workspace.Map` exists. Change the contract doc and `MapContract` together.
+- Chapters: `ChapterService` runs the chapter being played; `Chapters/Kit` holds the shared pieces (prompts, documents, puzzles, hand items, the cassette, optional tapes, shocks, dubbing, shutters, Last Call); each chapter is one module (`Chapters/Studio1`, its words in `Chapters/Studio1Text`) listing the objective parts it `requires`. The story's order and unlocks are in `src/shared/Chapters.luau`.
+- No round timer: `RoundService` ends a round when nobody is left inside. Soft pressure (fog, hearing, director) builds with time. `LightingService` (dead, woken, red), `EchoService` (caught players), `HideService` (wardrobes, breath).
 - The monster AI is layered: `Monster/Perception` (awareness, fuzzy hearing), `Monster/Director` (pacing), `Monster/Navigator` (pathing, doors, stuck recovery), `MonsterService` (the state machine). `Config.DEBUG_AI` shows its state and path in the world.
 - Doorways must be at least 6 studs wide or the monster's pathfinding can't fit through.
 - Comments explain why, in plain words.
