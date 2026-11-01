@@ -5,7 +5,7 @@ Usage:
     python -m pip install pillow numpy
     python tools/generate_pbr.py --size 1024 --out assets/generated-textures
 
-Outputs four material families x ColorMap, NormalMap, RoughnessMap and MetalnessMap.
+Outputs seven material families x ColorMap, NormalMap, RoughnessMap and MetalnessMap.
 Procedural textures are production *starter sources*; a scanned/photographed high-detail
 PBR pass should supersede them for close-up hero assets.
 """
@@ -52,6 +52,32 @@ def make_material(name: str, size: int, rng: np.random.Generator):
                           73-15*corrosion+10*(noise-.5)], axis=-1)
         roughness = np.clip(.43 + .44 * corrosion + .13 * fine, 0, 1)
         metalness = np.clip(1-corrosion*.85,0,1)
+    elif name == "blackline_sealed_slate":
+        # Low-sheen, anti-static circulation floor with sparse ground wear.
+        # No fake square tiling or grime sprayed uniformly across the room.
+        striation = np.sin((y + medium*20)*2*np.pi/192)*.018
+        height = .45 + .035*(medium-.5) + .015*(fine-.5) + striation
+        offset = (long-.5)*9 + (medium-.5)*5 + striation*17
+        color = np.stack([61+offset,62+offset,62+offset*.95],axis=-1)
+        roughness = np.clip(.83 + (fine-.5)*.036 + (medium-.5)*.024,0,1)
+        metalness = np.zeros_like(roughness)
+    elif name == "blackline_archive_concrete":
+        # Dense sealed concrete: faint aggregate, no all-over rust mottling.
+        pores=np.maximum(.22-fine,0)*13
+        height=.45 + .065*(medium-.5) + .055*(fine-.5) - pores*.0008
+        offset=(long-.5)*13 + (medium-.5)*8 - pores
+        color=np.stack([78+offset,76+offset,71+offset*.94],axis=-1)
+        roughness=np.clip(.84+(fine-.5)*.10,0,1)
+        metalness=np.zeros_like(roughness)
+    elif name == "blackline_powder_steel":
+        # Protected steel is painted, not uniformly corroded. Very fine
+        # orange-peel height and nearly zero metallic reflectivity until
+        # actual exposed hardware is modeled separately.
+        height=.48+.045*(fine-.5)+.02*(medium-.5)
+        offset=(long-.5)*5 + (fine-.5)*2
+        color=np.stack([77+offset,79+offset,77+offset],axis=-1)
+        roughness=np.clip(.67+(fine-.5)*.055,0,1)
+        metalness=np.zeros_like(roughness)
     else:
         weave = np.sin(x * 2*np.pi / 4.2)*np.cos(y * 2*np.pi / 4.2)
         height = .33 + .18 * noise + .20 * weave
@@ -74,7 +100,9 @@ def main():
     if args.size<128 or args.size>4096 or args.size&(args.size-1):
         parser.error("--size must be power of two between 128 and 4096")
     args.out.mkdir(parents=True,exist_ok=True)
-    for j,name in enumerate(("aged_oak","old_plaster","oxidized_steel","acoustic_weave")):
+    for j,name in enumerate(("aged_oak","old_plaster","oxidized_steel","acoustic_weave",
+                             "blackline_sealed_slate","blackline_archive_concrete",
+                             "blackline_powder_steel")):
         color,normal,rough,metal=make_material(name,args.size,np.random.default_rng(7137+j))
         for suffix,arr in (("ColorMap",color),("NormalMap",normal),("RoughnessMap",rough),("MetalnessMap",metal)):
             data=np.clip(arr,0,255).astype("uint8")
