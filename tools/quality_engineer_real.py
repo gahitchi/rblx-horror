@@ -153,7 +153,50 @@ def label_plate(title,subtitle,size,center):
     return mesh
 
 
-def hardware():
+def cushion_ring(center,r_major,tube,material):
+    """Actual open annular ear cushion, rather than three flat face-covering discs."""
+    x,y,z=center
+    around=36;roundness=10
+    vv=[];ff=[]
+    for a in range(around):
+        t=math.tau*a/around
+        for b in range(roundness):
+            u=math.tau*b/roundness
+            rr=r_major+tube*math.cos(u)
+            vv.append((x+tube*.66*math.sin(u),
+                       y+rr*math.cos(t),z+rr*math.sin(t)))
+    for a in range(around):
+        an=(a+1)%around
+        for b in range(roundness):
+            bn=(b+1)%roundness
+            i=a*roundness+b; j=an*roundness+b
+            k=a*roundness+bn; l=an*roundness+bn
+            ff.extend(((i,j,k),(j,l,k)))
+    mesh=trimesh.Trimesh(vertices=vv,faces=ff,process=False)
+    mesh.visual.material=material
+    return mesh
+
+
+def head_landmarks(source:trimesh.Scene):
+    """Derive actual human ear positions from the immutable CC0 base sculpt.
+
+    This fixes a major previous bug: the left ear is at x≈-.107 while the
+    right is x≈+.055. A headphone rig symmetrical about x=0 cannot fit them.
+    """
+    skin=source.geometry['base'].vertices
+    ear_band=skin[(skin[:,1]>1.62)&(skin[:,1]<1.68)&
+                  (skin[:,2]>.0)&(skin[:,2]<.075)]
+    assert len(ear_band)>200
+    left=float(np.quantile(ear_band[:,0],.012))
+    right=float(np.quantile(ear_band[:,0],.988))
+    assert -.115<left<-.095 and .04<right<.067,(left,right)
+    hair=source.geometry['short01'].vertices
+    scalp_roof=float(np.quantile(hair[:,1],.995))
+    assert 1.77<scalp_roof<1.805
+    return left,right,scalp_roof
+
+
+def hardware(fit:tuple[float,float,float]):
     brushed=PBRMaterial(name='Blackline_HeadphoneBrushedAluminum',
         baseColorFactor=np.array([90,94,93,255],dtype=np.uint8),
         metallicFactor=.78,roughnessFactor=.48)
@@ -168,46 +211,98 @@ def hardware():
         metallicFactor=.31,roughnessFactor=.57)
     items=[]
     def add(mesh,name):
-        # Hand-built device geometry uses same original centimeter-space as body.
         mesh.metadata['name']=name
         items.append((name,mesh))
-    # Headset: not melted into face. Left cup is subtly older, ear-seals visible.
-    for side in (-1,1):
-        x=side*.104
-        add(earcup((x,1.654,.036),side,.052,.044,dark),'HeadphoneHousing'+str(side))
-        add(earcup((side*.108,1.654,.036),side,.048,.04,brushed),'HeadphoneRing'+str(side))
-        add(earcup((side*.090,1.654,.036),-side,.041,.012,leather),'HeadphonePad'+str(side))
-        add(rod([(side*.129,1.688,.036),(side*.121,1.737,.035),
-                 (side*.104,1.778,.03)],.005,brushed),'HeadphoneFork'+str(side))
-    arch=[(x,1.792+.021*math.cos((x/.11)*math.pi/2),.032)
-           for x in np.linspace(-.107,.107,29)]
+
+    ear_left,ear_right,roof=fit
+    ear_y=1.650;ear_z=.047
+    # Inward annular leather pads rest against the *actual ears*; the hard
+    # shells sit outboard, leaving the face/temples clear. Each side is fitted
+    # to a different anatomical x-coordinate, NOT a guessed mirrored origin.
+    for side,ear_x in ((-1,ear_left),(1,ear_right)):
+        pad_x=ear_x+side*.0035
+        shell_x=ear_x+side*.013
+        outer_x=shell_x+side*.019
+        add(cushion_ring((pad_x,ear_y,ear_z),.0295,.0098,leather),
+            'HeadphoneSeal'+str(side))
+        add(earcup((shell_x,ear_y,ear_z),side,.039,.030,dark),
+            'HeadphoneHousing'+str(side))
+        add(earcup((outer_x,ear_y,ear_z),side,.034,.010,brushed),
+            'HeadphoneRing'+str(side))
+        # Actual closed-back studio headset: cover the center of the outer
+        # lathed cup. The former open tube revealed the ear through a hole.
+        cap=trimesh.creation.cylinder(radius=.022,height=.008,sections=40)
+        cap.apply_transform(trimesh.transformations.rotation_matrix(
+            math.pi/2,[0,1,0]))
+        cap.apply_translation((outer_x+side*.043,ear_y,ear_z))
+        cap.visual.material=dark
+        add(cap,'HeadphoneDriverBack'+str(side))
+        boss=trimesh.creation.cylinder(radius=.008,height=.008,sections=28)
+        boss.apply_transform(trimesh.transformations.rotation_matrix(
+            math.pi/2,[0,1,0]))
+        boss.apply_translation((outer_x+side*.048,ear_y,ear_z))
+        boss.visual.material=brushed
+        add(boss,'HeadphoneCalibrationBadge'+str(side))
+        # The yoke starts INSIDE the rim, reaches the same crown arc end.
+        fork=[(outer_x+side*.010,ear_y+.029,ear_z),
+              (outer_x+side*.012,ear_y+.047,ear_z),
+              (ear_x+side*.012,1.746,ear_z-.006),
+              (ear_x+side*.006,roof-.003,ear_z-.009)]
+        add(rod(fork,.0038,brushed),'HeadphoneFork'+str(side))
+        add(rod([fork[0],(outer_x+side*.003,ear_y+.033,ear_z)],.0032,brushed),
+            'HeadphonePivot'+str(side))
+    # Curved steel spring + padded band follow the actual asymmetrical scalp.
+    # Its underside contacts hair within a few millimeters, not hovering.
+    crown_top=roof+.007
+    arch=[(ear_left+(ear_right-ear_left)*i/36,
+           (roof-.003)+(crown_top-(roof-.003))*math.sin(math.pi*i/36),
+           ear_z-.009) for i in range(37)]
     add(rod(arch,.0085,leather),'HeadbandPadding')
-    add(rod([(x,y+.009,z) for x,y,z in arch],.0035,brushed),'HeadbandSpring')
-    # Diegetic communications boom, deliberately unlit.
-    boom=[(-.133,1.655,.028),(-.152,1.630,.061),(-.153,1.600,.099),
-          (-.139,1.585,.123),(-.103,1.578,.144)]
-    add(rod(boom,.0038,brushed),'MicBoom')
-    tip=trimesh.creation.icosphere(subdivisions=2,radius=.010)
-    tip.apply_translation(boom[-1]);tip.visual.material=dark;add(tip,'MicCapsule')
-    # Headphone cable loops over the shoulder into the worn compact field unit.
-    cable=[(.151,1.625,.034),(.167,1.548,.029),(.180,1.465,.02),
-           (.176,1.377,.05),(.176,1.285,.09),(.163,1.183,.158),
-           (.173,1.095,.190),(.171,.972,.198)]
-    add(rod(cable,.0044,dark),'StudioHeadsetCable')
-    # Field monitor: deliberately sized like a small recorder, not armor.
+    add(rod([(x,y+.0082,z) for x,y,z in arch],.0028,brushed),
+        'HeadbandSpring')
+
+    # Boom is physically anchored on the LEFT cup and stops beside the lip.
+    left_outer=ear_left-.013-.019
+    boom=[(left_outer-.01,ear_y-.008,ear_z),
+          (left_outer-.023,1.611,.079),
+          (left_outer-.020,1.579,.119),
+          (-.107,1.567,.141),(-.072,1.562,.154)]
+    add(rod(boom,.0032,brushed),'MicBoom')
+    tip=trimesh.creation.icosphere(subdivisions=2,radius=.0085)
+    tip.apply_translation(boom[-1]);tip.visual.material=dark
+    add(tip,'MicCapsule')
+
+    # A two-part, physically anchored cable: the short flexible section
+    # follows the head in the skinned rig; the jacket portion follows Spine.
+    # A grounded transition clip is attached to the upper lapel.
+    right_outer=ear_right+.013+.019
+    head_lead=[(right_outer+.008,ear_y-.027,ear_z),
+               (right_outer+.018,1.585,.058),
+               (.125,1.531,.077)]
+    add(rod(head_lead,.0036,dark),'HeadphoneHeadLead')
+    lapel_lead=[(.125,1.531,.077),(.158,1.456,.089),
+                (.171,1.385,.123),(.157,1.285,.163),
+                (.139,1.187,.187),(.139,1.075,.192),
+                (.136,.999,.192)]
+    add(rod(lapel_lead,.0036,dark),'StudioHeadsetCable')
+    clip=trimesh.creation.box(extents=(.016,.028,.008))
+    clip.apply_translation((.158,1.386,.127));clip.visual.material=metal
+    add(clip,'CableLapelClip')
+
+    # Existing small waist field recorder, backed into jacket construction.
     case=trimesh.creation.box(extents=(.138,.113,.036))
-    case.apply_translation((.136,.974,.199));case.visual.material=metal
+    case.apply_translation((.136,.974,.192));case.visual.material=metal
     add(case,'PortableAnalogMonitorBody')
     rim=trimesh.creation.box(extents=(.125,.061,.004))
-    rim.apply_translation((.136,.991,.221));rim.visual.material=brushed
+    rim.apply_translation((.136,.991,.215));rim.visual.material=brushed
     add(rim,'PortableMonitorVURim')
-    plate=label_plate('M-08','MONITOR  /  BLACKLINE',(.110,.044),(.136,.990,.225))
+    plate=label_plate('M-08','MONITOR  /  BLACKLINE',(.110,.044),(.136,.990,.220))
     add(plate,'OriginalFieldMonitorVUMarkings')
-    # Small engraved calibration controls at its base.
     for i in range(3):
         knob=trimesh.creation.cylinder(radius=.007,height=.008,sections=24)
         knob.apply_transform(trimesh.transformations.rotation_matrix(math.pi/2,[1,0,0]))
-        knob.apply_translation((.09+i*.038,.942,.227));knob.visual.material=brushed
+        knob.apply_translation((.09+i*.038,.942,.220))
+        knob.visual.material=brushed
         add(knob,'MonitorPot'+str(i))
     add(label_plate('BLACKLINE','MASTERING  /  TECHNICIAN',
         (.081,.038),(-.092,1.314,.189)),'EmployeeBadge')
@@ -218,9 +313,10 @@ def build(source:Path):
     original=trimesh.load(str(source),force='scene',process=False)
     scene=trimesh.Scene()
     count0=count1=0
+    headset_fit=head_landmarks(original)
     for name,m in original.geometry.items():
         if name in ('teeth_base','base_2'):continue
-        components=[(name,m)]
+        components=[(name,m.copy())]
         if name=='base':
             center=m.vertices[m.faces].mean(axis=1)
             head=center[:,1]>=1.35
@@ -252,7 +348,7 @@ def build(source:Path):
             a.visual.material=pbr_from_old(m.visual.material,name)
             scene.add_geometry(a,node_name='Anatomical_'+component,
                                geom_name='Anatomical_'+component)
-    for name,mesh in hardware():
+    for name,mesh in hardware(headset_fit):
         xyz=mesh.vertices.copy();xyz[:,0]*=-SCALE;xyz[:,1]=xyz[:,1]*SCALE+OFFSET;xyz[:,2]*=-SCALE
         mesh.vertices=xyz
         scene.add_geometry(mesh,node_name='StudioKit_'+name,geom_name='StudioKit_'+name)
