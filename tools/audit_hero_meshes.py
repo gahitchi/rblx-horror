@@ -57,11 +57,28 @@ def check(path: Path):
     }:
         assert images>=9,(path.name,"missing embedded color, normal or packed ORM images")
         assert vertices>=500,(path.name,"artist prototype too simplified")
+    if path.stem=="BlacklineHeroConsole":
+        # Q01 is a deliberately concentrated art asset, not a count of props.
+        # It must retain both actual UV printed material surfaces and curved
+        # construction geometry; still NOT a Studio visual-quality signoff.
+        assert {"Blackline12ChannelScreenprint",
+                "Blackline12ChannelMeterBridge"}.issubset(materials),(
+                    "Q01 original printed control/meter atlases are missing",materials)
+        assert 9000<=triangles<=65000,(
+            "Q01 needs modeled construction, but a bounded triangle budget",triangles)
+        assert 5.8<dims[0]<6.8 and 3.8<dims[1]<4.6 and 2.9<dims[2]<4.2,(
+            "Q01 pivot-size drift relative to the existing Control A collider",dims)
+        for mesh in scene.geometry.values():
+            uv=getattr(mesh.visual,"uv",None)
+            assert uv is not None and len(uv)==len(mesh.vertices) and (
+                np.isfinite(uv).all()),("Q01 unwrapped mesh required",mesh)
     assert path.stat().st_size<18_000_000,(path.name,"mesh exceeds conservative import budget")
 
     return {
         "file":path.name,
-        "sourceTier":"procedural-prototype",
+        "sourceTier":("machined-UV-console-source-prototype"
+                      if path.stem=="BlacklineHeroConsole"
+                      else "procedural-prototype"),
         "vertices":vertices,
         "triangles":triangles,
         "materialMeshes":len(scene.geometry),
