@@ -60,7 +60,7 @@ def soft_case(width:float,height:float,depth:float,radius:float=.16,bevel:float=
         hi=(len(profile)-1)*n
         faces.append((top,hi+(k+1)%n,hi+k))
     mesh=trimesh.Trimesh(vertices=vertices,faces=faces,process=False)
-    trimesh.repair.fix_normals(mesh,multibody=True)
+    trimesh.repair.fix_normals(mesh)
     return mesh
 
 def polygon_case():
@@ -85,7 +85,7 @@ def polygon_case():
         q=(len(rings)-1)*n
         faces.append((q,q+i,q+i+1))
     mesh=trimesh.Trimesh(vertices=vertices,faces=faces,process=False)
-    trimesh.repair.fix_normals(mesh,multibody=True)
+    trimesh.repair.fix_normals(mesh)
     return mesh
 
 def transform(mesh,position,tilt:float=0.):
