@@ -1,6 +1,6 @@
 # Studio import: high-fidelity mesh and PBR deployment
 
-**Status:** The game-side mesh swap is implemented. Nineteen original GLB files
+**Status:** The game-side mesh swap is implemented. Twenty-five original GLB files
 (nine core, four optional Blackline props, four optional characters, two optional hero machines) have been exported successfully. They are *not* live in Roblox until imported and approved
 under the experience's creator account. Rojo and server Scripts cannot directly
 assign `MeshPart.MeshId` at runtime. <https://create.roblox.com/docs/reference/engine/classes/MeshPart>
@@ -10,7 +10,7 @@ assign `MeshPart.MeshId` at runtime. <https://create.roblox.com/docs/reference/e
 Open [successful GitHub Source Asset Export](https://github.com/gahitchi/rblx-horror/actions/runs/41261640055)
 and download `dead-air-import-ready-mesh-pbr-pack`. The ZIP contains:
 
-- `roblox-glb/`: nineteen GLB models (nine core, four optional Blackline props, four optional characters, two optional hero machines), ready for Studio's 3D Importer;
+- `roblox-glb/`: twenty-five GLB models (nine core, four optional Blackline props, four optional characters, two optional hero machines), ready for Studio's 3D Importer;
 - `materials/`: 16 PNG PBR maps (four materials × color, normal, roughness, metalness);
 - `meshes/`: the original five OBJ and MTL source models for further hand editing.
 
@@ -190,3 +190,9 @@ base-color, normal and metallic/roughness images. Import them only if you want
 to replace their procedural fallback pieces in the MasteringVault and PatchBay.
 Use the same selected-model installer, with exact asset names.
 They do **not** change the live fuse interaction, door or enemy navigation code.
+
+## Articulated Engineer — six-part body import (November 1)
+
+A newer [25-GLB asset pack](https://github.com/gahitchi/rblx-horror/actions/runs/41297996570) contains six additional textured rigid segments: `EngineerRigTorso`, `EngineerRigHead`, `EngineerRigArmLeft`, `EngineerRigArmRight`, `EngineerRigLegLeft`, `EngineerRigLegRight`. Import all six into Studio's ArtLibrary using the updated importer; older meshes remain valid. Once all six are present, an articulated Motor6D character replaces the rigid Engineer visual automatically; if one is missing, the old figure remains. Keep the source-space pivot of each imported GLB: arms pivot at shoulders and legs at hips, not at the bounding-box center.
+
+[Full installation and F5 acceptance protocol](https://github.com/gahitchi/rblx-horror/blob/chatgpt/studio-art-pass/docs/art/ENGINEER_ARTICULATION_AND_BLACKLINE_HERO.md). These are articulated cosmetic hard-surface segments, **not** smooth skin-weighted character anatomy.
