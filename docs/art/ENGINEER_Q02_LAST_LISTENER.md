@@ -1,97 +1,100 @@
-# Engineer Q02 — REJECTED source prototype / realistic character rebuild brief
+# Engineer Q02 — The Last Listener, anatomical source candidate
 
-**User review (2026-11-01): REJECTED.** The generated Engineer preview
-looked blocky and cartoonish. It did **not** reproduce the professional
-visual fidelity of TTK Testing and must not be described as Q01-standard,
-realistic, finished or artist-approved.
+**Status (November 1, 2026): newly modeled, textured, CC0-derived 3D
+character and 15-joint weighted GLB successfully exported; Source Asset Export
+and Rojo builds passed.** An actual character exists, but it has NOT
+yet passed Roblox Studio import, performance or owner visual review.
 
-The procedural `quality_engineer.py` experiment and its imported/weighted
-GLBs are **not to be installed** as the official Engineer. The branch has
-restored the prior working prototype character exporter, existing 15-joint
-weighted skeleton and original client motion so gameplay does not inherit
-the rejected experiment. Old character visuals are **temporary functional
-placeholders only**. Previous rejected export ZIPs should not be used.
+## The specific character made
 
-## Final character direction: The Last Listener
+The Engineer is a normal-height, human-proportioned, unnervingly focused
+Blackline mastering technician. He is threatening because of *behavior*,
+not because his anatomy is monstrous. The original asymmetrical face,
+hair, eyes, hands, jacket with cloth folds, trousers and shoes are derived
+from a publicly released anatomically modeled MakeHuman adult, not
+programmatic 3D spheres or box silhouettes.
 
-A believable former Blackline mastering technician who is unsettling because
-his intense listening, ritualized movements and reaction to interruption feel
-wrong. **80% ordinary adult human / 20% eerie.** No exaggerated proportions,
-monster claws, giant eyes, zombie damage, teeth displays, speaker-head, alien
-skin or hovering sci-fi equipment.
+The game's original studio-specific additions are aged monitoring
+headphones (lathed ear housings, cushions, adjustable spring and mic boom),
+a routed signal cable, a compact waist monitor with machined controls,
+and real UV-mapped Blackline employee/equipment labels. The jacket and
+denim have been recolored to dusty, worn charcoal while preserving
+the original photographic fabric detail. There is no gore, wounds,
+abuse symbolism or supernatural anatomy.
 
-- Normal adult male proportions, lean but not emaciated. Body silhouette
-  should be human at 25 studs and *credible* at 3 studs.
-- Convincing face first: accurately formed eyelids, nose, brow, cheeks,
-  mouth, ear anatomy, textured short hair and subtly tired skin; slight
-  expression asymmetry but **not** hollow toy-eye sockets.
-- Authentic studio wardrobe: weathered charcoal technician jacket with
-  constructed collar, layered shirt, naturally falling fabric sleeves,
-  trousers, leather work shoes, small keys, tape-splicing tool and ID badge.
-- Signature old professional monitoring headphones: molded earcups,
-  wear on cushions, metal headband, intact wearable fit and a small wired
-  boom microphone. Slight asymmetry and worn materials—not flesh fusion.
-- One plausibly mounted, hand-sized belt recorder/VU unit. Restrained,
-  tactile knobs and stamped plate. Never a neon HUD or combat armor.
-- Controlled movement language: headphone adjustment, listening pause,
-  imperfect but human walk, sudden attentive head turn, purposeful pursuit.
-  No contortion, gore, injuries or threatening torture scenes.
+## Measured source assets
 
-## The required production method (Q02 authoring gate)
+| Source check | Result |
+| --- | --- |
+| EngineerBody.glb | 93,071 triangles; 69,446 vertices |
+| EngineerSkinned.glb | 93,071 triangles; genuine weight attributes and 15 deform bones |
+| Material mesh sections | 33 |
+| Largest individual MeshPart source section | 18,423 triangles |
+| External size in Roblox source studs | 2.386 × 6.601 × 1.529 |
+| Original image maps attached to GLB | 22 (shared/duplicated references across material sections) |
+| Original source | CC0 MakeHuman-derived Innerscene 'Daniel', exact SHA-256 checked on download |
+| Collision / navigation / monster AI | Same invisible 2×2×1 root; HipHeight 3; no change |
+| Two existing warning lights | Repositioned cosmetically to new earcup coordinates; original trigger remains |
+| Automated weighted-skin verification | Pass in Source Asset Export |
+| Roblox Studio import + screenshots | NOT TESTED |
+| Owner-approved TTK-class art | NOT CLAIMED |
 
-**Stop generating a character from Python ellipsoids, cylinders, lofts and
-fabric-colored primitives.** Another exported GLB is not an improvement by
-itself. This requires manually controlled, anatomically accurate modeling,
-not a procedural geometry density increase.
+The 93k triangle source is **not** appropriate to multiply across many
+characters and may be expensive on some Roblox hardware. Its parts
+individually meet the Creator Hub's 20k triangle geometry ceiling.
+The Q02 candidate is an intermediate source for first-person review,
+not performance signoff or an excuse to neglect optimization.
 
-1. **Reference and proportions:** orthographic front/side/back human
-   references and measured real audio-technician gear. Fit the existing
-   gameplay root without changing AI/collision/earlight semantics.
-   Aim for source y=-4.0 feet to y=+2.5 head, about 6.5 studs
-   of human-sized visible art after import; validate real Studio avatar
-   comparisons before settling on a scale. Keep root/pivot orientation.
-2. **High-quality anatomical base:** sculpt in Blender, Maya or a similarly
-   capable DCC, based on a properly licensed original/usable human base mesh.
-   Model skull, ears, asymmetrical expression and eyelid structure with
-   enough density for a convincing close-up. Build proper cloth panels
-   with thickness, folds and seams. **No box substitute.**
-3. **Retopology:** smooth bend loops at shoulders, elbows, hips, neck and
-   knees. Hero head/face should have adequate edge flow, not radial
-   sphere topology. Distribute topology for first-person silhouette
-   and animation rather than maximizing overall triangle count.
-4. **Texture authoring:** distinct skin, hair, fabric, worn plastic/leather
-   and painted/brushed metal materials. Create authored UV maps and bake
-   normal/ambient detail from high to low poly; deliver Roblox-compatible
-   1024px-or-lower per-material color, OpenGL tangent normal, roughness
-   and metalness textures. Variation must correspond to material physics,
-   not white noise over every surface.
-5. **Rig + animation:** preserve the existing Monster root
-   (2×2×1, HipHeight 3), service AI/nav/audio, two existing earcup warning
-   lights and non-colliding imported art. Weight tested head, shoulders,
-   waist and wrists; repair the skeleton **only** as needed to work with the
-   approved topology, with source inverse binds and named Bones validated.
-6. **Acceptance images:** actual DCC rendered **source model** front,
-   profile, rear, face close-up and material close-up. Compare quality against
-   TTK's character/hands, not merely against our rejected placeholders.
-   Only after the owner accepts this geometry should the rigged GLB be
-   installed in Roblox Studio and checked at 3/12/25 studs, multiple lights,
-   walking, listening, chasing, doors and real FPS.
+The *previous* Q02 sphere-and-loft character was reviewed on
+2026-11-01 and rejected for cartoonish anatomy. That source was removed
+from the active export. This new character comes from a completely
+different, anatomically based production method.
 
-**Acceptance condition:** if the face still reads as a Roblox toy or the
-sleeves/legs read as tubes or stacked cones, the character is **not accepted**
-regardless of triangle count, PBR map count, successful CI or animation.
+## Reproducibility
 
-## What we can and cannot assert today
+- Realistic material/gear authoring: `tools/quality_engineer_real.py`
+- Character dual rigid/weighted export routing: `tools/build_character_assets.py`
+- New human-proportioned weighted 15-bone rig: `tools/build_skinned_engineer.py`
+- Source licensing and exact SHA: `docs/art/ENGINEER_CC0_LICENSE.md`
+- Visual-only runtime mounting / existing gameplay lighting:
+  `src/server/Monster/SkinnedEngineer.luau`
+- Automated checks: `tools/audit_hero_meshes.py`,
+  `tools/validate_skinned_engineer.py` and the Rojo build.
+- Official export includes `roblox-glb/EngineerBody.glb` and
+  `roblox-glb/EngineerSkinned.glb` and a license note.
 
-- Q01 console visual direction **was accepted** by owner.
-- Engineer theme, wardrobe and behavior **were accepted** in principle.
-- Q02 procedural human model **was rejected** for visual quality.
-- This repository can audit GLB geometry, texture presence, bone weights
-  and runtime isolation. None of those prove visual realism.
-- We have not produced or imported an artist-quality human sculpt. This is
-  a real production dependency; Blender/DCC authoring cannot be replaced
-  by marketing a procedural prototype as TTK-level art.
+An original MakeHuman-derived CC0 `daniel-man.glb` is downloaded at
+build time from the documented publisher endpoint. Builds **fail**
+if the source SHA does not exactly match the reviewed input.
 
-Non-graphic unease and tension remain the desired creative approach, but
-actual content maturity is determined from the finished entire experience
-at publishing time.
+## Safe Studio installation and remaining gates
+
+1. Keep the previous approved `ServerStorage.ArtLibrary.EngineerBody`
+   and `EngineerSkinned` as backups **outside ArtLibrary**. The
+   importer does not overwrite assets with duplicate names.
+2. Import both new exported GLBs using Studio 3D Importer. On the
+   weighted version inspect every needed named Bone, correct feet
+   pivot y=-4 relative to root, the original textured face and jacket,
+   and non-emissive ear cups. Source local front points to **-Z**.
+3. Select each newly imported Model named precisely
+   `EngineerBody` / `EngineerSkinned` and run the existing
+   `tools/studio/InstallImportedModels.luau` in Edit mode; save.
+4. Test with F5/Server Command Bar and
+   `tools/studio/InspectEngineerAnatomicalQ02.luau`. All
+   imported mesh geometry must stay CanCollide/CanQuery/CanTouch false;
+   the original invisible HumanoidRootPart remains the server
+   authority. Check the two live ear-cup PointLights still react.
+5. Capture source and in-game face details, 3/12/25-stud front and
+   profile shots under neutral, low-power and normal-power lighting.
+   Check jacket/neck clipping, hand anatomy, bone bends and headphone
+   placement; walking/Listen/Investigate/Hunt/lunge pose transitions.
+6. Compare frame-time and streaming on target devices. A large
+   animated actor can cost more than static environment props;
+   reduce texture/mesh cost or bake to a high/low LOD if needed.
+7. Only promote from `source-candidate` to owner-reviewed / Studio
+   approved when **actual in-game evidence** is saved. Passing CI
+   proves import-oriented geometry/skin validity, not aesthetics.
+
+This art intentionally targets **unsettling rather than graphic horror**.
+The full published game's actual Roblox maturity classification must
+be answered from final gameplay/scares/audio, not assumed from this mesh.
