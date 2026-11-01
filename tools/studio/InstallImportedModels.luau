@@ -16,6 +16,14 @@ local EXPECTED = {
     NearfieldMonitor = true,
     TapeReel = true,
 }
+-- A second, optional wave of four original hero props. No need to reinstall the
+-- nine existing models; if these are absent the procedural art still works.
+local OPTIONAL = {
+    ReceptionTerminal = true,
+    TapeArchiveCart = true,
+    ServiceIntercom = true,
+    StudioWallClock = true,
+}
 local ROOT_NAME = "ArtLibrary"
 
 local target = ServerStorage:FindFirstChild(ROOT_NAME)
@@ -29,7 +37,7 @@ assert(target:IsA("Folder"), "ServerStorage.ArtLibrary must be a Folder")
 local installed = {}
 local skipped = {}
 for _, candidate in Selection:Get() do
-    if not EXPECTED[candidate.Name] then
+    if not EXPECTED[candidate.Name] and not OPTIONAL[candidate.Name] then
         table.insert(skipped, candidate.Name .. ": name not recognized")
         continue
     end
@@ -82,7 +90,20 @@ table.sort(missing)
 if #missing > 0 then
     warn("[Dead Air] Missing imported meshes: " .. table.concat(missing, ", "))
 else
-    print("[Dead Air] All nine approved imported meshes are available to the game")
+    print("[Dead Air] All nine core imported meshes are available to the game")
+end
+local extraMissing = {}
+for name in OPTIONAL do
+    if not target:FindFirstChild(name) then
+        table.insert(extraMissing,name)
+    end
+end
+table.sort(extraMissing)
+if #extraMissing>0 then
+    print("[Dead Air] Optional Blackline mesh upgrades not yet imported: "
+        .. table.concat(extraMissing,", ") .. " (fallbacks available)")
+else
+    print("[Dead Air] All four additional Blackline meshes are installed")
 end
 -- Save the Studio place after successful import. The code-only Rojo build does not
 -- contain creator-owned MeshIds; do not replace the prefab with a plain Part.
