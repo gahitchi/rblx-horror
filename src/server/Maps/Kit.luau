@@ -95,8 +95,13 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
             p.steel,Enum.Material.Metal,true)
         collider.Transparency=1
         collider:SetAttribute("DisablePBR",true)
-        FinishDetail.counter(parent,theme.id,"control",left-2,back-1,left+5,back+2.5,2.7,p)
-        if not PrefabLibrary.place(parent,"MixingConsole",CFrame.new(left+1.5,0,back+0.7)) then
+        if PrefabLibrary.place(parent,"MixingConsole",CFrame.new(left+1.5,0,back+0.7)) then
+            -- The uploaded GLB owns its cabinet, top and controls. A second
+            -- procedural tabletop would intersect and shimmer under lighting.
+            FinishDetail.consoleMount(parent,theme.id,left-2,back-1,left+5,back+2.5)
+        else
+            FinishDetail.counter(parent,theme.id,"control",left-2,back-1,
+                left+5,back+2.5,2.7,p)
             -- Native fallback uses the same worktop rather than the old noisy
             -- "ConsoleSurface" slab that covered a large area with rust tiling.
             for i=1,8 do
