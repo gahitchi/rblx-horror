@@ -510,7 +510,7 @@ function Kit.build(spec: Specification): Model
         ArchitecturalDetail.decorate(detailFolder,spec.id,room.role,room.x1,room.x2,
             room.z1,room.z2,room.height,theme)
         if spec.authored==true and spec.id=="studio" then
-            StoryProps.decorate(detailFolder,room,theme)
+            StoryProps.decorate(detailFolder,room,theme,lights)
         end
     end
     for _,band in wallBands do
