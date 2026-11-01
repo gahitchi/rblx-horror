@@ -24,6 +24,13 @@ local OPTIONAL = {
     ServiceIntercom = true,
     StudioWallClock = true,
 }
+-- Original, optional third wave: game-specific character presentation.
+local CHARACTER = {
+    EngineerBody = true,
+    FieldOperatorVest = true,
+    FieldOperatorMask = true,
+    FieldOperatorPack = true,
+}
 local ROOT_NAME = "ArtLibrary"
 
 local target = ServerStorage:FindFirstChild(ROOT_NAME)
@@ -37,7 +44,7 @@ assert(target:IsA("Folder"), "ServerStorage.ArtLibrary must be a Folder")
 local installed = {}
 local skipped = {}
 for _, candidate in Selection:Get() do
-    if not EXPECTED[candidate.Name] and not OPTIONAL[candidate.Name] then
+    if not EXPECTED[candidate.Name] and not OPTIONAL[candidate.Name] and not CHARACTER[candidate.Name] then
         table.insert(skipped, candidate.Name .. ": name not recognized")
         continue
     end
@@ -104,6 +111,19 @@ if #extraMissing>0 then
         .. table.concat(extraMissing,", ") .. " (fallbacks available)")
 else
     print("[Dead Air] All four additional Blackline meshes are installed")
+end
+local characterMissing = {}
+for name in CHARACTER do
+    if not target:FindFirstChild(name) then
+        table.insert(characterMissing,name)
+    end
+end
+table.sort(characterMissing)
+if #characterMissing > 0 then
+    print("[Dead Air] Optional character/monster meshes awaiting import: "
+        ..table.concat(characterMissing,", "))
+else
+    print("[Dead Air] All four character/monster meshes installed")
 end
 -- Save the Studio place after successful import. The code-only Rojo build does not
 -- contain creator-owned MeshIds; do not replace the prefab with a plain Part.
