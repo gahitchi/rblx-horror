@@ -18,6 +18,7 @@ EXPECTED={
     "ReceptionTerminal","TapeArchiveCart","ServiceIntercom",
     "StudioWallClock",
     "EngineerBody","FieldOperatorVest","FieldOperatorMask","FieldOperatorPack",
+    "BlacklineTransferDeck","BlacklinePatchMatrix",
 }
 
 
