@@ -8,6 +8,7 @@ local ArchitecturalDetail = require(script.Parent.ArchitecturalDetail)
 local FinishDetail = require(script.Parent.FinishDetail)
 local StoryProps = require(script.Parent.StoryProps)
 local BlacklineHeroRooms = require(script.Parent.BlacklineHeroRooms)
+local BlacklineFacilityDevices = require(script.Parent.BlacklineFacilityDevices)
 local PBRMaterials = require(script.Parent.PBRMaterials)
 local PrefabLibrary = require(script.Parent.Parent.PrefabLibrary)
 
@@ -391,6 +392,7 @@ function Kit.build(spec: Specification): Model
     local booths=folder("Booths",model)
     local objectives=folder("Objectives",model)
     local lights=folder("PowerLights",model)
+    local facilitySystems=folder("FacilitySystems",model)
     local byName: { [string]: AreaInfo }={}
     local byCell: { [string]: boolean }={}
     local roomList: { AreaInfo }={}
@@ -556,6 +558,7 @@ function Kit.build(spec: Specification): Model
         if spec.authored==true and spec.id=="studio" then
             StoryProps.decorate(detailFolder,room,theme,lights)
             BlacklineHeroRooms.decorate(detailFolder,lights,room,theme)
+            BlacklineFacilityDevices.decorate(facilitySystems,room)
         end
     end
     for _,band in wallBands do
