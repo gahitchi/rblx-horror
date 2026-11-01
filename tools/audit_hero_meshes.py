@@ -45,6 +45,14 @@ def check(path: Path):
                 if getattr(mat,field,None) is not None:
                     images+=1
     assert vertices>=100 and triangles>=80,(path.name,"empty/underbuilt")
+    if path.stem in {
+        "EngineerBody","FieldOperatorVest","FieldOperatorMask","FieldOperatorPack",
+        "BlacklineTransferDeck","BlacklinePatchMatrix",
+    }:
+        assert images>=9,(path.name,"missing embedded color, normal or packed ORM images")
+        assert vertices>=500,(path.name,"artist prototype too simplified")
+    assert path.stat().st_size<18_000_000,(path.name,"mesh exceeds conservative import budget")
+
     return {
         "file":path.name,
         "sourceTier":"procedural-prototype",
