@@ -38,7 +38,8 @@ def main():
         "practical emitters must be registered with the generator's PowerLights")
     assert 'local light=Instance.new("SurfaceLight")' in hero
     assert "CFrame.lookAt" in hero and "FixtureStandoff" in hero
-    assert "Environment" not in hero or "No" not in hero  # no global light overrides
+    assert "LightingStyle" not in hero and "Lighting.GlobalShadows" not in hero, (
+        "art pass must not overwrite the global lighting model")
 
     rig_names=("RigTorso","RigHead","RigArmLeft","RigArmRight",
                "RigLegLeft","RigLegRight")
