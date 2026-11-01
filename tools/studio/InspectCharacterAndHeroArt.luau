@@ -1,4 +1,4 @@
--- Non-destructive Roblox Studio health probe for the segmented Engineer rig,
+-- Non-destructive Roblox Studio health probe for the weighted or segmented Engineer rig,
 -- four hero rooms and optional player operator equipment.
 -- Run the entire file in the SERVER Command Bar while F5 Play is running.
 local RunService=game:GetService("RunService")
@@ -24,21 +24,62 @@ if #absent>0 then
 else
     print("[ART QA] All six segmented Engineer GLBs present in ArtLibrary")
 end
+if library then
+    local weighted=library:FindFirstChild("EngineerSkinned")
+    local n=0
+    if weighted then
+        for _,descendant in weighted:GetDescendants() do
+            if descendant:IsA("Bone") then
+                n+=1
+            end
+        end
+    end
+    print("[ART QA] Optional weighted Engineer imported Bones: "..n
+        .." (require all 15 animation joints to activate)")
+end
 local monster=Workspace:FindFirstChild("Monster")
 if not monster or not monster:IsA("Model") then
     warn("[ART QA] Engineer has not spawned yet; resume after its arrival")
 else
     local root=monster:FindFirstChild("HumanoidRootPart")
+    local tier=monster:GetAttribute("CharacterVisualTier")
+    local version=monster:GetAttribute("RigVersion")
     local joints=0
+    local expected=if version==2 then 15 else 6
     if root and root:IsA("BasePart") then
-        for _,name in {"RigTorso","RigHead","RigArmLeft","RigArmRight",
-                        "RigLegLeft","RigLegRight"} do
-            local motor=root:FindFirstChild(name)
-            if motor and motor:IsA("Motor6D") and motor.Part0==root
-                and motor.Part1 and motor.Part1.CanCollide==false then
-                joints+=1
-            else
-                warn("[ART QA] Joint absent or invalid: "..name)
+        if version==2 then
+            local imported=root:FindFirstChild("EngineerSkinned")
+            local found={}
+            if imported then
+                for _,child in imported:GetDescendants() do
+                    if child:IsA("Bone") then
+                        found[child.Name]=true
+                    end
+                end
+            end
+            for _,name in {
+                "Spine","Neck","Head",
+                "LeftShoulder","LeftElbow","LeftWrist",
+                "RightShoulder","RightElbow","RightWrist",
+                "LeftHip","LeftKnee","LeftAnkle",
+                "RightHip","RightKnee","RightAnkle",
+            } do
+                if found[name] then
+                    joints+=1
+                else
+                    warn("[ART QA] Weighted Bone missing: "..name)
+                end
+            end
+        elseif version==1 then
+            for _,name in {"RigTorso","RigHead","RigArmLeft","RigArmRight",
+                            "RigLegLeft","RigLegRight"} do
+                local motor=root:FindFirstChild(name)
+                if motor and motor:IsA("Motor6D") and motor.Part0==root
+                    and motor.Part1 and motor.Part1.CanCollide==false then
+                    joints+=1
+                else
+                    warn("[ART QA] Motor6D missing or invalid: "..name)
+                end
             end
         end
         if root.Anchored then
@@ -54,11 +95,15 @@ else
             collidingImported+=1
         end
     end
-    print(("[ART QA] Engineer visual tier=%s, joints=%d/6, PointLights=%d, solid accessory parts=%d"):format(
-        tostring(monster:GetAttribute("CharacterVisualTier")),joints,glows,collidingImported))
-    if joints==6 and monster:GetAttribute("RigVersion")==1 then
-        print("[ART QA] Articulated body assembled. Verify MOVEMENT on a client:"
-            .." roaming -> listening -> hunt -> lunge.")
+    print(("[ART QA] Engineer tier=%s; rig=%s; joints=%d/%d; PointLights=%d; solid accessory parts=%d"):format(
+        tostring(tier),tostring(version),joints,expected,glows,collidingImported))
+    if version==2 and joints==15 then
+        print("[ART QA] Weighted skeleton present in Studio. Verify bending,"
+            .." bone transforms and actual motion from a CLIENT, not server.")
+    elseif version==1 and joints==6 then
+        print("[ART QA] Segmented fallback ready. Verify roaming/listening/hunt animation on client.")
+    elseif version==nil then
+        print("[ART QA] Procedural or rigid fallback active (no imported animation rig).")
     end
 end
 for _,player in Players:GetPlayers() do
