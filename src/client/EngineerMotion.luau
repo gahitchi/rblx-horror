@@ -87,19 +87,32 @@ local function update(subject:Subject,dt:number)
 end
 
 function EngineerMotion.start()
-    for _,child in Workspace:GetChildren() do
-        if child:IsA("Model") then
-            register(child)
-        end
-    end
-    Workspace.ChildAdded:Connect(function(child)
-        if not child:IsA("Model") then return end
-        -- The model is parented after its rig is built, but replicate timing
-        -- can deliver its attributes after ChildAdded on the client.
+    local observed:{[Model]:boolean}={}
+    local function observe(child:Instance)
+        if not child:IsA("Model") or child.Name~="Monster" then return end
+        if observed[child] then return end
+        observed[child]=true
+        -- Also handles late-joining clients: the model may exist before its
+        -- attributes and all six Motor6D descendants finish replicating.
         register(child)
         child:GetAttributeChangedSignal("RigVersion"):Connect(function()
             register(child)
         end)
+        child.DescendantAdded:Connect(function()
+            if not subjects[child] then
+                register(child)
+            end
+        end)
+    end
+    for _,child in Workspace:GetChildren() do
+        observe(child)
+    end
+    Workspace.ChildAdded:Connect(observe)
+    Workspace.ChildRemoved:Connect(function(child)
+        if child:IsA("Model") then
+            observed[child]=nil
+            subjects[child]=nil
+        end
     end)
     RunService.PreSimulation:Connect(function(dt:number)
         for model,subject in subjects do
