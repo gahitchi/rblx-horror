@@ -184,7 +184,45 @@ local function generatorRoom(parent:Instance,r:Room)
     end
 end
 
-function StoryProps.decorate(parent:Instance, r:Room, palette:Palette)
+-- The production facility should respond to the player's real generator state,
+-- not simulate activity with an unrelated timer. MapContract collects Light
+-- descendants from PowerLights and ObjectiveService toggles them on/off.
+local function powerIndicator(lights:Instance,r:Room,message:string,tint:Color3)
+    local lens=slab(lights,"PoweredStatus_"..r.name,
+        CFrame.new(r.center.X,r.height-3.1,r.z1+1.45),
+        Vector3.new(5.6,0.7,0.17),dark)
+    lens:SetAttribute("OnColor",tint)
+    local gui=Instance.new("SurfaceGui")
+    gui.Name="StatusFace"
+    gui.Face=Enum.NormalId.Back
+    gui.PixelsPerStud=42
+    gui.LightInfluence=0.1
+    gui.Parent=lens
+    local label=Instance.new("TextLabel")
+    label.Size=UDim2.fromScale(1,1)
+    label.BackgroundTransparency=1
+    label.Font=Enum.Font.RobotoMono
+    label.TextColor3=paper
+    label.TextScaled=true
+    label.Text=message
+    label.Parent=gui
+    local glow=Instance.new("SurfaceLight")
+    glow.Face=Enum.NormalId.Back
+    glow.Brightness=0.32
+    glow.Range=9
+    glow.Angle=110
+    glow.Color=tint
+    glow.Enabled=false
+    glow.Shadows=false
+    glow.Parent=lens
+end
+
+function StoryProps.decorate(parent:Instance, r:Room, palette:Palette, lights:Instance)
+    if r.name=="ControlA" or r.name=="ControlB" or r.name=="LiveHall" then
+        powerIndicator(lights,r,"SIGNAL  /  ON AIR",Color3.fromRGB(129,44,41))
+    elseif r.name=="PatchBay" or r.name=="GeneratorRoom" then
+        powerIndicator(lights,r,"FACILITY POWER",Color3.fromRGB(88,116,78))
+    end
     if r.name=="Reception" then
         reception(parent,r,palette)
     elseif r.name=="LiveHall" then
