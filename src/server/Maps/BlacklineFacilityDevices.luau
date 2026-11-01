@@ -6,7 +6,6 @@ local FacilityDevices={}
 
 type Room={name:string,role:string,x1:number,x2:number,z1:number,z2:number,
     height:number,center:Vector3}
-local INK=Color3.fromRGB(27,30,31)
 local PANEL=Color3.fromRGB(51,56,56)
 local RIM=Color3.fromRGB(105,102,89)
 local GLASS=Color3.fromRGB(39,48,48)
