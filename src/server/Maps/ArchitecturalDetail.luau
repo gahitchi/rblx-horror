@@ -62,7 +62,9 @@ local function studioDetails(parent: Instance,role: string,x1: number,x2: number
             piece(parent,"CloudSuspensionWire",x,h-1.1,cz-3,0.035,2.1,0.035,
                 p.steel,Enum.Material.Metal)
         end
-    else
+    elseif roomName~="ViewingGallery" then
+        -- The authored observation gallery already has one return-air spine.
+        -- The shared service trough is redundant overhead visual noise here.
         channel(parent,x1+2.1,cz,z2-z1-6,p,h)
     end
     if (role=="control" or role=="broadcast" or role=="master")
