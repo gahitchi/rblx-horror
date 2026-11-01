@@ -30,7 +30,8 @@ def main():
     assert 'elseif segmentedReady and ArticulatedEngineer.mount(m,hrp,glows)' in owner
     assert 'elseif PrefabLibrary.attach(hrp,"EngineerBody"' in owner
     assert 'model:SetAttribute("RigVersion",2)' in source
-    assert 'model:SetAttribute("CharacterVisualTier","WeightedSkinPrototype")' in source
+    assert 'model:SetAttribute("CharacterVisualTier","Q02AnatomicalTechnicianCC0")' in source
+    assert 'model:SetAttribute("VisualDesign","BlacklineLastListenerAnatomical")' in source
     assert 'light.Parent=attachment' in source
     assert 'RunService.PreSimulation:Connect' in motion
     assert 'bone.Transform=bone.Transform:Lerp(pose,alpha)' in motion
