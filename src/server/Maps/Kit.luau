@@ -179,13 +179,20 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
             box(parent,"MicBody",px-0.25,4.6,back+6.6,px+0.25,5.1,back+7.2,p.trim,Enum.Material.Metal,false)
         end
     elseif role=="archive" or role=="store" or role=="mold" then
-        for i=0,2 do
-            local zz=back+2+i*6.5
-            if zz<front-2 then
-                box(parent,"ArchiveShelf",left-2,0,zz-0.7,left+3,7.8,zz+0.7,p.steel,Enum.Material.Metal,true)
-                for j=0,6 do
-                    box(parent,"CaseSpine",left-1.7+j*0.61,3.1,zz+0.75,left-1.25+j*0.61,5.5,zz+0.87,
-                        if j%3==0 then p.accent else p.trim,Enum.Material.Wood,false)
+        -- Blackline has a dedicated archival bank against an uninterrupted
+        -- wall; don't duplicate it with the old stack of generic shelf boxes.
+        -- Other maps still need these baseline storage obstacles.
+        if not (theme.id=="studio" and r.name=="TapeArchive") then
+            for i=0,2 do
+                local zz=back+2+i*6.5
+                if zz<front-2 then
+                    box(parent,"ArchiveShelf",left-2,0,zz-0.7,left+3,7.8,zz+0.7,
+                        p.steel,Enum.Material.Metal,true)
+                    for j=0,6 do
+                        box(parent,"CaseSpine",left-1.7+j*0.61,3.1,zz+0.75,
+                            left-1.25+j*0.61,5.5,zz+0.87,
+                            if j%3==0 then p.accent else p.trim,Enum.Material.Wood,false)
+                    end
                 end
             end
         end
