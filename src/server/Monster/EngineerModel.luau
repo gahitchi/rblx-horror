@@ -120,6 +120,16 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 	piece("ChestMeterCase", Vector3.new(0.72, 0.85, 0.22), Vector3.new(0.12, 0.45, -0.6), iron, Enum.Material.Metal)
 	piece("ChestMeterDial", Vector3.new(0.47, 0.48, 0.05), Vector3.new(0.12, 0.51, -0.75), bone, Enum.Material.Metal)
 	piece("DialNeedle", Vector3.new(0.05, 0.35, 0.06), Vector3.new(0.22, 0.53, -0.81), Color3.fromRGB(159, 40, 32))
+	-- VF06 procedural silhouette repair. These three readable, inert elements
+	-- are hidden automatically whenever imported/skinned art takes precedence.
+	-- They have no emitter, prompt, sound or contact/hit registration.
+	piece("HarnessInsulator",Vector3.new(.29,.88,.15),
+		Vector3.new(-.57,.93,-.62),rubber,Enum.Material.SmoothPlastic)
+	piece("HarnessAnchor",Vector3.new(.36,.13,.19),
+		Vector3.new(-.57,.45,-.68),bone,Enum.Material.Metal)
+	piece("TornCoatHem",Vector3.new(.62,.83,.16),
+		Vector3.new(.58,-2.20,-.43),cloth,Enum.Material.Fabric,
+		CFrame.Angles(0,0,math.rad(-12)))
 
 	-- A high, awkward neck and bare skull. Headphones are fused with the head: metal bolts
 	-- pierce the temples and earcups, with a corroded hinge and a broken microphone boom.
