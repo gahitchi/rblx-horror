@@ -72,12 +72,26 @@ def check(path: Path):
             uv=getattr(mesh.visual,"uv",None)
             assert uv is not None and len(uv)==len(mesh.vertices) and (
                 np.isfinite(uv).all()),("Q01 unwrapped mesh required",mesh)
+    if path.stem in {"EngineerBody","EngineerSkinned"}:
+        # Real anatomical CC0 source, not the old tube/cube procedural actor.
+        assert any(str(x).startswith("LastListener_base") for x in materials),(
+            path.name,"must retain anatomical source skin/eyes")
+        assert "LastListener_male_casualsuit05" in materials,(
+            path.name,"must retain actual modeled jacket/trousers")
+        assert any(str(x).startswith("LastListenerOriginalBadging") for x in materials),(
+            path.name,"must retain authored Blackline equipment graphics")
+        assert 70_000<=triangles<=120_000,(path.name,
+            "unexpected loss of source anatomy or unbounded geometry",triangles)
+        assert 2.0<dims[0]<3.0 and 6.2<dims[1]<6.9 and 1.1<dims[2]<2.0,(
+            path.name,"human proportions/pivot drift",dims)
     assert path.stat().st_size<18_000_000,(path.name,"mesh exceeds conservative import budget")
 
     return {
         "file":path.name,
         "sourceTier":("machined-UV-console-source-prototype"
                       if path.stem=="BlacklineHeroConsole"
+                      else "CC0-anatomical-blackline-Q02-candidate"
+                      if path.stem in {"EngineerBody","EngineerSkinned"}
                       else "procedural-prototype"),
         "vertices":vertices,
         "triangles":triangles,
