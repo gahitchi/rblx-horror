@@ -28,7 +28,7 @@ jobs:
           selene --version
       - name: Lint art and rendering Lua sources
         run: |
-          selene src/server/PrefabLibrary.luau src/server/VisualFidelity.luau src/server/ItemArt.luau src/server/Monster/EngineerModel.luau src/server/Monster/ArticulatedEngineer.luau src/client/EngineerMotion.luau src/server/MapBuilder.luau src/server/Maps/Kit.luau src/server/Maps/Layouts.luau src/server/Maps/Lobby.luau src/server/Maps/AssetLibrary.luau src/server/Maps/PBRMaterials.luau src/server/Maps/ArchitecturalDetail.luau src/server/Maps/FinishDetail.luau src/server/Maps/BlacklineLayout.luau src/server/Maps/StoryProps.luau src/hub/server/HubEnvironment.luau src/hub/server/Main.server.luau
+          selene src/server/PrefabLibrary.luau src/server/VisualFidelity.luau src/server/ItemArt.luau src/server/Monster/EngineerModel.luau src/server/Monster/ArticulatedEngineer.luau src/client/EngineerMotion.luau src/server/MapBuilder.luau src/server/Maps/Kit.luau src/server/Maps/Layouts.luau src/server/Maps/Lobby.luau src/server/Maps/AssetLibrary.luau src/server/Maps/PBRMaterials.luau src/server/Maps/ArchitecturalDetail.luau src/server/Maps/FinishDetail.luau src/server/Maps/BlacklineLayout.luau src/server/Maps/StoryProps.luau src/server/Maps/BlacklineHeroRooms.luau src/hub/server/HubEnvironment.luau src/hub/server/Main.server.luau
       - name: Verify map topology and imported mesh geometry
         run: python3 tools/validate_map_assets.py
       - name: Validate authored Blackline design graph (proposal only)
