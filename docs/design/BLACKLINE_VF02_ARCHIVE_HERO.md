@@ -9,7 +9,8 @@ mission or an extension of the current generator/fuse objectives.
 The TapeArchive is a believable destination on the north side of Blackline:
 it connects to the MasteringVault, an isolation booth, and the ViewingGallery.
 Before this pass, generic shelves and case spines carried too much of its
-visual identity. One authored storage fixture now gives the wing a readable
+visual identity. The generic shelf cluster is now suppressed in **this room
+only**, replaced by the dedicated cabinet rather than duplicated by it. One authored storage fixture now gives the wing a readable
 center of gravity without changing the existing 19-room plan or door graph.
 
 **Visual sequence:** from the gallery, the player sees a tall, dark
@@ -34,8 +35,9 @@ physical clue to Blackline's interrupted archival handover, not a quest marker.
   enforce the GLB name/embedded-map requirement, bounded placement and the
   static art-only integration. The normal CI build includes the validator.
 
-The existing ArchiveCart, MasteringVault transfer deck, original documentary
-props, decorative shelving and functional room envelope remain untouched.
+The existing ArchiveCart, MasteringVault transfer deck, documentary props
+and functional room envelope remain unchanged. Only the TapeArchive's generic
+shelf boxes are omitted; storage on other maps remains as before.
 The new object deliberately requires neither a pickup nor an objective state.
 
 ## Placement and technical safety
@@ -68,8 +70,8 @@ Check it from the ViewingGallery entrance and from 5, 15 and 30 studs.
 Inspect the large silhouette, the empty eighth compartment, text legibility,
 cabinet material response, and any overlaps with default archive furniture.
 Confirm the importer preserved the origin, the cabinet front faces south,
-the Engineer is not blocked, and there is no actual invisible wall behind
-the cabinet that fights the source model. Use both flashlight-off and
+the Engineer is not blocked, and no missing shelf collider or invisible wall
+conflicts with the imported model. Use both flashlight-off and
 flashlight-on setups and measure memory, frame time and imported meshes.
 
 ## What this does not claim
