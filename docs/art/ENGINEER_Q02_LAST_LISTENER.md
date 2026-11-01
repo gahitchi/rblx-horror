@@ -26,11 +26,11 @@ abuse symbolism or supernatural anatomy.
 
 | Source check | Result |
 | --- | --- |
-| EngineerBody.glb | 93,071 triangles; 69,446 vertices |
-| EngineerSkinned.glb | 93,071 triangles; genuine weight attributes and 15 deform bones |
-| Material mesh sections | 33 |
+| EngineerBody.glb | 94,863 triangles; 70,262 vertices |
+| EngineerSkinned.glb | 94,863 triangles; genuine weight attributes and 15 deform bones |
+| Material mesh sections | 41 |
 | Largest individual MeshPart source section | 18,423 triangles |
-| External size in Roblox source studs | 2.386 × 6.601 × 1.529 |
+| External size in Roblox source studs | 2.386 × 6.545 × 1.504 |
 | Original image maps attached to GLB | 22 (shared/duplicated references across material sections) |
 | Original source | CC0 MakeHuman-derived Innerscene 'Daniel', exact SHA-256 checked on download |
 | Collision / navigation / monster AI | Same invisible 2×2×1 root; HipHeight 3; no change |
@@ -98,3 +98,43 @@ if the source SHA does not exactly match the reviewed input.
 This art intentionally targets **unsettling rather than graphic horror**.
 The full published game's actual Roblox maturity classification must
 be answered from final gameplay/scares/audio, not assumed from this mesh.
+
+
+## Q02-HF01 — headset fit correction (2026-11-01)
+
+The previous source-rendered headset was visibly floating beside the actor's
+ears. The source MakeHuman character is **not horizontally centered on x=0**:
+its ear outer surfaces lie around source x=-0.107 and x=+0.055. The headset
+had incorrectly assumed x=-0.104 and +0.104 (equal offsets).
+
+This is now corrected in **actual model geometry**, not a retouched render:
+
+- Measured scalp/ear landmarks from the SHA-pinned original CC0
+  `base` and `short01` meshes during source asset generation.
+- Moved each ear cushion onto its corresponding **asymmetric anatomical ear**.
+- Replaced uncovered hollow shells with rounded black leather seal rings,
+  fitted metal forks, and genuine closed-back driver caps.
+- Built the headband to touch the real scalp arch rather than hovering
+  at a generic Y position. Shortened and mounted the microphone boom at
+  the headset; split the signal lead into a head section and a jacket section.
+- Corrected the actual `EngineerSkinned.glb` skinning so 18 source
+  material/mesh sections making up the earcups, forks, band and mic are
+  **fully rigidly weighted to the existing Head bone**. The headset cable
+  transitions smoothly into Neck/Spine at the collar.
+- Moved the existing two triggered warning lights to the measured ears
+  (Head Bone local x=-0.20 and +0.39 studs, preserving the old fallback
+  light offsets when an earlier prefab is installed).
+- Added `tools/validate_headset_fit.py` to Source Asset Export. It verifies
+  ear surface alignment, crown contact, closed cup geometry, and exact
+  per-vertex head bone weights on the actual exported GLBs.
+- Re-exported real textured `EngineerBody.glb` and
+  `EngineerSkinned.glb`; source model totals **94,863 triangles,
+  70,262 vertices, 41 mesh sections**, maximum 18,423 triangles/section.
+  Both source-art export and Rojo CI pass.
+
+**Art review remains required:** static source renders have been compared
+with identical lighting/cameras, but these are not Studio screenshots.
+The Studio installer never automatically replaces earlier ArtLibrary
+imports: back up and manually swap the GLB to see the revised headset.
+Evaluate dynamic head pivots, microphone-to-lip distance, seal occlusion,
+and cable deformation in Roblox Studio before confirming in-game quality.
