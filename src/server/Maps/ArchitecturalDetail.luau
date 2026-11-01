@@ -41,15 +41,19 @@ local function channel(parent: Instance,x: number,z: number,length: number,p: Pa
         piece(parent,"TrunkHanger",x,h-0.55,z+dz,0.13,1.3,0.12,p.steel,Enum.Material.Metal)
     end
 end
-local function studioDetails(parent: Instance,role: string,x1: number,x2: number,z1: number,z2: number,h: number,p: Palette)
+local function studioDetails(parent: Instance,role: string,x1: number,x2: number,z1: number,z2: number,h: number,p: Palette,roomName: string?)
     local cz=(z1+z2)/2
     if role=="live" or role=="stage" or role=="control" or role=="master" or role=="booth" then
         -- Alternating timber slats and deep textile absorbers: macro-geometry first,
         -- delicate woven normal details come from the uploaded acoustic MaterialVariant.
-        for i=1,6 do
-            local z=z1+3.4+i*(z2-z1-7)/7
-            piece(parent,"VerticalOakDiffuser",x1+0.8,7,z,0.22,7.8,0.35,p.accent,Enum.Material.Wood)
-            piece(parent,"AbsorptionGap",x1+0.94,7,z+0.5,0.11,7.4,0.55,p.trim,Enum.Material.Fabric)
+        -- The MasteringVault's west wall is a real isolation-booth portal;
+        -- ordinary slats across that opening would visually seal the door.
+        if roomName~="MasteringVault" then
+            for i=1,6 do
+                local z=z1+3.4+i*(z2-z1-7)/7
+                piece(parent,"VerticalOakDiffuser",x1+0.8,7,z,0.22,7.8,0.35,p.accent,Enum.Material.Wood)
+                piece(parent,"AbsorptionGap",x1+0.94,7,z+0.5,0.11,7.4,0.55,p.trim,Enum.Material.Fabric)
+            end
         end
         for i=1,4 do
             local x=x1+5+i*(x2-x1-10)/5
@@ -61,7 +65,8 @@ local function studioDetails(parent: Instance,role: string,x1: number,x2: number
     else
         channel(parent,x1+2.1,cz,z2-z1-6,p,h)
     end
-    if role=="control" or role=="broadcast" or role=="master" then
+    if (role=="control" or role=="broadcast" or role=="master")
+        and roomName~="MasteringVault" then
         -- Rack patchbay wall with individual jack sockets; no fake neon lighting.
         piece(parent,"PatchWallPanel",x2-0.9,7,cz,0.23,6.1,10,p.steel,Enum.Material.Metal)
         for line=1,5 do
@@ -121,7 +126,8 @@ local function foundryDetails(parent: Instance,role: string,x1: number,x2: numbe
     end
 end
 function Detail.decorate(parent: Instance,id: string,role: string,
-    x1: number,x2: number,z1: number,z2: number,h: number,p: Palette)
+    x1: number,x2: number,z1: number,z2: number,h: number,p: Palette,
+    roomName: string?)
     local cx=(x1+x2)/2
     local cz=(z1+z2)/2
     -- Columns and coves provide a recognizable scale without blocking portal thresholds.
@@ -134,7 +140,7 @@ function Detail.decorate(parent: Instance,id: string,role: string,
     end
     piece(parent,"CeilingCableSoffit",cx,h-0.52,cz,x2-x1-5,0.32,0.25,p.steel,Enum.Material.Metal)
     if id=="studio" then
-        studioDetails(parent,role,x1,x2,z1,z2,h,p)
+        studioDetails(parent,role,x1,x2,z1,z2,h,p,roomName)
     elseif id=="radio" then
         radioDetails(parent,role,x1,x2,z1,z2,h,p)
     elseif id=="foundry" then
