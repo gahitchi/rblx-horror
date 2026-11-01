@@ -43,6 +43,8 @@ def main():
     assert 'local base=CFrame.new(r.center.X,0,r.z1+1.16)*CFrame.Angles(0,math.pi,0)' in art
     assert 'if r.name~="TapeArchive" then return end' in art
     assert 'BlacklineArchiveHero.decorate(detailFolder,room)' in kit
+    assert 'not (theme.id=="studio" and r.name=="TapeArchive")' in kit,(
+        "old generic archive shelving should not be duplicated")
     assert 'spec.authored==true and spec.id=="studio"' in kit
     assert 'PrefabLibrary.place(scene,"BlacklineArchiveCabinet",base)' in art
     assert 'nativeCabinet(scene,base)' in art
