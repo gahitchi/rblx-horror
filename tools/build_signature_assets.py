@@ -249,6 +249,80 @@ def blackline_archive_cabinet():
     return scene
 
 
+def blackline_master_reference():
+    """Original wall-mounted mastering monitor/reference array (no speaker audio).
+
+    Source-space pivot is at floor; the north-wall fixture occupies y=3.35..9.45
+    and has a shallow, physically plausible 1.4-stud enclosure.
+    """
+    m=Model()
+    m.box((0,6.40,0),(13.3,6.1,1.30),"iron")
+    m.box((0,6.40,-.68),(12.80,5.53,.10),"field_edge")
+    for side in (-1,1):
+        x=side*3.95
+        m.box((x,6.48,-.75),(4.26,4.45,.13),"coat_dark")
+        # A shallow waveguide with a genuine stepped driver/surround,
+        # rather than one flat round printed albedo.
+        m.link((x,6.42,-.84),(x,6.42,-1.01),
+               1.78,1.65,"rubber",48)
+        m.link((x,6.42,-1.02),(x,6.42,-1.13),
+               1.34,1.03,"iron",48)
+        m.link((x,6.42,-1.13),(x,6.42,-1.23),
+               .39,.35,"coat_dark",30)
+        m.link((x,6.42,-1.24),(x,6.42,-1.29),
+               .16,.16,"brass",20)
+        for dx in (-1.88,1.88):
+            for dy in (-1.82,1.82):
+                m.link((x+dx,6.42+dy,-.87),
+                       (x+dx,6.42+dy,-.95),.065,.065,"brass",12)
+        for yy in (4.47,8.49):
+            m.box((x,yy,-.82),(4.19,.12,.12),"coat_high")
+        # Six modest cuts around the horn are purposeful vented construction.
+        for v in range(3):
+            m.box((x-1.62+v*1.62,4.14,-.87),
+                  (1.04,.10,.055),"rubber")
+    m.box((0,6.37,-.81),(2.80,3.14,.12),"coat_dark")
+    m.box((0,7.15,-.92),(2.41,.70,.06),"iron")
+    for i in range(9):
+        xx=-1.00+i*.25
+        m.box((xx,7.18,-.964),(.032,.30 if i%2 else .46,.026),
+              "brass" if i==4 else "label")
+    # Zero signal movement: calibration is a stamped reference datum.
+    m.link((-.85,6.56,-.90),(.70,6.56,-.90),.040,.040,
+           "brass",12)
+    m.box((0,5.49,-.91),(2.42,.60,.075),"label")
+    for side in (-1,1):
+        x=side*6.30
+        m.box((x,6.40,-.74),(.17,5.75,.13),"coat_high")
+        for y in (3.8,9.04):
+            m.link((x,y,-.83),(x,y,-.94),.054,.054,"brass",12)
+    m.box((0,3.49,-.69),(12.6,.18,.18),"rubber")
+    scene=m.finish()
+    # Printed equipment plate remains a real matte sign on the source mesh;
+    # it does not depend on Roblox GUI rendering or runtime objective state.
+    im=Image.new("RGB",(1280,160),(31,34,35))
+    draw=ImageDraw.Draw(im)
+    draw.rectangle((8,9,1271,151),outline=(122,117,99),width=4)
+    title=ImageFont.load_default(size=42)
+    fine=ImageFont.load_default(size=27)
+    draw.text((42,20),"BLACKLINE  /  MASTERING A-B REFERENCE",
+              fill=(215,206,180),font=title)
+    draw.text((43,100),"CALIBRATION REV. 07  |  M-08 RETURN UNVERIFIED",
+              fill=(162,151,121),font=fine)
+    material=PBRMaterial(name="OriginalMasterReferenceSerial",
+        baseColorTexture=im,metallicFactor=0,roughnessFactor=.91,
+        doubleSided=True)
+    plate=trimesh.creation.box(extents=(10.45,.61,.035))
+    plate.apply_translation((0,9.02,-.78))
+    positions=np.asarray(plate.vertices)
+    uv=np.column_stack(((positions[:,0]+5.225)/10.45,
+                        (positions[:,1]-8.715)/.61))
+    plate.visual=trimesh.visual.TextureVisuals(uv=uv,material=material)
+    scene.add_geometry(plate,node_name="OriginalMasterSerialPlate",
+                       geom_name="OriginalMasterSerialPlate")
+    return scene
+
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--out",type=Path,default=Path("build/roblox-glb"))
@@ -259,6 +333,7 @@ def main():
         "BlacklinePatchMatrix":patch_matrix,
         "BlacklineHeroConsole":blackline_hero_console,
         "BlacklineArchiveCabinet":blackline_archive_cabinet,
+        "BlacklineMasterReference":blackline_master_reference,
     }.items():
         path=args.out/(name+".glb")
         path.write_bytes(builder().export(file_type="glb"))
