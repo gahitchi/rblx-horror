@@ -40,6 +40,17 @@ def transfer_machine():
         m.box((x,.65,-1.13),(.29,.12,.10),"coat_high")
         m.box((x,.39,-1.13),(.20,.28,.11),"rubber")
         m.box((x,.19,-1.13),(.12,.10,.12),"brass")
+    # Per-channel maintenance trim, tactile rotary gain pots and small legends.
+    # These are actual modeled controls, not a flat diffuse texture.
+    for row in range(3):
+        for col in range(8):
+            x=-1.82+col*.52
+            y=.92+row*.19
+            m.link((x,y,-1.22),(x,y,-1.36),.09,.08,"brass",14)
+            m.box((x,y-.09,-1.40),(.20,.026,.035),"rubber")
+    for col in range(13):
+        x=-2.05+col*.34
+        m.box((x,.13,-1.22),(.18,.11,.045),"label")
     m.box((0,.05,0),(4.9,.14,2.2),"coat_dark")
     for x in (-2.20,2.20):
         m.box((x,.25,-1.10),(.17,.45,.15),"brass")
