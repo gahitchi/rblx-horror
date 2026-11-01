@@ -1,5 +1,5 @@
 --!strict
--- Client-only animation for imported *weighted skinned* Engineer GLB.
+-- Client-only restrained human technician poses for Q02 weighted Engineer.
 -- Bone.Transform moves vertex-weighted surface; server AI root/hitbox stays
 -- authoritative. No external AnimationIds or purchased movement assets.
 local RunService=game:GetService("RunService")
@@ -64,27 +64,27 @@ local function animate(subject:Subject,dt:number)
     local breath=math.sin(subject.breath)
     local counter=math.cos(subject.stride)*motion
     local alpha=1-math.exp(-math.min(dt,.06)*(if lunging then 16 else 9))
-    local hunch=if lunging then .42 else if hunting then .24 else .07
-    local scan=if searching or listening then math.sin(subject.breath*.8)*.28
+    local hunch=if lunging then .25 else if hunting then .15 else .045
+    local scan=if searching or listening then math.sin(subject.breath*.8)*.17
         else math.sin(subject.breath*.4)*.03
-    local reach=if lunging then -1.02 else if hunting then -.38 else .08
-    local stride=.52*step
+    local reach=if lunging then -.59 else if hunting then -.20 else .045
+    local stride=.38*step
     apply(subject,"Spine",
         CFrame.new(0,breath*.018,0)*CFrame.Angles(hunch,0,counter*.035),alpha)
     apply(subject,"Neck",
         CFrame.Angles(if listening then -.15 else -.02,scan*.41,0),alpha)
     apply(subject,"Head",
-        CFrame.Angles(if lunging then -.30 else if listening then -.22 else -.03,
+        CFrame.Angles(if lunging then -.19 else if listening then -.12 else -.025,
             scan,math.sin(subject.breath*.5)*.035),alpha)
     apply(subject,"LeftShoulder",
         CFrame.Angles(reach+.50*step,0,if listening then -.14 else .07),alpha)
     apply(subject,"RightShoulder",
         CFrame.Angles(reach-.50*step,0,if listening then .14 else -.07),alpha)
     apply(subject,"LeftElbow",
-        CFrame.Angles(if lunging then -.47 else if hunting then -.26 else -.12,
+        CFrame.Angles(if lunging then -.32 else if hunting then -.20 else -.08,
             0,-.03),alpha)
     apply(subject,"RightElbow",
-        CFrame.Angles(if lunging then -.47 else if hunting then -.26 else -.12,
+        CFrame.Angles(if lunging then -.32 else if hunting then -.20 else -.08,
             0,.03),alpha)
     apply(subject,"LeftWrist",CFrame.Angles(.12+breath*.025,0,-.10),alpha)
     apply(subject,"RightWrist",CFrame.Angles(.12+breath*.025,0,.10),alpha)
