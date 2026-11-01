@@ -12,6 +12,7 @@ local Workspace = game:GetService("Workspace")
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
 local PrefabLibrary = require(script.Parent.Parent.PrefabLibrary)
 local ArticulatedEngineer = require(script.Parent.ArticulatedEngineer)
+local SkinnedEngineer = require(script.Parent.SkinnedEngineer)
 
 local M = Config.MONSTER
 
@@ -167,8 +168,9 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 	-- Imported headset lives on the same rigid HRP. The original earcup attachments
 	-- remain present (and hold exactly two gameplay-controlled red PointLights).
 	-- The segmented imported rig already incorporates its own moving headset.
-	local segmentedReady=ArticulatedEngineer.ready()
-	if not segmentedReady and PrefabLibrary.attach(hrp,"EngineerHeadset",CFrame.new(0,3.7,-0.08)) then
+	local skinnedReady=SkinnedEngineer.ready()
+	local segmentedReady=not skinnedReady and ArticulatedEngineer.ready()
+	if not skinnedReady and not segmentedReady and PrefabLibrary.attach(hrp,"EngineerHeadset",CFrame.new(0,3.7,-0.08)) then
 		local replaceable = {
 			HeadbandSection = true,
 			HeadphoneYoke = true,
@@ -188,7 +190,17 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 	-- humanoid body as a collision/behavior fallback; when the sculpt exists,
 	-- hide its primitive forms but RETAIN the two earcup PointLights that the
 	-- monster's lunge/audio state machine controls.
-	if segmentedReady and ArticulatedEngineer.mount(m,hrp,glows) then
+	if skinnedReady and SkinnedEngineer.mount(m,hrp,glows) then
+		local hidden=0
+		for _,child in m:GetChildren() do
+			if child:IsA("BasePart") and child~=hrp then
+				child.Transparency=1
+				child.CastShadow=false
+				hidden+=1
+			end
+		end
+		m:SetAttribute("HiddenFallbackPieces",hidden)
+	elseif segmentedReady and ArticulatedEngineer.mount(m,hrp,glows) then
 		local hidden=0
 		for _,child in m:GetChildren() do
 			if child:IsA("BasePart") and child~=hrp
