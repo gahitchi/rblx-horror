@@ -41,7 +41,9 @@ function SkinnedEngineer.mount(model:Model,root:BasePart,glows:{PointLight}):boo
     -- previous ear locations when users have not yet imported new GLBs.
     local sourceMeshCount=0
     for _,d in imported:GetDescendants() do
-        if d:IsA("MeshPart") then sourceMeshCount+=1 end
+        if d:IsA("MeshPart") then
+            sourceMeshCount+=1
+        end
     end
     local q02Anatomical=sourceMeshCount>=28
     -- Coordinates measured from CC0 ear outer surfaces after the source\n    -- x-axis mirror: -0.20/+0.39 relative to Head Bone, not symmetric.\n    -- The same two PointLights remain referenced by MonsterService.glows.
