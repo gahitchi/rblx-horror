@@ -274,7 +274,7 @@ function StoryProps.decorate(parent:Instance, r:Room, palette:Palette, lights:In
     elseif r.name=="ViewingGallery" then
         title(parent,"GalleryDirection",
             "CONTROL ROOMS  <\nLIVE FLOOR      v\nMASTERING / ARCHIVE ^",
-            CFrame.new(r.x1+20,9.5,r.z1+0.95),19,3)
+            CFrame.new(r.center.X,9.7,r.z1+0.95),17,2.6)
     elseif r.name=="StaffGallery" then
         title(parent,"GalleryWingDirectory",
             "PUBLIC / RECEPTION  v\nRECORDING     ^\nENGINEERING        >",
