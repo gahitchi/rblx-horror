@@ -1,16 +1,26 @@
 # Dead Air — Rebuilt playable maps and original assets
 
+## November 1 implementation update
+
+Blackline `studio` now uses a purpose-built 19-Area, 26-connection
+nonuniform architectural plan in `src/server/Maps/BlacklineLayout.luau`.
+Its 24-stud-high LiveHall, distinct service/production loops, higher-detail
+room storytelling and four **new optional GLB models** are documented in
+[Blackline LD-02](../design/BLACKLINE_LD02_IMPLEMENTATION.md).
+Radio and Foundry retain the earlier 20-room grid designs. The new Blackline
+runtime source passes automated checks, **not yet Studio navigation or image acceptance**.
+
 ## Current implementation
 
 The former recording-studio greybox is no longer the active geometry. The runtime creates one of three **new original environments** using `src/server/Maps/Layouts.luau` and `src/server/Maps/Kit.luau`.
 
 | Map ID | Map | Envelope (studs) | Main identity | Distinctive spaces |
 | --- | --- | --- | --- | --- |
-| `studio` | Blackline Recording Complex | 140 × 170 | Aged analog production facility | Control A/B, drum room, tracking stage, isolation suites, vault, loading dock |
+| `studio` | Blackline Recording Complex | 200 × 226 | Authored non-grid recording complex | Control A/B, drum room, tracking stage, isolation suites, vault, loading dock |
 | `radio` | Wavelength Broadcast Station | 128 × 160 | Institutional, cold blue-green broadcaster | Newsroom, talk studio, edit bay, master control, transmitter vault |
 | `foundry` | Ashbell Industrial Foundry | 160 × 200 | Industrial foundry and bellworks | Casting and pouring bays, crane gallery, mold shop, furnace annex, bell-testing room |
 
-All use 20 named contract Areas, each with an axis-aligned Bounds volume and three spaced patrol Spots. Each supports multiple circulation circuits plus isolated risky rooms, with marker-based MonsterSpawn and PlayerSpawn. Three fuses are chosen from a larger map-specific set of potential positions. Every area has a speaker marker and its own generator-switched industrial pendant.
+Radio and Foundry use 20 named contract Areas; Blackline now uses 19, each with an axis-aligned Bounds volume and three spaced patrol Spots. Each supports multiple circulation circuits plus isolated risky rooms, with marker-based MonsterSpawn and PlayerSpawn. Three fuses are chosen from a larger map-specific set of potential positions. Every area has a speaker marker and its own generator-switched industrial pendant.
 
 The graphic differences come from **distinctive source geometry**: acoustic treatment and consoles in the recording complex, radio electronics and transmission gear in the broadcast station, and custom machinery, bell forms and piping in the foundry. The structural models provide independent floors, ceilings, walls, material palettes and door leaves; they do not borrow old-world coordinates.
 
