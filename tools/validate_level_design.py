@@ -52,7 +52,7 @@ def shortest_edges(start, finish, graph, blocked=None):
 
 def validate():
     data=json.loads(PATH.read_text())
-    assert data["status"]=="DESIGN_PROPOSAL_ONLY","do not silently treat proposal as runtime map"
+    assert data["status"]=="RUNTIME_WHITEBOX_UNQUALIFIED","never claim visual/playtest qualification from source checks"
     assert data["mapId"]=="studio"
     rooms=data["rooms"]
     ids=[item["id"] for item in rooms]
@@ -82,8 +82,14 @@ def validate():
         assert b in reach(a,graph,first),(a,b,"no edge-independent alternative route")
     for a,b in data["visualOnlySightlines"]:
         assert a in ids and b in ids,(a,b,"unknown sightline endpoint")
-    assert any(frozenset(pair) not in edges for pair in data["visualOnlySightlines"]),(
-        "visual-only viewing relation not represented")
+    bounds={r["id"]:r["bounds"] for r in rooms}
+    for a,b in data["visualOnlySightlines"]:
+        one,two=bounds[a],bounds[b]
+        xoverlap=min(one["x2"],two["x2"])-max(one["x1"],two["x1"])
+        zoverlap=min(one["z2"],two["z2"])-max(one["z1"],two["z1"])
+        assert ((one["z2"]==two["z1"] or two["z2"]==one["z1"]) and xoverlap>=23) or (
+            (one["x2"]==two["x1"] or two["x2"]==one["x1"]) and zoverlap>=23), (
+            a,b,"observation pane must join real neighboring rooms")
     fuses=data["curatedFuseCandidateAreas"]
     assert len(fuses)==len(set(fuses))>=10
     assert set(fuses).issubset(ids)
@@ -93,8 +99,30 @@ def validate():
     assert data["requestedConstraints"]["minOpeningHeightStuds"]>=9
     assert data["requestedConstraints"]["preferredMainClearanceStuds"]>=8
     assert len(data["planGates"])>=7 and "geometry_whitebox" in data["planGates"]
-    print(f"PASS DESIGN-ONLY Blackline: {len(ids)} purposeful Areas, {len(edges)} edges, "
-          f"{cycles} loops, two sealed dead ends, 2 independent objective approaches")
+    assert len(data["traversalPortals"])==len(edges)
+    # The design document must reflect the implementation exactly, not drift
+    # back into a beautiful but misleading conceptual network drawing.
+    authored=(ROOT/"src/server/Maps/BlacklineLayout.luau").read_text()
+    links=authored.split("local links={",1)[1].split("    return {",1)[0]
+    for item in rooms:
+        b=item["bounds"]
+        needle=(
+            f'{{name="{item["id"]}",role='
+        )
+        assert needle in authored,("missing authored room",item["id"])
+        for field in ("x1","x2","z1","z2","height"):
+            assert isinstance(b[field],int)
+        exact=",".join(f"{field}={b[field]}" for field in ("x1","x2","z1","z2","height"))
+        assert exact in authored,(item["id"],"geometry drift",exact)
+    for item in data["traversalPortals"]:
+        a,b,kind=item["a"],item["b"],item["kind"]
+        literal='{"'+a+'","'+b+'"'+(',"'+kind+'"' if kind!="normal" else '')+'}'
+        assert literal in links,("runtime portal differs from plan",a,b,kind)
+    assert len(data["traversalPortals"])==len(data["traversalEdges"])
+    print(f"PASS authored Blackline design: {len(ids)} purposeful Areas, {len(edges)} edges, "
+          f"{cycles} loops, two sealed dead ends, independent objective approaches; "
+          "Studio performance and navigation still unqualified")
+
 
 
 if __name__=="__main__":
