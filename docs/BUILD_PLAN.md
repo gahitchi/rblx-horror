@@ -26,7 +26,14 @@ with a checklist in `docs/PLAYTEST.md` saying what to try and what is untested.
 - **Chapters:** `ObjectiveService` becomes a chapter runner. Each chapter is one module listing its
   steps (`Chapters/Studio1.luau` first); shared steps (dub to cassette, Last Call) are reused by
   later chapters.
-- **Round length:** about 9 minutes target, hard cap in `Config`.
+- **Round length:** 20 to 25 minutes of play and **no round timer**: a round ends when the crew
+  escapes or the Engineer catches everyone. Remove the round clock (`Config.ROUND_TIME`) and
+  anything that depends on time left (for example `REVIVE.MIN_TIME_LEFT`).
+- **Soft pressure instead of a clock:** the longer the round runs, the thicker the fog, the sharper
+  the Engineer's hearing and the more often the director sends it toward the crew (curves in
+  `Config`).
+- **Optional story tapes:** a few per chapter at their own markers; pushing one through the front
+  doors' mail slot delivers it to the handler, and delivered tapes count even if the crew is wiped.
 
 ### B. Chapter 1's round
 
@@ -34,7 +41,9 @@ with a checklist in `docs/PLAYTEST.md` saying what to try and what is untested.
 - **Session log:** reading it at control room A starts the reel step.
 - **Reels:** 3 picked from the `ReelSpot`s each round. Loading one into the tape machine plays its
   track aloud for a few seconds (a big noise event).
-- **Mid-round shock** after the second reel: blackout, fog, every speaker replays sounds the team
+- **Two shocks:** chapter 1 is being re-paced to 20 to 25 minutes with a first shock about a third
+  of the way in and a second about two thirds in (design doc open question). The one designed so far:
+  **mid-round shock** after the second reel: blackout, fog, every speaker replays sounds the team
   made earlier (reusing `Monster/Mimicry` recordings), the Engineer frenzies for about 20 seconds,
   lights return red.
 - **The last session:** the third reel, then a 20-second hold at the mixing desk that dubs onto the
