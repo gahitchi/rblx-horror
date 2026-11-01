@@ -7,10 +7,10 @@ local MaterialService = game:GetService("MaterialService")
 -- EXAMPLE FORMAT (replace 0 with approved Roblox image asset IDs):
 -- aged_oak = { color=123456789, normal=123456790, roughness=123456791, metalness=123456792 }
 local MAPS = {
-    aged_oak = { color=0, normal=0, roughness=0, metalness=0 },
-    old_plaster = { color=0, normal=0, roughness=0, metalness=0 },
-    oxidized_steel = { color=0, normal=0, roughness=0, metalness=0 },
-    acoustic_weave = { color=0, normal=0, roughness=0, metalness=0 },
+    aged_oak = { color=97244363878569, normal=85421494786995, roughness=77700775674119, metalness=90726372414976 },
+    old_plaster = { color=72728932791485, normal=132441366278455, roughness=75547635259800, metalness=76884033826561 },
+    oxidized_steel = { color=76293301928216, normal=86957883179573, roughness=103166159706547, metalness=118241271486095 },
+    acoustic_weave = { color=126189349954361, normal=100592484093211, roughness=133073112123944, metalness=98288851413784 },
 }
 local VARIANTS = {
     { name="DA_Plaster_Concrete", base=Enum.Material.Concrete, family="old_plaster", tile=9 },
