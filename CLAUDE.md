@@ -6,6 +6,7 @@ Gabriel's first real game project, to learn game development before returning to
 Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before designing features.
 
 ## Direction
+- Read `docs/DIRECTION.md` first (1 Nov 2026): an emotional game, not an AAA one. Stylized, readable on phones, mood from light, fog and sound. Every round must end in an adrenaline rush.
 - A monster that hunts by sound. Loud to escape, quiet to survive: objectives make noise on purpose.
 - Voice loudness feeds the monster when a player has voice (Audio API), but voice is always optional (Roblox requires an age check for chat).
 - Each map has its own peculiarities and its own monster (like Rainbow Six Siege maps): recording studio (the Engineer) first, then a radio station, then a bell foundry.
@@ -15,7 +16,7 @@ Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before de
 
 ## Team
 - Gabriel: direction, playtesting.
-- ChatGPT: the map and the graphical side (models, textures, lighting look), on its own branch (`chatgpt/...`). It may also touch scripts now and then.
+- ChatGPT: the map and the graphical side (models, textures, lighting look), on its own branch (`chatgpt/...`). It may also touch scripts now and then. Art follows the stylized scope in `docs/DIRECTION.md`; the realism pass on `chatgpt/studio-art-pass` is parked there, not deleted.
 - Claude: scripts and game systems. Keep map-specific data out of the systems where possible, so ChatGPT's map can replace the greybox in `MapBuilder`. Fetch before editing: someone else may have pushed.
 - Claude and ChatGPT are teammates, not rivals (Gabriel's rule). The focus areas are about who leads on what, not ownership: either can change any file. Make the other's work easier: keep things compatible with their branch, explain changes that affect them, offer help, credit their work, and describe untested work the same way for both. Never frame their work as competing or lesser.
 
