@@ -19,6 +19,7 @@ EXPECTED={
     "StudioWallClock",
     "EngineerBody","FieldOperatorVest","FieldOperatorMask","FieldOperatorPack",
     "BlacklineTransferDeck","BlacklinePatchMatrix",
+    "EngineerRigTorso","EngineerRigHead","EngineerRigArmLeft","EngineerRigArmRight","EngineerRigLegLeft","EngineerRigLegRight",
 }
 
 
@@ -48,6 +49,7 @@ def check(path: Path):
     if path.stem in {
         "EngineerBody","FieldOperatorVest","FieldOperatorMask","FieldOperatorPack",
         "BlacklineTransferDeck","BlacklinePatchMatrix",
+        "EngineerRigTorso","EngineerRigHead","EngineerRigArmLeft","EngineerRigArmRight","EngineerRigLegLeft","EngineerRigLegRight",
     }:
         assert images>=9,(path.name,"missing embedded color, normal or packed ORM images")
         assert vertices>=500,(path.name,"artist prototype too simplified")
