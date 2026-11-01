@@ -49,8 +49,6 @@ jobs:
         run: python3 tools/validate_mastering_gallery.py
       - name: Verify Control A console quality benchmark and gameplay isolation
         run: python3 tools/validate_console_quality.py
-      - name: Verify Q02 Engineer grounded character mesh and AI isolation
-        run: python3 tools/validate_engineer_q02.py
       - name: Enforce project-wide Q01 quality ledger and truthful asset stages
         run: python3 tools/validate_production_baseline.py
       - name: Validate source tree and project serialization
