@@ -134,57 +134,10 @@ class Model:
   return scene
 
 def engineer_body():
- m=Model()
- # Gaunt late-shift repair worker, anatomy intentionally incompatible with a
- # normal player: concave rib cage, overlong forearms, torsion and bad posture.
- m.ellipsoid((0,0.84,0.09),(1.00,1.59,.56),"coat",3)
- m.ellipsoid((0,-1.05,.10),(.71,.86,.45),"coat_dark",2)
- m.ellipsoid((0,1.95,.12),(1.48,.31,.53),"coat_high",2)
- m.ellipsoid((-.17,0.60,-.40),(.61,1.12,.17),"coat",2)
- m.ellipsoid((.56,0.55,-.39),(.49,1.09,.16),"coat_high",2)
- # Uneven coat hem / open split, reinforced binding and tool-harness silhouette.
- for side in (-1,1):
-  m.link((side*.45,-1.14,.0),(side*.57,-2.65,-.05),.39,.27,"coat_high",12)
-  m.box((side*.53,-1.23,-.53),(.27,1.40,.12),"coat_dark")
-  m.link((side*1.30,1.64,.02),(side*1.70,.35,-.13),.37,.25,"coat",16)
-  m.ellipsoid((side*1.68,.38,-.13),(.28,.39,.27),"coat_high",2)
-  m.link((side*1.73,.31,-.14),(side*1.97,-1.72,-.17),.23,.13,"flesh",14)
-  m.ellipsoid((side*2.01,-2.02,-.22),(.23,.43,.17),"flesh",2)
-  for i in (-1,0,1):
-   m.link((side*2.01+i*.075,-2.21,-.28),
-          (side*2.02+i*.08,-2.73,-.31),.07,.043,"bone",10)
-  m.link((side*.46,-1.53,.05),(side*.58,-3.05,-.05),.40,.29,"coat",16)
-  m.ellipsoid((side*.59,-3.07,-.03),(.35,.29,.33),"iron",2)
-  m.link((side*.60,-3.14,-.04),(side*.65,-4.37,-.04),.29,.20,"coat_dark",14)
-  m.ellipsoid((side*.66,-4.57,-.27),(.32,.21,.68),"iron",2)
-  m.box((side*.65,-4.58,-.48),(.5,.15,.52),"rubber")
-  m.link((side*.80,1.22,-.28),(side*.28,-1.23,-.50),.072,.045,"iron",10)
-  m.box((side*.69,.60,-.55),(.19,.65,.13),"brass")
- # A service harness with field-repaired analog hearing hardware.
- m.box((.12,.45,-.66),(.85,1.03,.23),"iron")
- m.box((.15,.65,-.81),(.62,.52,.07),"visor")
- m.link((.1,.69,-.85),(.37,.44,-.86),.03,.02,"signal",8)
- m.box((-.4,-.78,-.57),(.75,.31,.18),"brass")
- # The technician was incorporated into the studio equipment. A damaged
- # insulating harness/analog record counter reads in silhouette, not HUD text.
- m.box((-.54,.91,-.69),(.26,.62,.17),"rubber")
- m.link((-.57,1.11,-.76),(-.51,.61,-.76),.039,.03,"iron",12)
- m.box((.70,.17,-.59),(.21,.75,.14),"coat_high")
- m.box((.70,-.23,-.65),(.32,.13,.10),"brass")
- for x in (-.53,-.33,-.13,.07):
-  m.box((x,-.75,-.70),(.09,.11,.055),"rubber")
- # Upright neck, destroyed face with apertures, no stereotypical skull mask.
- m.link((0,2.2,0),(.02,3.14,-.02),.30,.25,"flesh",18)
- m.ellipsoid((.04,3.73,-.08),(.71,.99,.65),"flesh",3)
- m.ellipsoid((0,3.28,-.31),(.44,.32,.50),"bone",2)
- for side in (-1,1):
-  m.ellipsoid((side*.29,3.96,-.67),(.22,.14,.11),"rubber",2)
-  m.link((side*.34,3.50,-.65),(side*.55,4.07,-.45),.055,.04,"iron",10)
- m.box((0,3.46,-.69),(.61,.10,.08),"rubber")
- m.box((0,4.41,-.38),(1.04,.23,.16),"iron")
- for offset in (-.45,.45):
-  m.box((offset,1.53,-.47),(.26,.38,.18),"brass")
- return m.finish()
+ # Q02 source-of-truth: the same new human-scale, non-graphic model exports
+ # both the rigid fallback visual and the genuinely weighted GLB.
+ from quality_engineer import build
+ return build()
 
 def operator_vest():
  # Root is R15 UpperTorso center. Vest does not obscure the rig's limb joints.
