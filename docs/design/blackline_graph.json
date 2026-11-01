@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "mapId": "studio",
+  "name": "Blackline Recording Complex",
+  "status": "DESIGN_PROPOSAL_ONLY",
+  "note": "Not wired to runtime. Gameplay still uses Maps/Layouts.luau until a reviewed floor plan and Studio qualification.",
+  "objectives": {
+    "spawn": "Reception",
+    "exit": "Reception",
+    "generator": "GeneratorRoom",
+    "fuseBox": "PatchBay",
+    "tape": "ControlA",
+    "monsterStartCandidate": "TapeArchive"
+  },
+  "rooms": [
+    {
+      "id": "Reception",
+      "sector": "public",
+      "functionalPurpose": "entry / exit"
+    },
+    {
+      "id": "Lounge",
+      "sector": "public",
+      "functionalPurpose": "optional human-scale shelter"
+    },
+    {
+      "id": "StaffGallery",
+      "sector": "circulation",
+      "functionalPurpose": "public-to-production hinge"
+    },
+    {
+      "id": "StaffPassage",
+      "sector": "circulation",
+      "functionalPurpose": "quiet alternative service entry"
+    },
+    {
+      "id": "LiveHall",
+      "sector": "production",
+      "functionalPurpose": "large visible landmark"
+    },
+    {
+      "id": "ControlA",
+      "sector": "production",
+      "functionalPurpose": "tape-deck finale"
+    },
+    {
+      "id": "ControlB",
+      "sector": "production",
+      "functionalPurpose": "alternate control loop"
+    },
+    {
+      "id": "DrumRoom",
+      "sector": "production",
+      "functionalPurpose": "risky loud recording room"
+    },
+    {
+      "id": "TrackingStage",
+      "sector": "production",
+      "functionalPurpose": "secondary loop and live equipment"
+    },
+    {
+      "id": "ViewingGallery",
+      "sector": "circulation",
+      "functionalPurpose": "acoustic view and archive approach"
+    },
+    {
+      "id": "PatchBay",
+      "sector": "technical",
+      "functionalPurpose": "fuse objective"
+    },
+    {
+      "id": "MasteringVault",
+      "sector": "restricted",
+      "functionalPurpose": "quiet mastering suite"
+    },
+    {
+      "id": "TapeArchive",
+      "sector": "restricted",
+      "functionalPurpose": "high-risk story/evidence"
+    },
+    {
+      "id": "ServiceGallery",
+      "sector": "technical",
+      "functionalPurpose": "rear route bypass"
+    },
+    {
+      "id": "Maintenance",
+      "sector": "technical",
+      "functionalPurpose": "service hub"
+    },
+    {
+      "id": "GeneratorRoom",
+      "sector": "technical",
+      "functionalPurpose": "generator objective"
+    },
+    {
+      "id": "LoadingDock",
+      "sector": "technical",
+      "functionalPurpose": "rear history and optional risk"
+    },
+    {
+      "id": "IsolationWest",
+      "sector": "isolation",
+      "functionalPurpose": "sealable vocal booth"
+    },
+    {
+      "id": "IsolationEast",
+      "sector": "isolation",
+      "functionalPurpose": "sealable isolated recording booth"
+    }
+  ],
+  "traversalEdges": [
+    [
+      "Reception",
+      "StaffGallery"
+    ],
+    [
+      "Reception",
+      "Lounge"
+    ],
+    [
+      "StaffGallery",
+      "LiveHall"
+    ],
+    [
+      "StaffGallery",
+      "StaffPassage"
+    ],
+    [
+      "StaffGallery",
+      "ViewingGallery"
+    ],
+    [
+      "LiveHall",
+      "ControlA"
+    ],
+    [
+      "LiveHall",
+      "DrumRoom"
+    ],
+    [
+      "LiveHall",
+      "TrackingStage"
+    ],
+    [
+      "ControlA",
+      "ControlB"
+    ],
+    [
+      "ControlA",
+      "PatchBay"
+    ],
+    [
+      "ControlB",
+      "TrackingStage"
+    ],
+    [
+      "ControlB",
+      "StaffPassage"
+    ],
+    [
+      "TrackingStage",
+      "IsolationEast"
+    ],
+    [
+      "DrumRoom",
+      "IsolationWest"
+    ],
+    [
+      "ViewingGallery",
+      "MasteringVault"
+    ],
+    [
+      "MasteringVault",
+      "TapeArchive"
+    ],
+    [
+      "TapeArchive",
+      "ServiceGallery"
+    ],
+    [
+      "ServiceGallery",
+      "PatchBay"
+    ],
+    [
+      "ServiceGallery",
+      "Maintenance"
+    ],
+    [
+      "PatchBay",
+      "Maintenance"
+    ],
+    [
+      "Maintenance",
+      "LoadingDock"
+    ],
+    [
+      "Maintenance",
+      "GeneratorRoom"
+    ],
+    [
+      "GeneratorRoom",
+      "StaffPassage"
+    ]
+  ],
+  "visualOnlySightlines": [
+    [
+      "ViewingGallery",
+      "LiveHall"
+    ],
+    [
+      "ControlA",
+      "LiveHall"
+    ],
+    [
+      "ControlB",
+      "TrackingStage"
+    ]
+  ],
+  "sealedBooths": [
+    "IsolationWest",
+    "IsolationEast"
+  ],
+  "curatedFuseCandidateAreas": [
+    "Lounge",
+    "TrackingStage",
+    "DrumRoom",
+    "ViewingGallery",
+    "TapeArchive",
+    "MasteringVault",
+    "Maintenance",
+    "LoadingDock",
+    "StaffPassage",
+    "ControlB",
+    "ServiceGallery",
+    "LiveHall"
+  ],
+  "planGates": [
+    "architectural_storyboard",
+    "nonuniform_2d_plan",
+    "geometry_whitebox",
+    "agent_path_acoustic_simulation",
+    "first_play_readability",
+    "art_dressing",
+    "performance_qualification"
+  ],
+  "requestedConstraints": {
+    "minAgentOpeningWidthStuds": 6,
+    "minOpeningHeightStuds": 9,
+    "preferredMainClearanceStuds": 8,
+    "requiredCyclomaticLoops": 4,
+    "requiredAlternativeRoutes": [
+      [
+        "StaffGallery",
+        "GeneratorRoom"
+      ],
+      [
+        "StaffGallery",
+        "ControlA"
+      ]
+    ]
+  }
+}
