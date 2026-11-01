@@ -50,7 +50,7 @@ for visible clipping before using them in a shipped game.
 ## Environment development
 
 Blackline's actual studio map has 19 deliberately authored Areas,
-**27 traversable portals and 10 independent circulation cycles**.
+**27 traversable portals and 9 independent circulation cycles**.
 Its power plant acquired a second, plausible Reception service door
 after offline LD-03 validation revealed an unintended single-route
 critical generator dependency. The two sealed booths and the loading dock
