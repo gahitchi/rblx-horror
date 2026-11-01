@@ -25,9 +25,48 @@ local function allParts(model)
     return parts
 end
 local master=art:FindFirstChild("MasteringReferenceWall")
+local transfer=art:FindFirstChild("MasteringTransferStation")
 local gallery=art:FindFirstChild("ViewingGalleryObservation")
 if not master or not master:IsA("Model") then fail("missing MasteringReferenceWall") end
 if not gallery or not gallery:IsA("Model") then fail("missing ViewingGalleryObservation") end
+if not transfer or not transfer:IsA("Model") then
+    fail("missing MasteringTransferStation")
+else
+    local parts=allParts(transfer)
+    local tier=transfer:GetAttribute("VisualTier")
+    if tier~="NativeFallback" and tier~="ImportedPBR" then
+        fail("invalid mastering transfer VisualTier")
+    end
+    if #parts==0 then fail("mastering transfer scene is empty") end
+    local cf,size=transfer:GetBoundingBox()
+    -- Valid meshes may retain a model pivot at the original source origin,
+    -- but the actual drawn parts must stay by the deliberate stand.
+    if math.abs(cf.Position.X-(-59))>2 or
+        math.abs(cf.Position.Z-(-180))>2.5 or
+        size.X>7.5 or size.Y>5.5 or size.Z>6.0 then
+        fail("transfer geometry has shifted or expanded: "..tostring(cf.Position)..
+            " / "..tostring(size))
+    end
+    if tier=="NativeFallback" then
+        local reels=0
+        for _,part in parts do
+            if part.Name=="TransportFlange" then reels+=1 end
+        end
+        if reels~=2 then fail("mastering native deck must have two reel flanges") end
+    else
+        local imported=transfer:FindFirstChild("BlacklineTransferDeck",true)
+        if not imported or not imported:IsA("PVInstance") then
+            fail("missing imported BlacklineTransferDeck root")
+        else
+            if imported:GetPivot().LookVector:Dot(Vector3.zAxis)<.94 then
+                fail("mastering transfer is not facing toward the occupied room")
+            end
+        end
+    end
+    print(("[VF04] Master transfer: %s, %d parts, center=%s, size=%s"):format(
+        tostring(tier),#parts,tostring(cf.Position),tostring(size)))
+end
+
 if master and master:IsA("Model") then
     local parts=allParts(master)
     local tier=master:GetAttribute("VisualTier")
