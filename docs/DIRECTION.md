@@ -42,11 +42,12 @@ Bring them over in small, playtestable steps, each one tested by Gabriel before 
 
 ## The finish: "Last Call" (proposal)
 
-Today the climax is a door that opens: the tape plays for 20 seconds, the doors unlock, you walk
-out and get sent to the lobby. The last minute should instead be the most intense of the round.
+Before this, the climax was a door that opens: the tape played for 20 seconds, the doors unlocked, you walked
+out and got sent to the lobby. The last minute should instead be the most intense of the round.
 
-1. **The tape is the trigger.** Lights turn red, the alarm blasts, and the Engineer comes straight
-   for control room A at full speed. Someone has to hold the room until the tape finishes.
+1. **The full recording is the trigger.** Once the last reel is in, the recording plays through the
+   whole building and the Engineer comes straight for control room A at full speed. Someone has to
+   hold the mixing desk until it finishes and dubs onto the team's evidence cassette.
 2. **Frenzy.** When the doors unlock, the Engineer hears everything everywhere and keeps its top
    hunt speed. The director's back-off rules switch off. It stays just slower than a sprint, so
    the run is a chase you can win, not a death sentence.
@@ -54,8 +55,9 @@ out and get sent to the lobby. The last minute should instead be the most intens
    still inside when it hits zero is trapped and caught.
 4. **The way out changes.** A shutter drops on the short route, so the team runs through the live
    room, where everything is easy to knock over.
-5. **Last-second rescues.** A downed teammate's walkie can be grabbed on the way out, tying the run
-   into the revive system.
+5. **The cassette and the rescues.** The evidence cassette has to leave the building or the chapter
+   isn't cleared; a caught carrier drops it for someone else to grab. An echo's walkie can be grabbed
+   on the way out too, tying the run into the revive system.
 6. **The escape moment.** Burst through the doors, they slam behind you, the Engineer hits the
    glass, a music stinger. Escaped players stay outside for a few seconds watching through the
    glass and can shout (the monster can't hear outside) before results.
@@ -64,3 +66,6 @@ out and get sent to the lobby. The last minute should instead be the most intens
 
 Tuning goal: calm early, rising mid-round, peak in the last 60 to 90 seconds. Playtests decide the
 numbers; they live in `Config` like everything else.
+
+The full round, the chapters and the story are in the design doc (see `CLAUDE.md`). Generators and
+fuse boxes are out: too close to Dead by Daylight.
