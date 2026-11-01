@@ -88,7 +88,9 @@ end
 
 function EngineerMotion.start()
     for _,child in Workspace:GetChildren() do
-        if child:IsA("Model") then register(child) end
+        if child:IsA("Model") then
+            register(child)
+        end
     end
     Workspace.ChildAdded:Connect(function(child)
         if not child:IsA("Model") then return end
