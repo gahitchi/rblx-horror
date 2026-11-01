@@ -41,6 +41,15 @@ def check()->dict:
     assert groups[0]["status"] in {"source-reference","studio-approved"}
     assert groups[0]["assetNames"]==["BlacklineHeroConsole"]
     assert groups[0]["ownerPreviewAccepted"] is True
+    # Real reviewer rejected the procedural Q02 body. Never confuse an
+    # importable/skinned file with an accepted realistic character.
+    assert groups[1]["visualVerdict"]=="REJECTED_BY_OWNER_2026-11-01"
+    assert groups[1]["ownerPreviewAccepted"] is False
+    assert groups[1]["status"]=="source-prototype"
+    assert "DCC-authored" in groups[1]["nextGate"]
+    assert not (ROOT/"tools/quality_engineer.py").exists(),(
+        "rejected procedural Q02 body must not return as active asset source")
+
     all_assets={}
     for group in groups:
         assert isinstance(group["nextGate"],str) and len(group["nextGate"])>35
