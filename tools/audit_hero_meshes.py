@@ -64,6 +64,10 @@ def check(path: Path):
         "materialFamilies":sorted(materials),
         "imagesAttached":images,
         "dimensionsStuds":[round(float(x),3) for x in dims],
+        # Raw source-space bounds help diagnose Studio 3D Importer pivot
+        # recentering, especially shoulder/hip-aligned articulated segments.
+        "boundsMinStuds":[round(float(x),3) for x in bounds[0]],
+        "boundsMaxStuds":[round(float(x),3) for x in bounds[1]],
         "artistUvAndBakedTexturePassRequired":images==0,
     }
 
