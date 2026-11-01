@@ -1,6 +1,7 @@
 --!strict
 -- Shared architectural grid and explicit doors. No navigation changes require monster scripts.
 -- Intentionally multiple loops with two remote dead ends on the upper edge.
+local BlacklineLayout = require(script.Parent.BlacklineLayout)
 local Layouts={}
 
 local baseLinks: { { number | string } } = {}
@@ -60,36 +61,9 @@ local function make(spec: any)
         tape=spec.tape,spawn=spec.spawn,monster=spec.monster,
     }
 end
+-- Blackline has a purpose-built, non-grid architectural program.
 function Layouts.studio()
-    return make({
-        id="studio",name="Blackline Recording Complex",height=14,
-        x={-70,-35,0,35,70},z={-170,-136,-102,-68,-34,0},
-        palette={
-            wall=Color3.fromRGB(67,68,69),floor=Color3.fromRGB(73,60,51),
-            ceiling=Color3.fromRGB(35,38,40),trim=Color3.fromRGB(44,39,38),
-            steel=Color3.fromRGB(65,70,71),accent=Color3.fromRGB(214,157,110),
-        },
-        names={
-            {"IsolationWest","MasteringVault","IsolationEast","TapeArchive"},
-            {"DrumRoom","LiveHall","TrackingStage","Maintenance"},
-            {"Rehearsal","ControlA","ControlB","Transfer"},
-            {"Dressing","LongGallery","EquipmentSpine","PatchBay"},
-            {"GeneratorPlant","StaffBreak","Reception","LoadingDock"},
-        },
-        roles={
-            {"booth","master","booth","archive"},
-            {"live","live","stage","machine"},
-            {"live","control","control","store"},
-            {"lounge","corridor","corridor","machine"},
-            {"generator","lounge","reception","store"},
-        },
-        booths={IsolationWest=true,IsolationEast=true},
-        windows={{"LiveHall","ControlA"},{"TrackingStage","ControlB"}},
-        fuseRooms={"MasteringVault","TapeArchive","DrumRoom","TrackingStage","Rehearsal",
-            "ControlB","Maintenance","Transfer","Dressing","PatchBay","LoadingDock","StaffBreak"},
-        generator="GeneratorPlant",fuseBox="PatchBay",tape="ControlA",
-        spawn="Reception",monster="TapeArchive",
-    })
+    return BlacklineLayout.make()
 end
 function Layouts.radio()
     return make({
