@@ -27,7 +27,7 @@ def main():
     assert "source=engineer_body().export" in rig
     for token in ('def loft(', 'BlacklineEngineerOriginalIDPlate',
                   'circumaural headphones','belt field recorder',
-                  'No exposed injuries', 'No disfigurement'):
+                  'No exposed injuries', 'Normal human nose'):
         assert token.lower() in q.lower(),token
     assert "for side in (-1,1):" in q
     assert "m.add(loft" in q and "m.ellipsoid" in importer
