@@ -157,6 +157,88 @@ def reel() -> trimesh.Scene:
     return m.finish()
 
 
+def reception_terminal() -> trimesh.Scene:
+    """Blackline's original 1980s visitor registry: integrated CRT and keypad."""
+    m=Model()
+    m.box((0,1.5,0),(2.8,3.0,1.8),"dark")
+    for x in (-1.25,1.25):
+        m.box((x,1.5,-.95),(.15,2.85,.17),"steel")
+    m.box((0,2.52,-.96),(2.28,.72,.10),"steel")
+    m.box((0,2.22,-1.03),(1.88,.78,.07),"glass")
+    for y in (2.02,2.17,2.32):
+        m.box((0,y,-1.076),(1.66,.015,.02),"rubber")
+    m.box((0,1.12,-1.01),(2.24,.68,.10),"steel")
+    for row in range(3):
+        for col in range(5):
+            x=-.78+col*.40
+            y=1.31-row*.18
+            m.box((x,y,-1.09),(.25,.11,.055),"label" if col==4 else "dark")
+    m.box((0,.39,-.98),(2.34,.39,.11),"steel")
+    m.box((0,3.03,0),(3.04,.09,2.05),"bronze")
+    for i in range(8):
+        m.box((-1.17+i*.34,.68,.92),(.15,.05,.045),"steel")
+    return m.finish()
+
+
+def tape_archive_cart() -> trimesh.Scene:
+    """Mobile archival reel carriage: labeled shelves, reel wells and a chassis."""
+    m=Model()
+    m.box((0,3.5,0),(4.65,7.0,1.7),"dark")
+    for x in (-2.26,2.26):
+        m.box((x,3.6,-.92),(.16,7.05,.15),"steel")
+    for i in range(7):
+        y=.65+i*.92
+        m.box((0,y,-.91),(4.5,.19,1.96),"steel")
+        m.box((-1.62,y+.37,-1.02),(.60,.26,.06),"label")
+        for j in range(3):
+            x=-.48+j*1.15
+            m.cylinder((x,y+.44,-1.10),.33,.10,"oxide",20,"z")
+            m.cylinder((x,y+.44,-1.17),.22,.11,"steel",20,"z")
+            m.cylinder((x,y+.44,-1.24),.085,.12,"dark",16,"z")
+    m.box((0,.24,0),(4.78,.23,1.82),"steel")
+    for x in (-1.9,1.9):
+        for z in (-.53,.53):
+            m.cylinder((x,.12,z),.25,.15,"rubber",16,"x")
+    return m.finish()
+
+
+def service_intercom() -> trimesh.Scene:
+    """Wall-mounted maintenance call point with speaker grille and cable glands."""
+    m=Model()
+    m.box((0,1.35,0),(1.65,2.7,.48),"steel")
+    m.box((0,1.95,-.26),(1.37,1.03,.08),"dark")
+    for row in range(7):
+        for col in range(7):
+            m.cylinder((-.42+col*.14,1.64+row*.10,-.325),.027,.028,"rubber",8,"z")
+    m.box((0,.83,-.27),(1.35,.41,.06),"dark")
+    for i in range(3):
+        m.cylinder((-.41+i*.4,.83,-.32),.095,.055,
+                   "red" if i==2 else "bronze",16,"z")
+    m.box((0,.38,-.26),(1.29,.20,.08),"label")
+    m.cylinder((.66,2.65,0),.12,.33,"rubber",16,"y")
+    return m.finish()
+
+
+def studio_wall_clock() -> trimesh.Scene:
+    """Independent Blackline studio timepiece, with original hands and tick marks."""
+    m=Model()
+    m.cylinder((0,0,0),1.45,.20,"dark",64,"z")
+    m.cylinder((0,0,-.12),1.30,.06,"steel",64,"z")
+    m.cylinder((0,0,-.16),1.19,.035,"label",64,"z")
+    for k in range(12):
+        angle=math.pi*k/6
+        x,y=1.00*math.sin(angle),1.00*math.cos(angle)
+        m.box((x,y,-.20),(.065,.12,.035),"dark")
+    for size,angle,color in ((.88,math.radians(22),"dark"),
+                              (.61,math.radians(112),"red")):
+        mesh=trimesh.creation.box(extents=(.07,size,.055))
+        mesh.apply_translation((0,size*.38,-.25))
+        mesh.apply_transform(trimesh.transformations.rotation_matrix(angle,[0,0,1]))
+        m.add(mesh,color)
+    m.cylinder((0,0,-.27),.09,.075,"bronze",20,"z")
+    return m.finish()
+
+
 def export(path: Path, scene: trimesh.Scene):
     path.write_bytes(scene.export(file_type="glb"))
     load=trimesh.load(path,force="scene",process=False)
@@ -180,6 +262,10 @@ def main():
     for name,builder in {
         "WalkieTalkie":walkie,"AnalogRack":rack,
         "NearfieldMonitor":monitor,"TapeReel":reel,
+        "ReceptionTerminal":reception_terminal,
+        "TapeArchiveCart":tape_archive_cart,
+        "ServiceIntercom":service_intercom,
+        "StudioWallClock":studio_wall_clock,
     }.items():
         export(args.out/(name+".glb"),builder())
 
