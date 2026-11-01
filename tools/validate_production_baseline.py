@@ -35,17 +35,28 @@ def check()->dict:
     groups=ledger["groups"]
     assert [g["id"] for g in groups]==["Q01","Q02","Q03","Q04","Q05","Q06"]
     assert [g["priority"] for g in groups]==list(range(len(groups)))
-    assert [g["status"] for g in groups]==(
-        ["source-reference"]+["source-prototype"]*5)
+    valid_stages={"source-prototype","source-candidate",
+                  "source-reference","studio-approved"}
+    assert all(g["status"] in valid_stages for g in groups)
+    assert groups[0]["status"] in {"source-reference","studio-approved"}
     assert groups[0]["assetNames"]==["BlacklineHeroConsole"]
     assert groups[0]["ownerPreviewAccepted"] is True
     all_assets={}
     for group in groups:
         assert isinstance(group["nextGate"],str) and len(group["nextGate"])>35
-        # Runtime approval requires an actual saved Studio evidence set;
-        # this current source-only branch has no such game capture.
-        assert group["studioApproved"] is False,(
-            "do not claim in-game art signoff from CI",group["id"])
+        # A later Studio signoff must carry actual saved evidence paths;
+        # this source-only branch has none and cannot silently approve it.
+        assert isinstance(group["studioApproved"],bool)
+        if group["studioApproved"]:
+            assert group["status"]=="studio-approved"
+            evidence=group.get("studioEvidencePaths",[])
+            assert len(evidence)>=3
+            for relative in evidence:
+                path=(ROOT/relative).resolve()
+                assert path.is_relative_to(ROOT) and path.is_file(),(
+                    "missing in-game review evidence",relative)
+        else:
+            assert group["status"]!="studio-approved"
         for name in group["assetNames"]:
             assert name not in all_assets,("same GLB in two quality groups",name)
             all_assets[name]=group["id"]
@@ -64,9 +75,14 @@ def check()->dict:
     assert 'for ch in range(12):' in source
     audit=AUDIT.read_text()
     assert 'if path.stem=="BlacklineHeroConsole"' in audit
+    approved=sum(len(g["assetNames"]) for g in groups if g["studioApproved"])
+    candidates=sum(len(g["assetNames"]) for g in groups
+                   if g["status"] in {"source-reference","source-candidate"})
+    pending=next((g["id"] for g in groups if g["priority"]>0
+                  and not g["studioApproved"]),None)
     return {"assetCount":len(all_assets),"reference":"BlacklineHeroConsole",
-            "inGameApprovedCount":0,"baselineSourceCandidateCount":1,
-            "nextProductionGroup":"Q02","productionGroups":len(groups)}
+            "inGameApprovedCount":approved,"baselineSourceCandidateCount":candidates,
+            "nextProductionGroup":pending,"productionGroups":len(groups)}
 
 
 def main():
