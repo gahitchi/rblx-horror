@@ -33,6 +33,8 @@ jobs:
         run: python3 tools/validate_map_assets.py
       - name: Validate authored Blackline design graph (proposal only)
         run: python3 tools/validate_level_design.py
+      - name: Check character and monster visual safety contracts
+        run: python3 tools/validate_character_assets.py
       - name: Qualify Blackline offline portal / acoustic geometry
         run: python3 tools/qualify_blackline_offline.py
       - name: Validate source tree and project serialization
