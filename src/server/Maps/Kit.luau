@@ -167,14 +167,18 @@ local function doorLeaf(parent: Instance, portal: Portal, palette: { wall: Color
     local z = if portal.axis=="X" then portal.at else portal.along
     local leaf=piece(parent,portal.name,Vector3.new(portal.width-0.2,9,0.55),
         CFrame.new(x,4.5,z)*(if portal.axis=="Z" then CFrame.Angles(0,math.rad(90),0) else CFrame.identity),
-        if portal.kind=="booth" then palette.steel else palette.trim,Enum.Material.Metal,true)
+        if portal.kind=="booth" then palette.steel else palette.trim,Enum.Material.SmoothPlastic,true)
     leaf:SetAttribute("Kind",portal.kind)
+    leaf:SetAttribute("DisablePBR",true)
+    leaf:SetAttribute("DoorArtVersion",2)
     -- Welded door trim moves with DoorService; never anchor detail to moving door.
     local handle=piece(leaf,"Handle",Vector3.new(0.2,0.38,0.2),
         leaf.CFrame*CFrame.new(leaf.Size.X*0.34,-0.5,-0.4),
         palette.accent,Enum.Material.Metal,false)
     handle.Anchored=false
     handle.Massless=true
+    handle:SetAttribute("DisablePBR",true)
+    handle.CastShadow=false
     local weld=Instance.new("WeldConstraint")
     weld.Part0=leaf
     weld.Part1=handle
@@ -186,10 +190,12 @@ local function doorLeaf(parent: Instance, portal: Portal, palette: { wall: Color
         item.Anchored=false
         item.Massless=true
         item.CastShadow=false
+        item:SetAttribute("DisablePBR",true)
         local joint=Instance.new("WeldConstraint")
         joint.Part0=leaf
         joint.Part1=item
         joint.Parent=item
+        return item
     end
     -- Hardware moves with the real door leaf; the leaf remains the only collision hull.
     local hw=leaf.Size.X/2
