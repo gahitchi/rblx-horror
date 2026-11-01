@@ -300,19 +300,22 @@ local function wall(parent: Instance, axis: string, at: number, a: number, b: nu
             segment(left,right,9,h)
             -- Fixed structural jambs are separate from the swinging leaf.
             if axis=="X" then
-                for _,x in {left,right} do
-                    box(parent,"SteelDoorJamb",x-0.17,0,at-0.76,
-                        x+0.17,9.12,at+0.76,p.steel,Enum.Material.Metal,false)
+                for _,edge in {left,right} do
+                    -- Keep jamb metal visually matte and outside the full leaf sweep.
+                    local x=if edge==left then edge-0.22 else edge+0.22
+                    box(parent,"SteelDoorJamb",x-0.15,0,at-0.76,
+                        x+0.15,9.12,at+0.76,p.steel,Enum.Material.SmoothPlastic,false)
                 end
                 box(parent,"SteelDoorHead",left-0.19,9.01,at-0.76,
-                    right+0.19,9.24,at+0.76,p.trim,Enum.Material.Metal,false)
+                    right+0.19,9.24,at+0.76,p.trim,Enum.Material.SmoothPlastic,false)
             else
-                for _,z in {left,right} do
-                    box(parent,"SteelDoorJamb",at-0.76,0,z-0.17,
-                        at+0.76,9.12,z+0.17,p.steel,Enum.Material.Metal,false)
+                for _,edge in {left,right} do
+                    local z=if edge==left then edge-0.22 else edge+0.22
+                    box(parent,"SteelDoorJamb",at-0.76,0,z-0.15,
+                        at+0.76,9.12,z+0.15,p.steel,Enum.Material.SmoothPlastic,false)
                 end
                 box(parent,"SteelDoorHead",at-0.76,9.01,left-0.19,
-                    at+0.76,9.24,right+0.19,p.trim,Enum.Material.Metal,false)
+                    at+0.76,9.24,right+0.19,p.trim,Enum.Material.SmoothPlastic,false)
             end
         end
         cursor=right
