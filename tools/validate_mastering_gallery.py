@@ -111,6 +111,25 @@ def main():
     # speakers and repetitive acoustic slats. Only this room opts out.
     assert 'and roomName~="MasteringVault"' in assets
     assert 'roomName~="MasteringVault"' in architecture
+    assert 'roomName~="ViewingGallery"' in architecture, (
+        "redundant general cable tray not removed from signature gallery")
+    # A single purpose-built transfer station replaces the misleading
+    # generic fallback; both paths face into the south of MasteringVault.
+    assert 'transferStation(parent,room)' in hero
+    assert 'model.Name="MasteringTransferStation"' in hero
+    assert 'PrefabLibrary.place(model,"BlacklineTransferDeck",base)' in hero
+    assert 'nativeTransfer(model,base)' in hero
+    assert 'CFrame.new(room.x1+13,0,room.z1+12)*' in hero
+    assert 'CFrame.Angles(0,math.pi,0)' in hero
+    assert '"ArchiveTransferFallback"' not in story
+    assert 'PrefabLibrary.place(parent,"BlacklineTransferDeck"' not in story
+    assert hero.count('PrefabLibrary.place(model,"BlacklineTransferDeck",base)')==1
+    # 5-stud-wide, 4-stud-high station is offset from all portal cutouts
+    # and from the reference monitor wall by more than 5 studs.
+    tx,tz=x1+13,z1+12
+    assert tx-2.5>x1+8 and tx+2.5<x2-15
+    assert tz-2.2>z1+8 and tz+2.2<z2-8
+    assert center_x-half_width-(tx+2.5)>12
     assert 'roomName: string?' in assets and 'roomName: string?' in architecture
     assert 'CFrame.new(r.center.X,9.7,r.z1+0.95),17,2.6)' in story
     assert 'BlacklineMasterReference = true' in installer
