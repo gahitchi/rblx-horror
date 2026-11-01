@@ -288,13 +288,9 @@ function StoryProps.decorate(parent:Instance, r:Room, palette:Palette, lights:In
             "AUDIO PLANT  /  QUIET HOURS\n\nKEEP FIRE DOORS CLEAR\nARCHIVE VENTILATION 02 OFF\nSIGNAL LOSS REPORTED 03:17",
             "ServiceNotice")
     elseif r.name=="MasteringVault" then
-        -- Full-size original reel-to-reel mastering transfer deck. Keep the
-        -- existing authored route through the room unobstructed; the asset is
-        -- cosmetic pending physical cover/navmesh review in Studio.
-        if not PrefabLibrary.place(parent,"BlacklineTransferDeck",
-            CFrame.new(r.x1+13,0,r.z1+12)) then
-            serviceRack(parent,r.x1+13,r.z1+12,"ArchiveTransferFallback")
-        end
+        -- VF04 now owns the single mastering deck in BlacklineMasteringGallery.
+        -- Leave only this room's historic documentation here: no duplicated
+        -- machine, rack or imported mesh atop the custom visual fallback.
         workplace(parent,r,
             "MASTERING SUITE\n\nMAGNETIC SOURCE CONTROL\nNO SECONDARY RECORDINGS\nVERIFY ISOLATION BEFORE ENTRY",
             "MasteringProtocol")
