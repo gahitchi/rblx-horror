@@ -194,7 +194,9 @@ def check_finish_detail_contract():
     assert 'p:SetAttribute("DisablePBR",true)' in prefabs, "imported mesh PBR must be preserved"
     assert 'part:FindFirstChildOfClass("SurfaceAppearance")==nil' in pbr, (
         "SurfaceAppearance should never be overridden by environment tiling")
-    assert 'if not PrefabLibrary.place(parent,"MixingConsole"' in furnishing
+    assert 'if PrefabLibrary.place(parent,"MixingConsole"' in furnishing
+    assert 'FinishDetail.consoleMount(parent,theme.id' in furnishing
+    assert 'ConsolePedestalCrossbrace' in finish
     assert 'box(parent,"CounterTop"' not in furnishing
     assert 'box(parent,"ConsoleSurface"' not in furnishing
     for identifier in ("studio","radio","foundry"):
