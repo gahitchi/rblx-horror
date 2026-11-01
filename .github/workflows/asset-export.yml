@@ -12,6 +12,9 @@ on:
       - tools/validate_skinned_engineer.py
       - tools/build_signature_assets.py
       - tools/quality_console.py
+      - tools/validate_production_baseline.py
+      - docs/art/asset_quality_ledger.json
+      - docs/art/PRODUCTION_BASELINE_Q01.md
       - assets/meshes/**
       - .github/workflows/asset-export.yml
       - tools/audit_hero_meshes.py
