@@ -1,16 +1,16 @@
 # Studio import: high-fidelity mesh and PBR deployment
 
-**Status:** The game-side mesh swap is implemented and nine real GLB files have been
-exported successfully. They are *not* live in Roblox until imported and approved
+**Status:** The game-side mesh swap is implemented. Thirteen original GLB files
+(nine core and four optional Blackline props) have been exported successfully. They are *not* live in Roblox until imported and approved
 under the experience's creator account. Rojo and server Scripts cannot directly
 assign `MeshPart.MeshId` at runtime. <https://create.roblox.com/docs/reference/engine/classes/MeshPart>
 
 ## Step 1 — Get the source asset pack
 
-Open [successful GitHub Source Asset Export](https://github.com/gahitchi/rblx-horror/actions/runs/41252355685)
+Open [successful GitHub Source Asset Export](https://github.com/gahitchi/rblx-horror/actions/runs/41261640055)
 and download `dead-air-import-ready-mesh-pbr-pack`. The ZIP contains:
 
-- `roblox-glb/`: nine GLB prefab models, ready for Studio's 3D Importer;
+- `roblox-glb/`: thirteen GLB prefab models (nine core + four new optional Blackline props), ready for Studio's 3D Importer;
 - `materials/`: 16 PNG PBR maps (four materials × color, normal, roughness, metalness);
 - `meshes/`: the original five OBJ and MTL source models for further hand editing.
 
@@ -137,3 +137,18 @@ Do not attach unsupported `rbxassetid://` values. Verify the mesh imports under 
 7. Only then consider the PBR/mesh integration qualified. **Do not label the present procedural models fully photorealistic before these checks.**
 
 Current renderer capability reference: [Roblox PBR textures](https://create.roblox.com/docs/art/modeling/surface-appearance), [MaterialVariant](https://create.roblox.com/docs/reference/engine/classes/MaterialVariant), [Realistic lighting](https://create.roblox.com/docs/environment/lighting).
+
+## Optional Blackline second-wave art (November 1)
+
+A fresh Source Asset Export also contains `ReceptionTerminal.glb`,
+`TapeArchiveCart.glb`, `ServiceIntercom.glb` and `StudioWallClock.glb`.
+They are **optional**, and their scene placement code has procedural fallbacks.
+The original nine installed models remain untouched. When ready in Studio,
+import these four GLBs only, select the imported models and rerun the updated
+`tools/studio/InstallImportedModels.luau` Command Bar installer (or place them
+directly in `ServerStorage.ArtLibrary` with the exact model names).
+A newly exported asset pack does not automatically upload any GLB to Roblox.
+
+The current import-ready pack is downloadable from
+[Source Asset Export run 41261640055](https://github.com/gahitchi/rblx-horror/actions/runs/41261640055)
+until its artifact expires (December 1, 2026).
