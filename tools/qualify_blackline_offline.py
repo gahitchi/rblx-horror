@@ -92,8 +92,11 @@ for a,b in design["traversalEdges"]:
 # A booth's only link is expected to be a bridge, but it must never disconnect
 # mandatory objectives / the front exit.
 assert not bridges,("critical objective disconnected by one door",bridges)
-assert {r for r in areas if len(graph[r])==1}==set(design["sealedBooths"]),(
-    "unexpected isolation or blind dead-end")
+# LoadingDock is an intentional terminal service bay (a risky supply side-quest);
+# unlike the sealed vocal booths it is acoustically ordinary.
+expected_dead_ends=set(design["sealedBooths"])|{"LoadingDock"}
+assert {r for r in areas if len(graph[r])==1}==expected_dead_ends,(
+    "unexpected isolated dead-end; document every intentional terminal space")
 
 # Sound assumptions: only actual architectural walls and closed door leaves may
 # attenuate. Visual props must never intercept raycasts by default.
