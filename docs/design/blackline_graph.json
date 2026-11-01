@@ -340,6 +340,10 @@
       "GeneratorRoom"
     ],
     [
+      "Reception",
+      "GeneratorRoom"
+    ],
+    [
       "Lounge",
       "Reception"
     ],
@@ -527,6 +531,11 @@
     },
     {
       "a": "Maintenance",
+      "b": "GeneratorRoom",
+      "kind": "normal"
+    },
+    {
+      "a": "Reception",
       "b": "GeneratorRoom",
       "kind": "normal"
     },
