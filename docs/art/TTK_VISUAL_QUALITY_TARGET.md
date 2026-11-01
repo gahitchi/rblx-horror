@@ -20,14 +20,14 @@ maps, UI, color grade or any proprietary materials.
 
 **Already in source:** authored 19-space Blackline circulation, varied room
 heights, larger LiveHall, actual functional props/story clues, Rojo-imported
-six MaterialVariants, nine previously imported GLBs, four optional new GLBs
+six MaterialVariants, nine previously imported GLBs, ten optional newer GLBs
 (with procedural fallbacks), lighting rules, moving doors, sonic gameplay.
 The non-grid map and last art refinements have passed source validation.
 
 **Currently not at target:** many walls, desk fronts, shelves and architectural
 details are still rectangular Parts. Existing high-level PBR material families
 are **procedurally synthesized starter textures**, not measured scans or
-artist-authored baked surfaces. The thirteen current GLBs are original,
+artist-authored baked surfaces. The nineteen current GLBs are original,
 principally low-complexity hard-surface meshes; most lack a professional
 high-frequency material pass, detailed atlas UVs, damage/wear masks and
 per-asset LOD qualification. No before/after TTK-style lighting comparison,
@@ -134,3 +134,18 @@ nonfunctional gameplay; unmeasured FPS claims; unowned external mesh assets.
 TTK Testing's appearance is a legitimate benchmark for Roblox production
 quality; **we are not there yet**. The next source updates and asset exports
 should be judged against this definition, not the number of Parts or GLBs.
+
+## November 1 progress — six embedded-image prototypes
+
+Four character/monster assets and two signature Blackline equipment meshes
+have been built and integrated as optional authored asset swaps. They embed
+original color/normal/metallic-roughness texture images and pass geometry export
+audits. The complete 19-model pack is reproducible from GitHub Actions, while
+existing installed meshes do not need reimportation.
+
+The build also now assigns functional floor/ceiling materials separately to
+production, public, archive, acoustic and service spaces, instead of one shared
+plaster treatment. This is a material-intent correction, **not** a photographic
+reference-match or finished TTK-standard art grade. See
+`CHARACTER_ENVIRONMENT_BUILD.md` for the remaining rigging, texture baking,
+Studio and performance acceptance gates.
