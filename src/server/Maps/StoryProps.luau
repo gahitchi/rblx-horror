@@ -154,7 +154,8 @@ local function evidence(parent:Instance,r:Room)
 end
 
 local function reception(parent:Instance,r:Room,p:Palette)
-    local x=r.center.X
+    -- Keep the main StaffGallery/Reception threshold unobstructed.
+    local x=r.x2-18
     local z=r.z1+2.4
     -- Oversized, near-monolithic institution frontage; recognizable from across
     -- the building, but identity and wayfinding are original to Blackline.
