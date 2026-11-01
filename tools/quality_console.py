@@ -235,10 +235,10 @@ def build():
     # Unique, original 2k-resolution deck screen print mapped in local space.
     # UV in ascending X, ascending Z; the image exporter owns V orientation.
     top=[
-        (-2.72,deck_y(1.23)+.028,1.23),
-        (2.72,deck_y(1.23)+.028,1.23),
-        (2.72,deck_y(-1.12)+.028,-1.12),
-        (-2.72,deck_y(-1.12)+.028,-1.12),
+        (-2.72,deck_y(1.23)+.078,1.23),
+        (2.72,deck_y(1.23)+.078,1.23),
+        (2.72,deck_y(-1.12)+.078,-1.12),
+        (-2.72,deck_y(-1.12)+.078,-1.12),
     ]
     deck=mapped_surface(top,[(0,0),(1,0),(1,1),(0,1)],
                         'Blackline12ChannelScreenprint',print_atlas())
@@ -249,7 +249,7 @@ def build():
         x=-2.45+ch*(4.90/11)
         for z in (-.91,-.42,.08):
             knob(x,z,metal=(z==-.91))
-        block('rubber',(x,deck_y(.72)+.031,.72),(.061,.04,.92),.028,tilt=TILT)
+        block('rubber',(x,deck_y(.72)+.102,.72),(.061,.04,.92),.028,tilt=TILT)
         fz=.38+(ch%5)*.125
         block('frame',(x,deck_y(fz)+.095,fz),(.24,.16,.28),.078,tilt=TILT)
         block('rubber',(x,deck_y(fz)+.184,fz),(.135,.024,.17),.04,tilt=TILT)
