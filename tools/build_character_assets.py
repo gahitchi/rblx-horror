@@ -12,6 +12,8 @@ from __future__ import annotations
 import argparse
 import math
 from pathlib import Path
+from PIL import Image
+import hashlib
 import numpy as np
 import trimesh
 from trimesh.visual.material import PBRMaterial
@@ -31,6 +33,48 @@ COLORS={
  "field_cloth":((0.18,0.21,0.20,1),0.01,0.93),
  "field_edge":((0.105,0.12,0.12,1),0.01,0.95),
 }
+# Deterministic original microscopic material pattern, baked into the four
+# character GLBs. Packed glTF metal/rough texture: G=roughness, B=metalness.
+# This is a technically correct image-mapped first pass; a physically sampled
+# and hand-painted high/low-poly bake is still required for final visual approval.
+MATERIAL_PIXELS=384
+
+def image_material(name):
+ color,metal,rough=COLORS[name]
+ seed=int.from_bytes(hashlib.sha256(name.encode("utf-8")).digest()[:8],"big")
+ rng=np.random.default_rng(seed)
+ n=MATERIAL_PIXELS
+ coarse=rng.normal(0,1,(24,24))
+ coarse=np.asarray(Image.fromarray(coarse.astype("float32"),"F").resize(
+     (n,n),Image.Resampling.BILINEAR),dtype=np.float32)
+ fine=rng.normal(0,1,(n,n)).astype(np.float32)
+ yy,xx=np.mgrid[0:n,0:n]
+ is_fabric=name in {"coat","coat_high","coat_dark","field_cloth","field_edge"}
+ is_metal=name in {"iron","brass","signal"}
+ weave=(np.sin(xx*math.pi*.55)*np.sin(yy*math.pi*.55)) if is_fabric else 0
+ scratch=(np.sin(xx*.21+coarse*.4)**20)*.3 if is_metal else 0
+ height=coarse*.3+fine*.11+weave*.16+scratch*.16
+ variability=height*(.048 if is_fabric else .072 if is_metal else .037)
+ base=np.array(color[:3],dtype=float)[None,None,:]
+ color_map=np.clip((base+variability[:,:,None])*255,0,255).astype(np.uint8)
+ gx=np.gradient(height,axis=1); gy=np.gradient(height,axis=0)
+ power=.14 if is_fabric else .24 if is_metal else .12
+ nx=-gx*power;ny=-gy*power;nz=np.ones_like(nx)
+ mag=np.sqrt(nx**2+ny**2+nz**2)
+ normal=np.stack(((nx/mag*.5+.5)*255,(ny/mag*.5+.5)*255,
+                  (nz/mag*.5+.5)*255),axis=-1).clip(0,255).astype(np.uint8)
+ rr=np.clip((rough+height*.026)*255,0,255).astype(np.uint8)
+ mm=np.clip((metal+height*.008)*255,0,255).astype(np.uint8)
+ packed=np.zeros((n,n,3),dtype=np.uint8)
+ packed[:,:,1]=rr;packed[:,:,2]=mm
+ return PBRMaterial(
+     name=name,baseColorFactor=np.array([255,255,255,255],dtype=np.uint8),
+     metallicFactor=1.0,roughnessFactor=1.0,
+     baseColorTexture=Image.fromarray(color_map,"RGB"),
+     normalTexture=Image.fromarray(normal,"RGB"),
+     metallicRoughnessTexture=Image.fromarray(packed,"RGB"),doubleSided=False,
+ )
+
 class Model:
  def __init__(self):
   self.meshes={name:[] for name in COLORS}
@@ -77,10 +121,14 @@ class Model:
   for name,meshes in self.meshes.items():
    if not meshes:continue
    mesh=trimesh.util.concatenate(meshes)
-   color,metal,rough=COLORS[name]
-   material=PBRMaterial(name=name,baseColorFactor=(np.asarray(color)*255).round().astype("uint8"),
-          metallicFactor=metal,roughnessFactor=rough,doubleSided=False)
-   mesh.visual=trimesh.visual.TextureVisuals(material=material)
+   # Two dominant dimensions preserve stable texel density; UV tiling is
+   # mapped in physical model units, rather than normalized separately per part.
+   coords=np.asarray(mesh.vertices,dtype=np.float64)
+   scales=np.ptp(coords,axis=0)
+   axes=np.argsort(scales)[-2:]
+   uv=np.asarray(coords[:,axes]/1.7,dtype=np.float64)
+   mesh.visual=trimesh.visual.TextureVisuals(
+       uv=uv,material=image_material(name))
    scene.add_geometry(mesh,node_name="PBR_"+name,geom_name="PBR_"+name)
   return scene
 
