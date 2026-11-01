@@ -9,6 +9,7 @@ local FinishDetail = require(script.Parent.FinishDetail)
 local StoryProps = require(script.Parent.StoryProps)
 local BlacklineHeroRooms = require(script.Parent.BlacklineHeroRooms)
 local BlacklineArchiveHero = require(script.Parent.BlacklineArchiveHero)
+local BlacklineMasteringGallery = require(script.Parent.BlacklineMasteringGallery)
 local BlacklineFacilityDevices = require(script.Parent.BlacklineFacilityDevices)
 local PBRMaterials = require(script.Parent.PBRMaterials)
 local PrefabLibrary = require(script.Parent.Parent.PrefabLibrary)
@@ -560,13 +561,14 @@ function Kit.build(spec: Specification): Model
         end
         furnishing(room,spec,detailFolder)
         AssetLibrary.decorate(detailFolder,room.role,spec.id,room.x1,room.x2,
-            room.z1,room.z2,room.height,theme)
+            room.z1,room.z2,room.height,theme,room.name)
         ArchitecturalDetail.decorate(detailFolder,spec.id,room.role,room.x1,room.x2,
-            room.z1,room.z2,room.height,theme)
+            room.z1,room.z2,room.height,theme,room.name)
         if spec.authored==true and spec.id=="studio" then
             StoryProps.decorate(detailFolder,room,theme,lights)
             BlacklineHeroRooms.decorate(detailFolder,lights,room,theme)
             BlacklineArchiveHero.decorate(detailFolder,room)
+            BlacklineMasteringGallery.decorate(detailFolder,room)
             BlacklineFacilityDevices.decorate(facilitySystems,room)
         end
     end
