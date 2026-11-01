@@ -136,6 +136,11 @@ local function controlA(parent:Instance,lights:Instance,r:Room)
     -- The true Studio A observation window sits on the east wall, so all
     -- acoustic treatment here is either overhead or along the north interior.
     for i=0,7 do
+        -- DrumRoom-to-ControlA doorway is centred on this shared north wall.
+        -- Leave a deliberate 8+ stud visual opening for the player and Engineer.
+        if i==3 or i==4 then
+            continue
+        end
         local x=r.x1+7+i*4.1
         local depth=if i%3==0 then .82 else if i%3==1 then .53 else .34
         part(parent,"DiffuserCell",
