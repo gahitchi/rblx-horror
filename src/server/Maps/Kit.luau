@@ -137,9 +137,14 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
         collider.Transparency=1
         collider.CastShadow=false
         collider:SetAttribute("DisablePBR",true)
-        if PrefabLibrary.place(parent,"MixingConsole",CFrame.new(left+1.5,0,back+0.7)) then
-            -- The uploaded GLB owns its cabinet, top and controls. A second
-            -- procedural tabletop would intersect and shimmer under lighting.
+        if theme.id=="studio" and r.name=="ControlA"
+            and PrefabLibrary.place(parent,"BlacklineHeroConsole",
+                CFrame.new(left+1.5,0,back+0.7)) then
+            -- The signature console has its own table, legs, meters and labels.
+            -- No redundant desk art or overlapping tabletop is constructed.
+            collider:SetAttribute("VisualPresentation","BlacklineHeroConsole")
+        elseif PrefabLibrary.place(parent,"MixingConsole",CFrame.new(left+1.5,0,back+0.7)) then
+            -- Earlier approved imported desk remains a tested fallback.
             FinishDetail.consoleMount(parent,theme.id,left-2,back-1,left+5,back+2.5)
         else
             FinishDetail.counter(parent,theme.id,"control",left-2,back-1,
