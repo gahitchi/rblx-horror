@@ -107,16 +107,24 @@ def build():
     # Practical undershirt and collar, not armor or a fake chest wound.
     sphere(m,(0,1.54,-.06),(.48,.37,.35),'field_edge',2)
     for side in (-1,1):
-        m.link((side*.18,1.53,-.42),(side*.48,1.12,-.49),
-               .17,.10,'coat_high',14)
+        # Flat worn work-jacket collar, rather than cartoon conical spikes.
+        m.box((side*.29,1.37,-.455),(.32,.32,.065),'coat_high')
+        m.link((side*.19,1.56,-.44),(side*.48,1.12,-.48),
+               .042,.036,'coat_dark',10)
     # Trousers and feet, fabric over a plausible human joint layout.
     for side in (-1,1):
         hip=(side*.43,-1.47,.08)
         knee=(side*.49,-2.93,.06)
         ankle=(side*.53,-4.30,.02)
-        m.link(hip,knee,.37,.27,'coat_dark',24)
-        sphere(m,knee,(.30,.29,.31),'coat_high',2)
-        m.link((side*.50,-3.02,.06),ankle,.28,.22,'coat_dark',24)
+        # One tapered trouser shell across hip/knee/shin; no exposed round
+        # robot-like joint geometry. Sculpted fabric folds live in its profile.
+        m.add(loft([(-4.31,.22,.22,side*.53,.02),
+                    (-4.03,.26,.24,side*.52,.03),
+                    (-3.44,.265,.26,side*.51,.05),
+                    (-3.04,.30,.29,side*.49,.06),
+                    (-2.79,.32,.29,side*.49,.06),
+                    (-2.21,.33,.31,side*.46,.07),
+                    (-1.57,.37,.36,side*.43,.08)],32,.017),'coat_dark')
         m.box((side*.51,-3.98,-.27),(.38,.18,.14),'coat_high')
         # Calf stitching is fabric; no metal shin armor.
         m.link((side*.68,-3.12,-.24),(side*.65,-4.15,-.20),
@@ -128,25 +136,32 @@ def build():
         shoulder=(side*1.09,1.10,.02)
         elbow=(side*1.26,-.25,-.06)
         wrist=(side*1.34,-1.55,-.10)
-        sphere(m,shoulder,(.42,.38,.40),'coat',3)
-        m.link(shoulder,elbow,.38,.28,'coat',24)
-        sphere(m,elbow,(.30,.31,.30),'coat_high',2)
-        m.link((side*1.27,-.35,-.05),wrist,.27,.22,'coat',20)
+        # A continuous sleeved arm with subtle elbow volume and work creases.
+        # The animation rig deforms the cloth; no visible ball joints.
+        m.add(loft([(-1.57,.22,.23,side*1.34,-.10),
+                    (-1.36,.25,.24,side*1.33,-.09),
+                    (-.70,.255,.26,side*1.30,-.07),
+                    (-.28,.29,.30,side*1.26,-.06),
+                    (.14,.32,.33,side*1.20,-.02),
+                    (.75,.35,.35,side*1.13,.01),
+                    (1.19,.38,.35,side*1.09,.02)],32,.016),'coat')
         m.link((side*1.34,-1.51,-.10),(side*1.34,-1.65,-.10),
                .24,.24,'coat_dark',18)
         sphere(m,(side*1.35,-1.90,-.12),(.21,.32,.16),'flesh',3)
+        # Individual but human-sized fingers curve inward, not long claws.
         for finger in range(4):
-            x=side*1.20+(finger-.5)*.105
-            m.link((x,-2.05,-.22),(x,-2.38+(finger%2)*.045,-.29),
-                   .055,.037,'flesh',10)
-        m.link((side*1.18,-1.90,-.26),(side*1.05,-2.20,-.38),
-               .083,.065,'flesh',12)
+            x=side*1.19+finger*.095
+            m.link((x,-2.01,-.20),(x+side*.025,
+                   -2.19+(finger%2)*.025,-.27),
+                   .045,.031,'flesh',10)
+        m.link((side*1.18,-1.88,-.26),(side*1.06,-2.05,-.37),
+               .067,.044,'flesh',12)
         # Seam follows fabric sleeve instead of exposing monster anatomy.
         m.link((side*1.36,.79,-.36),(side*1.45,-1.34,-.29),
                .028,.028,'coat_high',10)
     # Waist utility belt + simple tape splice tools; no weapon prop.
-    m.add(loft([(-1.21,.74,.43,0,.05),(-1.08,.75,.43,0,.05),
-                (-1.02,.73,.42,0,.05)],36),'rubber')
+    m.add(loft([(-1.19,.69,.40,0,.05),(-1.10,.70,.41,0,.05),
+                (-1.06,.69,.40,0,.05)],36),'coat_dark')
     m.box((0,-1.11,-.43),(.39,.26,.13),'brass')
     m.box((.57,-1.09,-.48),(.21,.42,.13),'iron')
     m.box((.59,-.83,-.50),(.18,.14,.08),'label')
@@ -159,18 +174,19 @@ def build():
     sphere(m,(.03,3.025,.01),(.66,.37,.55),'coat_dark',3)
     for side in (-1,1):
         sphere(m,(side*.53,2.46,-.015),(.135,.25,.18),'flesh',2)
-        sphere(m,(side*.29,2.61,-.55),(.28,.14,.08),'bone',2)
-        sphere(m,(side*.28,2.61,-.61),(.155,.105,.06),'rubber',2)
-        # Dull focused eye, distinct gaze. No emissive glow.
-        sphere(m,(side*.28,2.62,-.659),(.075,.074,.038),'iron',2)
-        m.link((side*.12,2.74,-.61),(side*.42,2.77,-.56),
-               .059,.047,'coat_dark',12)
-        sphere(m,(side*.34,2.25,-.50),(.23,.12,.08),'flesh',2)
+        # Recessed tired lids and tiny dull irises: a human gaze, not bulging
+        # spherical eyes. Under-eye shadow is subtle, not a facial lesion.
+        sphere(m,(side*.27,2.63,-.552),(.17,.066,.028),'bone',2)
+        sphere(m,(side*.27,2.64,-.584),(.086,.047,.017),'rubber',2)
+        sphere(m,(side*.27,2.64,-.598),(.031,.037,.013),'iron',2)
+        m.link((side*.13,2.76,-.56),(side*.41,2.75,-.54),
+               .035,.029,'coat_dark',10)
     # Normal human nose and closed lips, not monster jaws.
-    m.link((0,2.61,-.54),(0,2.39,-.71),.115,.082,'flesh',14)
-    sphere(m,(0,2.34,-.68),(.18,.09,.12),'flesh',2)
-    m.link((-.20,2.13,-.59),(.22,2.11,-.59),.032,.03,'coat_dark',16)
-    sphere(m,(.025,2.03,-.52),(.27,.11,.10),'bone',2)
+    m.link((0,2.62,-.55),(0,2.39,-.62),.080,.065,'flesh',14)
+    sphere(m,(0,2.35,-.63),(.105,.057,.055),'flesh',2)
+    # Narrow unsmiling lip line; expression and fear come from stillness.
+    m.link((-.15,2.115,-.552),(.15,2.108,-.55),
+           .020,.019,'coat_dark',12)
     # One eyebrow is slightly higher, expressing unblinking attention,
     # without equating mental illness with monstrous anatomy.
     m.link((-.44,2.81,-.55),(-.13,2.84,-.59),.045,.034,'coat_dark',12)
