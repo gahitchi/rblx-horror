@@ -267,7 +267,10 @@ function StoryProps.decorate(parent:Instance, r:Room, palette:Palette, lights:In
         workplace(parent,r,
             "PATCH DISTRIBUTION\n\nFEED 01 - ACTIVE\nFEED 02 - BYPASS\nFEED 08 - DO NOT BRIDGE\nSTANDBY POWER: ISOLATED",
             "PatchBayDiagram")
-        serviceRack(parent,r.x2-7,r.z1+8,"PowerRoutingRack")
+        if not PrefabLibrary.place(parent,"BlacklinePatchMatrix",
+            CFrame.new(r.x2-8,0,r.z1+9)) then
+            serviceRack(parent,r.x2-8,r.z1+9,"PowerRoutingRack")
+        end
     elseif r.name=="ViewingGallery" then
         title(parent,"GalleryDirection",
             "CONTROL ROOMS  <\nLIVE FLOOR      v\nMASTERING / ARCHIVE ^",
@@ -285,6 +288,13 @@ function StoryProps.decorate(parent:Instance, r:Room, palette:Palette, lights:In
             "AUDIO PLANT  /  QUIET HOURS\n\nKEEP FIRE DOORS CLEAR\nARCHIVE VENTILATION 02 OFF\nSIGNAL LOSS REPORTED 03:17",
             "ServiceNotice")
     elseif r.name=="MasteringVault" then
+        -- Full-size original reel-to-reel mastering transfer deck. Keep the
+        -- existing authored route through the room unobstructed; the asset is
+        -- cosmetic pending physical cover/navmesh review in Studio.
+        if not PrefabLibrary.place(parent,"BlacklineTransferDeck",
+            CFrame.new(r.x1+13,0,r.z1+12)) then
+            serviceRack(parent,r.x1+13,r.z1+12,"ArchiveTransferFallback")
+        end
         workplace(parent,r,
             "MASTERING SUITE\n\nMAGNETIC SOURCE CONTROL\nNO SECONDARY RECORDINGS\nVERIFY ISOLATION BEFORE ENTRY",
             "MasteringProtocol")
