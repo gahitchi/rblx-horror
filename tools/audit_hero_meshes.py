@@ -20,6 +20,7 @@ EXPECTED={
     "EngineerBody","FieldOperatorVest","FieldOperatorMask","FieldOperatorPack",
     "BlacklineTransferDeck","BlacklinePatchMatrix",
     "EngineerRigTorso","EngineerRigHead","EngineerRigArmLeft","EngineerRigArmRight","EngineerRigLegLeft","EngineerRigLegRight",
+    "EngineerSkinned",
 }
 
 
@@ -50,6 +51,7 @@ def check(path: Path):
         "EngineerBody","FieldOperatorVest","FieldOperatorMask","FieldOperatorPack",
         "BlacklineTransferDeck","BlacklinePatchMatrix",
         "EngineerRigTorso","EngineerRigHead","EngineerRigArmLeft","EngineerRigArmRight","EngineerRigLegLeft","EngineerRigLegRight",
+        "EngineerSkinned",
     }:
         assert images>=9,(path.name,"missing embedded color, normal or packed ORM images")
         assert vertices>=500,(path.name,"artist prototype too simplified")
