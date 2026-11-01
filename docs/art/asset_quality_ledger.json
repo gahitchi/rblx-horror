@@ -2,7 +2,7 @@
   "schema": "dead-air-art-quality-ledger-v1",
   "target": "Q01 production baseline now; full artist/AAA hero polish later",
   "referenceAsset": "BlacklineHeroConsole",
-  "evidenceRule": "Source audit and offline previews are not in-game Studio acceptance.",
+  "evidenceRule": "Q01 console offline preview accepted; Q02 procedural humanoid rejected. Studio approvals remain false until actual evidence exists.",
   "groups": [
     {
       "id": "Q01",
@@ -34,7 +34,9 @@
         "EngineerRigLegLeft",
         "EngineerRigLegRight"
       ],
-      "nextGate": "Q01-level anatomical silhouette, headset+garment construction, skinned/rigged movement QA; preserve original monster root and lights."
+      "nextGate": "Replace the placeholder with a DCC-authored realistic human base sculpt, proper anatomical face, layered workwear, studio headset and baked PBR at 1024; render real front/side/face closeups for explicit owner review before GLB promotion.",
+      "visualVerdict": "REJECTED_BY_OWNER_2026-11-01",
+      "rejectedSource": "Procedural Q02 Engineer built from ellipsoids/lofts: blocky cartoon-like face and clothing. Removed from active exports; not a fidelity upgrade."
     },
     {
       "id": "Q03",
