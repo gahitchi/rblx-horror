@@ -1,0 +1,77 @@
+name: Source Asset Export
+
+on:
+  push:
+    branches:
+      - chatgpt/studio-art-pass
+    paths:
+      - tools/generate_pbr.py
+      - tools/build_glb_assets.py
+      - tools/build_character_assets.py
+      - tools/quality_engineer_real.py
+      - tools/validate_headset_fit.py
+      - tools/build_skinned_engineer.py
+      - tools/validate_skinned_engineer.py
+      - tools/build_signature_assets.py
+      - tools/quality_console.py
+      - tools/validate_production_baseline.py
+      - docs/art/asset_quality_ledger.json
+      - docs/art/PRODUCTION_BASELINE_Q01.md
+      - assets/meshes/**
+      - .github/workflows/asset-export.yml
+      - tools/audit_hero_meshes.py
+      - docs/art/ENGINEER_CC0_LICENSE.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    env:
+      REQUIRE_REAL_ENGINEER: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare deterministic procedural material generator
+        run: python3 -m pip install --disable-pip-version-check --user pillow numpy trimesh vtk
+      - name: Generate original PBR source maps
+        run: python3 tools/generate_pbr.py --size 1024 --out build/materials
+      - name: Build import-ready glTF prefabs
+        run: python3 tools/build_glb_assets.py --out build/roblox-glb
+      - name: Acquire legal CC0 sculpted human source and verify SHA-256
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/cc0
+          curl -fLsS --retry 3 --max-time 120 "https://www.innerscene.com/api/library/daniel-3d-person-standing-casual-f788af5a/download" -o build/cc0/daniel_cc0.glb
+          echo "3e68ffc55382bd01e8a3ae52c3f22cdbd24d68e3e72ce6a21a5233903992d230  build/cc0/daniel_cc0.glb" | sha256sum --check --status
+          test "$(head -c4 build/cc0/daniel_cc0.glb)" = "glTF"
+          echo "Origin: Innerscene / MakeHuman CC0; exact source hash verified."
+      - name: Build original character and monster meshes
+        run: python3 tools/build_character_assets.py --out build/roblox-glb
+      - name: Export weighted skinned Engineer (glTF joint hierarchy)
+        run: python3 tools/build_skinned_engineer.py --out build/roblox-glb/EngineerSkinned.glb
+      - name: Audit every skinned vertex weight and inverse bind
+        run: python3 tools/validate_skinned_engineer.py build/roblox-glb/EngineerSkinned.glb
+      - name: Verify physical headset fit and rigid Head weighting on actual GLBs
+        run: python3 tools/validate_headset_fit.py
+      - name: Build image-mapped Blackline signature equipment
+        run: python3 tools/build_signature_assets.py --out build/roblox-glb
+      - name: Qualify GLB geometry and write honest fidelity inventory
+        run: python3 tools/audit_hero_meshes.py --directory build/roblox-glb --report build/art-quality-report.json
+      - name: Preserve derivative-source license and verified source fingerprint
+        run: |
+          mkdir -p build/licenses
+          cp docs/art/ENGINEER_CC0_LICENSE.md build/licenses/ENGINEER_CC0_LICENSE.md
+      - name: Collect original mesh source
+        run: |
+          mkdir -p build/meshes
+          cp assets/meshes/*.obj assets/meshes/*.mtl build/meshes/
+      - name: Publish importable source asset pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: dead-air-import-ready-mesh-pbr-pack
+          path: build/
+          if-no-files-found: error
+          retention-days: 30

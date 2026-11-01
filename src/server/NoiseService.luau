@@ -111,22 +111,29 @@ function NoiseService.effectiveLoudness(noise: Noise, listenerPosition: Vector3)
 		end
 	end
 
-	-- Count walls between the two points; each one halves how far the sound carries.
+	-- Count distinct opaque sound occluders, not repeated faces of the same
+	-- wall. A fixed "step 1.2 studs" can land inside a thick/diagonal wall,
+	-- making the same occluder count multiple times at grazing angles.
 	refreshIgnore()
+	local ignore = table.clone(wallParams.FilterDescendantsInstances)
 	local loudness = noise.loudness
 	local origin = listenerPosition
 	local target = noise.position
 	for _ = 1, Config.MAX_WALL_HITS do
 		local direction = target - origin
-		if direction.Magnitude < 0.5 then
+		if direction.Magnitude < 0.05 then
 			break
 		end
+		wallParams.FilterDescendantsInstances = ignore
 		local hit = workspace:Raycast(origin, direction, wallParams)
 		if not hit then
 			break
 		end
 		loudness *= Config.WALL_DAMPING
-		origin = hit.Position + direction.Unit * 1.2 -- step past this wall
+		-- This instance is already counted. Ignore its entire volume on the
+		-- next cast, so a second independent wall still attenuates the sound.
+		table.insert(ignore,hit.Instance)
+		origin = hit.Position + direction.Unit * 0.05
 	end
 	return loudness
 end

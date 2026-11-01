@@ -1,0 +1,60 @@
+name: Roblox Rojo Build
+
+on:
+  push:
+    branches:
+      - main
+      - chatgpt/studio-art-pass
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Validate Rojo place
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Roblox toolchain
+        uses: paradoxum-games/setup-rokit@v3
+        with:
+          cache: true
+      - name: Tool versions
+        run: |
+          rojo --version
+          stylua --version
+          selene --version
+      - name: Lint art and rendering Lua sources
+        run: |
+          selene src/server/FacilityStateService.luau src/server/Maps/BlacklineFacilityDevices.luau src/server/ObjectiveService.luau src/server/PrefabLibrary.luau src/server/VisualFidelity.luau src/server/ItemArt.luau src/server/Monster/EngineerModel.luau src/server/Monster/ArticulatedEngineer.luau src/client/EngineerMotion.luau src/server/Monster/SkinnedEngineer.luau src/client/SkinnedEngineerMotion.luau src/server/MapBuilder.luau src/server/Maps/Kit.luau src/server/Maps/Layouts.luau src/server/Maps/Lobby.luau src/server/Maps/AssetLibrary.luau src/server/Maps/PBRMaterials.luau src/server/Maps/ArchitecturalDetail.luau src/server/Maps/FinishDetail.luau src/server/Maps/BlacklineLayout.luau src/server/Maps/StoryProps.luau src/server/Maps/BlacklineHeroRooms.luau src/server/Maps/BlacklineArchiveHero.luau src/server/Maps/BlacklineMasteringGallery.luau src/hub/server/HubEnvironment.luau src/hub/server/Main.server.luau
+      - name: Validate focused Blackline signal and power sequence
+        run: python3 tools/validate_facility_vf01.py
+      - name: Verify map topology and imported mesh geometry
+        run: python3 tools/validate_map_assets.py
+      - name: Validate authored Blackline design graph (proposal only)
+        run: python3 tools/validate_level_design.py
+      - name: Validate weighted Engineer integration and three-tier fallback
+        run: python3 tools/validate_skinned_runtime.py
+      - name: Validate articulated Engineer and flagship-room contracts
+        run: python3 tools/validate_hero_pass.py
+      - name: Check character and monster visual safety contracts
+        run: python3 tools/validate_character_assets.py
+      - name: Qualify Blackline offline portal / acoustic geometry
+        run: python3 tools/qualify_blackline_offline.py
+      - name: Validate archive hero art and gameplay isolation
+        run: python3 tools/validate_archive_hero.py
+      - name: Verify Mastering Vault and Gallery art placement against real portals
+        run: python3 tools/validate_mastering_gallery.py
+      - name: Verify Control A console quality benchmark and gameplay isolation
+        run: python3 tools/validate_console_quality.py
+      - name: Enforce project-wide Q01 quality ledger and truthful asset stages
+        run: python3 tools/validate_production_baseline.py
+      - name: Validate source tree and project serialization
+        run: |
+          rojo build default.project.json -o dead-air-validation.rbxl
+          rojo build hub.project.json -o dead-air-hub-validation.rbxl
+          rojo sourcemap default.project.json -o sourcemap.json
+      - name: Confirm place was produced
+        run: test -s dead-air-validation.rbxl && test -s dead-air-hub-validation.rbxl

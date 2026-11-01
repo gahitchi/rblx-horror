@@ -172,7 +172,9 @@ Config.PLACES = table.freeze({
 
 -- The maps players can pick. `id` is what MapBuilder/ServerStorage.Maps use.
 Config.MAPS = table.freeze({
-	table.freeze({ id = "studio", name = "Recording studio", monster = "The Engineer" }),
+	table.freeze({ id = "studio", name = "Blackline Recording Complex", monster = "The Engineer" }),
+	table.freeze({ id = "radio", name = "Wavelength Broadcast Station", monster = "The Engineer" }),
+	table.freeze({ id = "foundry", name = "Ashbell Industrial Foundry", monster = "The Engineer" }),
 })
 
 -- Hub lobbies.

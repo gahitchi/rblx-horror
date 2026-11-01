@@ -5,6 +5,8 @@
 local StarterGui = game:GetService("StarterGui")
 
 local DangerEffect = require(script.Parent.DangerEffect)
+local EngineerMotion = require(script.Parent.EngineerMotion)
+local SkinnedEngineerMotion = require(script.Parent.SkinnedEngineerMotion)
 local FlashlightController = require(script.Parent.FlashlightController)
 local Hud = require(script.Parent.Hud)
 local ItemController = require(script.Parent.ItemController)
@@ -25,6 +27,8 @@ local controllers: { [string]: { start: () -> () } } = {
 	VoiceController = VoiceController,
 	Hud = Hud,
 	DangerEffect = DangerEffect,
+	EngineerMotion = EngineerMotion,
+	SkinnedEngineerMotion = SkinnedEngineerMotion,
 	ItemController = ItemController,
 	SpectateController = SpectateController,
 	LobbyUi = LobbyUi,

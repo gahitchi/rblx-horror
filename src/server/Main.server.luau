@@ -9,6 +9,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
 
+local VisualFidelity = require(script.Parent.VisualFidelity)
 local DoorService = require(script.Parent.DoorService)
 local MapBuilder = require(script.Parent.MapBuilder)
 local MapContract = require(script.Parent.MapContract)
@@ -16,6 +17,7 @@ local MonsterService = require(script.Parent.MonsterService)
 local NoiseService = require(script.Parent.NoiseService)
 local ObjectiveService = require(script.Parent.ObjectiveService)
 local PlayerService = require(script.Parent.PlayerService)
+local CharacterArt = require(script.Parent.CharacterArt)
 local RoundService = require(script.Parent.RoundService)
 
 local FeedbackService = require(script.Parent.FeedbackService)
@@ -73,7 +75,7 @@ if not map then
 		copy.Parent = Workspace
 		map = copy
 	else
-		map = MapBuilder.build()
+		map = MapBuilder.build(mapId)
 	end
 end
 local loaded, problems = MapContract.read(map :: Instance, lobbySpawn)
@@ -85,7 +87,7 @@ if not loaded then
 	warn("[Map] Workspace.Map doesn't follow docs/MAP_CONTRACT.md; using the greybox instead")
 	local broken = map :: Instance
 	broken.Name = "Map (unusable)"
-	local greybox, greyboxProblems = MapContract.read(MapBuilder.build(), lobbySpawn)
+	local greybox, greyboxProblems = MapContract.read(MapBuilder.build(mapId), lobbySpawn)
 	for _, problem in greyboxProblems do
 		warn("[Map] greybox: " .. problem)
 	end
@@ -111,12 +113,21 @@ if layout.map:GetAttribute("OwnsLighting") ~= true then
 	end
 end
 
+-- Studio-specific realistic rendering; does not override hand-authored maps that own lighting.
+VisualFidelity.apply(layout)
+
 NoiseService.init()
 NoiseService.setZones(layout.zones)
 DoorService.register(layout.frontDoor, false)
 for _, door in layout.doors do
 	DoorService.register(door, true)
 end
+
+-- Register before RoundService starts spawning players; cosmetics are entirely
+-- optional, and their failure cannot interrupt round objectives or camera.
+RoundService.onSpawn(function(_, character, inRound)
+    CharacterArt.apply(character, inRound)
+end)
 
 MonsterService.init(layout.areas, RoundService.isTarget, RoundService.catch)
 ObjectiveService.init(layout, RoundService.isTarget)

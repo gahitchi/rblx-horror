@@ -4,9 +4,11 @@ How a map must be laid out so the game's scripts can use it: the monster, the no
 objectives and the rounds all read the map from this structure and nothing else. Follow it and a new
 map works with no script changes.
 
-The greybox in `src/server/MapBuilder.luau` is built exactly this way, so it's a working example of
-every rule below. When the game starts it looks for `Workspace.Map`. If there is one it's used;
-if not, the greybox is built instead. Any problem with the map is printed in Studio's Output window
+The production maps in `src/server/Maps/Kit.luau` and `Layouts.luau` implement these rules.
+`src/server/MapBuilder.luau` dispatches to one of three new environments (`studio`, `radio`,
+`foundry`). At startup, an existing `Workspace.Map` or a matching map in
+`ServerStorage.Maps.<id>` is used first; otherwise the corresponding procedural production
+map is built. Any problem with the map is printed in Studio's Output window
 as a line starting with `[Map]`.
 
 ## Structure
@@ -140,8 +142,9 @@ Either way, the map gets there by:
    ```
    Rojo then puts it in Workspace like the scripts. Prefer `.rbxmx` (text) over `.rbxm` (binary) so
    changes show up in git.
-2. **Built by code:** a ModuleScript that creates the `Map` model following this contract (the way
-   `MapBuilder.luau` does for the greybox), called from `Main.server.luau` before the map is read.
+2. **Built by code:** the current default. `MapBuilder.build(mapId)` dispatches to the three
+   configured production layouts built by `Maps/Kit.luau`. The model must implement the same
+   contract as a Studio-authored map, and is read by `MapContract` before gameplay starts.
 
 This contract is shared ground, not a fence. If the map needs something it doesn't allow (glass
 that lets sound through, a ladder, a different kind of door), change it: update this file and

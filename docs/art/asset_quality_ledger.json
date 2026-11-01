@@ -1,0 +1,115 @@
+{
+  "schema": "dead-air-art-quality-ledger-v1",
+  "target": "Q01 production baseline now; full artist/AAA hero polish later",
+  "referenceAsset": "BlacklineHeroConsole",
+  "evidenceRule": "Q01 console offline preview accepted; Q02 procedural humanoid rejected. Studio approvals remain false until actual evidence exists.",
+  "groups": [
+    {
+      "id": "Q01",
+      "name": "Console reference",
+      "priority": 0,
+      "status": "source-reference",
+      "studioApproved": false,
+      "ownerPreviewAccepted": true,
+      "assetNames": [
+        "BlacklineHeroConsole"
+      ],
+      "nextGate": "Import newer original console safely; capture first-person before/after at 3,12,25 studs."
+    },
+    {
+      "id": "Q02",
+      "name": "Engineer monster",
+      "priority": 1,
+      "status": "source-candidate",
+      "studioApproved": false,
+      "ownerPreviewAccepted": false,
+      "assetNames": [
+        "EngineerSkinned",
+        "EngineerBody",
+        "EngineerHeadset",
+        "EngineerRigTorso",
+        "EngineerRigHead",
+        "EngineerRigArmLeft",
+        "EngineerRigArmRight",
+        "EngineerRigLegLeft",
+        "EngineerRigLegRight"
+      ],
+      "nextGate": "Owner reviews actual four-view Q02 anatomical character render; rigged GLB Studio import checks bones, texture streaming, face, headphones, motion and performance.",
+      "visualVerdict": "NEW_ANATOMICAL_CANDIDATE_NOT_REVIEWED",
+      "previousRejection": "2026-11-01 tube-and-sphere Q02 procedural model rejected; source permanently retired.",
+      "sourceLicense": "MakeHuman-derived Daniel CC0; validated exact source SHA256; see docs/art/ENGINEER_CC0_LICENSE.md"
+    },
+    {
+      "id": "Q03",
+      "name": "Player field operator",
+      "priority": 2,
+      "status": "source-prototype",
+      "studioApproved": false,
+      "ownerPreviewAccepted": false,
+      "assetNames": [
+        "FieldOperatorVest",
+        "FieldOperatorMask",
+        "FieldOperatorPack"
+      ],
+      "nextGate": "Human-scale PPE and layered fabric geometry with preserved R15 avatar/accessories."
+    },
+    {
+      "id": "Q04",
+      "name": "Archive and mastering spine",
+      "priority": 3,
+      "status": "source-prototype",
+      "studioApproved": false,
+      "ownerPreviewAccepted": false,
+      "assetNames": [
+        "BlacklineTransferDeck",
+        "BlacklineArchiveCabinet",
+        "BlacklineMasterReference",
+        "TapeArchiveCart",
+        "TapeReel"
+      ],
+      "nextGate": "Refine existing connected hero scenes with shaped housing, authored atlases and readable physical purpose; preserve all portals."
+    },
+    {
+      "id": "Q05",
+      "name": "Recording/control infrastructure",
+      "priority": 4,
+      "status": "source-prototype",
+      "studioApproved": false,
+      "ownerPreviewAccepted": false,
+      "assetNames": [
+        "BlacklinePatchMatrix",
+        "MixingConsole",
+        "NearfieldMonitor",
+        "AnalogRack",
+        "BroadcastMicrophone"
+      ],
+      "nextGate": "Bring recording equipment up to Q01 silhouette, UV and close-view construction standard."
+    },
+    {
+      "id": "Q06",
+      "name": "Secondary institutional equipment",
+      "priority": 5,
+      "status": "source-prototype",
+      "studioApproved": false,
+      "ownerPreviewAccepted": false,
+      "assetNames": [
+        "FoundryBell",
+        "CassetteRecorder",
+        "WalkieTalkie",
+        "ReceptionTerminal",
+        "ServiceIntercom",
+        "StudioWallClock"
+      ],
+      "nextGate": "Use well-designed family materials and scale-aware mesh/trim variations; no accidental duplicates."
+    }
+  ],
+  "gameSystemsHeldConstant": [
+    "navigation",
+    "monster-AI",
+    "mission-loop-undecided",
+    "sound-occlusion",
+    "character-hitboxes",
+    "existing-door-connectivity"
+  ],
+  "finalAaaPolish": "deferred-until-baseline-game-built"
+}

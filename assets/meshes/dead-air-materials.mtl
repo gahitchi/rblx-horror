@@ -1,0 +1,49 @@
+# Original Dead Air asset palette. Blender/Studio import reference; PBR textures added later.
+# OBJ/MTL is a source interchange format, not an automatically published Roblox MeshPart.
+newmtl oak
+Ka 0.20 0.15 0.10
+Kd 0.34 0.22 0.16
+Ks 0.05 0.05 0.05
+Ns 40
+
+newmtl steel
+Ka 0.13 0.13 0.14
+Kd 0.31 0.35 0.35
+Ks 0.55 0.55 0.55
+Ns 130
+
+newmtl darkmetal
+Ka 0.08 0.09 0.09
+Kd 0.13 0.15 0.16
+Ks 0.40 0.40 0.40
+Ns 95
+
+newmtl cream
+Ka 0.4 0.38 0.3
+Kd 0.7 0.67 0.52
+Ks 0.12 0.12 0.12
+Ns 15
+
+newmtl green
+Ka 0.0 0.06 0.04
+Kd 0.08 0.30 0.22
+Ks 0.2 0.4 0.3
+Ns 80
+
+newmtl brass
+Ka 0.20 0.14 0.07
+Kd 0.5 0.36 0.17
+Ks 0.60 0.48 0.22
+Ns 100
+
+newmtl bronze
+Ka 0.19 0.13 0.06
+Kd 0.43 0.29 0.16
+Ks 0.46 0.32 0.18
+Ns 64
+
+newmtl rubber
+Ka 0.03 0.03 0.03
+Kd 0.08 0.09 0.09
+Ks 0.03 0.03 0.03
+Ns 12
