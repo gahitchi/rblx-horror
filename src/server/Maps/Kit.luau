@@ -94,6 +94,7 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
         local collider=box(parent,"DeskPlinth",left-2,0,back-1,left+5,2.7,back+2.5,
             p.steel,Enum.Material.Metal,true)
         collider.Transparency=1
+        collider.CastShadow=false
         collider:SetAttribute("DisablePBR",true)
         if PrefabLibrary.place(parent,"MixingConsole",CFrame.new(left+1.5,0,back+0.7)) then
             -- The uploaded GLB owns its cabinet, top and controls. A second
@@ -163,6 +164,7 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
         local counterProxy=box(parent,"ReceptionCounter",left-1,0,back-1,
             left+7,3.3,back+2.6,p.trim,Enum.Material.Wood,true)
         counterProxy.Transparency=1
+        counterProxy.CastShadow=false
         counterProxy:SetAttribute("DisablePBR",true)
         FinishDetail.counter(parent,theme.id,"reception",left-1,back-1,
             left+7,back+2.6,3.3,p)
