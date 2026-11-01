@@ -56,8 +56,8 @@ out and got sent to the lobby. The last minute should instead be the most intens
 4. **The way out changes.** A shutter drops on the short route, so the team runs through the live
    room, where everything is easy to knock over.
 5. **The cassette and the rescues.** The evidence cassette has to leave the building or the chapter
-   isn't cleared; a caught carrier drops it for someone else to grab. An echo's walkie can be grabbed
-   on the way out too, tying the run into the revive system.
+   isn't cleared; a caught carrier drops it for someone else to grab. A teammate's entranced body can
+   be revived on the way out too (put their headset back on), tying the run into the revive system.
 6. **The escape moment.** Burst through the doors, they slam behind you, the Engineer hits the
    glass, a music stinger. Escaped players stay outside for a few seconds watching through the
    glass and can shout (the monster can't hear outside) before results.
