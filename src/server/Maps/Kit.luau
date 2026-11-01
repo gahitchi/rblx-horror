@@ -162,7 +162,7 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
             p.steel,Enum.Material.Metal,false)
     end
 end
-local function doorLeaf(parent: Instance, portal: Portal, palette: { wall: Color3, floor: Color3, ceiling: Color3, trim: Color3, steel: Color3, accent: Color3 }): Part
+local function doorLeaf(parent: Instance, portal: Portal, palette: { wall: Color3, floor: Color3, ceiling: Color3, trim: Color3, steel: Color3, accent: Color3 }, mapId: string): Part
     local x = if portal.axis=="X" then portal.along else portal.at
     local z = if portal.axis=="X" then portal.at else portal.along
     local leaf=piece(parent,portal.name,Vector3.new(portal.width-0.2,9,0.55),
@@ -209,10 +209,22 @@ local function doorLeaf(parent: Instance, portal: Portal, palette: { wall: Color
         Vector3.new(hw-1.05,-0.5,-0.34),palette.steel,Enum.Material.Metal)
     attachment("GripCylinder",Vector3.new(0.95,0.13,0.19),
         Vector3.new(hw-0.84,-0.51,-0.58),palette.accent,Enum.Material.Metal)
-    attachment("UpperDoorInlay",Vector3.new(leaf.Size.X-1.45,1.5,0.085),
-        Vector3.new(0,1.65,-0.31),palette.trim,Enum.Material.Metal)
-    attachment("LowerDoorInlay",Vector3.new(leaf.Size.X-1.45,2.5,0.085),
-        Vector3.new(0,-2.25,-0.31),palette.steel,Enum.Material.Metal)
+    -- Physically separated two-sided inset surfaces. Close range retains the PBR maps,
+    -- while the uninterrupted painted frame reads as one stable door at long range.
+    local faceMaterial=if portal.kind=="booth" then Enum.Material.Fabric
+        else if mapId=="studio" then Enum.Material.Wood else Enum.Material.Metal
+    for _, side in {-1,1} do
+        local upper=attachment("UpperDoorInlay",Vector3.new(leaf.Size.X-1.45,1.5,0.1),
+            Vector3.new(0,1.65,side*0.40),palette.trim,faceMaterial)
+        upper:SetAttribute("DisablePBR",false)
+        local lower=attachment("LowerDoorInlay",Vector3.new(leaf.Size.X-1.45,2.5,0.1),
+            Vector3.new(0,-2.25,side*0.40),palette.steel,faceMaterial)
+        lower:SetAttribute("DisablePBR",false)
+        attachment("PanelHeaderRail",Vector3.new(leaf.Size.X-0.8,0.18,0.15),
+            Vector3.new(0,3.48,side*0.46),palette.steel,Enum.Material.SmoothPlastic)
+        attachment("PanelMiddleRail",Vector3.new(leaf.Size.X-0.8,0.18,0.15),
+            Vector3.new(0,-0.24,side*0.46),palette.steel,Enum.Material.SmoothPlastic)
+    end
     if portal.kind=="booth" then
         attachment("AcousticDoorGasket",Vector3.new(leaf.Size.X-0.48,0.12,0.12),
             Vector3.new(0,4.15,-0.32),Color3.fromRGB(19,22,22),Enum.Material.SmoothPlastic)
@@ -462,7 +474,7 @@ function Kit.build(spec: Specification): Model
     local doorByName: { [string]: Part }={}
     for _,p in portals do
         if p.kind~="open" and p.kind~="window" then
-            doorByName[p.name]=doorLeaf(doors,p,theme)
+            doorByName[p.name]=doorLeaf(doors,p,theme,spec.id)
         end
     end
     for _,roomName in spec.booths do
