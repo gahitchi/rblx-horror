@@ -1,7 +1,7 @@
 # Studio import: high-fidelity mesh and PBR deployment
 
-**Status:** The game-side mesh swap is implemented. Thirteen original GLB files
-(nine core and four optional Blackline props) have been exported successfully. They are *not* live in Roblox until imported and approved
+**Status:** The game-side mesh swap is implemented. Seventeen original GLB files
+(nine core, four optional Blackline props, four optional characters) have been exported successfully. They are *not* live in Roblox until imported and approved
 under the experience's creator account. Rojo and server Scripts cannot directly
 assign `MeshPart.MeshId` at runtime. <https://create.roblox.com/docs/reference/engine/classes/MeshPart>
 
@@ -10,7 +10,7 @@ assign `MeshPart.MeshId` at runtime. <https://create.roblox.com/docs/reference/e
 Open [successful GitHub Source Asset Export](https://github.com/gahitchi/rblx-horror/actions/runs/41261640055)
 and download `dead-air-import-ready-mesh-pbr-pack`. The ZIP contains:
 
-- `roblox-glb/`: thirteen GLB prefab models (nine core + four new optional Blackline props), ready for Studio's 3D Importer;
+- `roblox-glb/`: seventeen GLB models (nine core, four optional Blackline props, four optional characters), ready for Studio's 3D Importer;
 - `materials/`: 16 PNG PBR maps (four materials × color, normal, roughness, metalness);
 - `meshes/`: the original five OBJ and MTL source models for further hand editing.
 
@@ -152,3 +152,32 @@ A newly exported asset pack does not automatically upload any GLB to Roblox.
 The current import-ready pack is downloadable from
 [Source Asset Export run 41261640055](https://github.com/gahitchi/rblx-horror/actions/runs/41261640055)
 until its artifact expires (December 1, 2026).
+
+## Optional Engineer and player meshes (third wave, November 1)
+
+The updated export also contains:
+
+- `EngineerBody.glb` — an original, gaunt Engineer body prototype with
+  cloth, tissue, hardware, cabling and embedded **base color, normal, packed
+  metallic/roughness** texture images;
+- `FieldOperatorVest.glb` — a muted technical vest for R15 player characters;
+- `FieldOperatorMask.glb` — a lightweight protective respirator;
+- `FieldOperatorPack.glb` — a rear technician equipment pack.
+
+**Install:** Download the successful
+[17-model Source Asset Export](https://github.com/gahitchi/rblx-horror/actions/runs/41262923613)
+under Artifacts. Import **only the four additional GLBs** through Studio's 3D
+Importer. Select their root Models or MeshParts and run the current
+`tools/studio/InstallImportedModels.luau` installer (or place them manually,
+with the exact names, in `ServerStorage.ArtLibrary`). Save the place.
+
+No prior assets need to be reimported. If any of the four are absent, the
+game uses its previous gameplay-safe models and Roblox avatars.
+
+**Important:** the character exporter currently produces *rigid, cosmetic
+models*. The imported EngineerBody is welded to the server-owned gameplay
+root; it does not yet have a skinned animated skeleton. The field-operator
+pieces attach to ordinary R15 `UpperTorso`/`Head` without replacing the
+existing animated body. This preserves controls and gameplay but is **not
+a completed TTK-class character-animation pipeline**. It needs Studio fit
+and clipping review and a professional skinned-R15/Engineer rig pass.
