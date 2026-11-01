@@ -109,7 +109,9 @@ function SkinnedEngineerMotion.start()
             register(child)
         end)
         child.DescendantAdded:Connect(function()
-            if not active[child] then register(child) end
+            if not active[child] then
+                register(child)
+            end
         end)
     end
     for _,child in Workspace:GetChildren() do
