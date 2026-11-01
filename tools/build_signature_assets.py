@@ -178,6 +178,77 @@ def blackline_hero_console():
     return console_legend(scene)
 
 
+def blackline_archive_cabinet():
+    """One finished-looking, clearly legible archiving landmark, not a
+    scatter set. Its original, image-mapped metal / reel surfaces are framed
+    around a deliberately absent eighth master, independent of objectives.
+
+    11.8 x 8.5 x 2.3 studs, grounded at y=0; front points toward negative Z.
+    """
+    m=Model()
+    m.box((0,4.25,0),(11.8,8.5,1.85),"iron")
+    m.box((0,4.06,-.95),(11.28,7.44,.11),"coat_dark")
+    for x in (-5.73,5.73):
+        m.box((x,4.20,-1.05),(.21,8.30,.22),"coat_high")
+        for y in (.38,7.51):
+            m.link((x,y,-1.17),(x,y,-1.28),.065,.065,"brass",12)
+    for y in (.20,7.51):
+        m.box((0,y,-1.05),(11.65,.20,.20),"coat_high")
+    for row in range(2):
+        for col in range(4):
+            index=row*4+col+1
+            x=-4.20+col*2.80
+            y=5.51-row*3.15
+            # A rectangular machined cartridge behind the reel flange.
+            m.box((x,y,-1.06),(2.54,2.54,.15),"field_edge")
+            m.box((x,y,-1.15),(2.36,2.33,.08),"coat_dark")
+            for dx in (-1.22,1.22):
+                m.box((x+dx,y,-1.20),(.085,2.38,.10),"brass")
+            m.box((x,y-1.15,-1.21),(2.51,.12,.12),"brass")
+            if index!=8:
+                # Recess, stamped six-spoke reel and actual retaining lock.
+                m.link((x,y,-1.23),(x,y,-1.31),.76,.76,"iron",42)
+                m.link((x,y,-1.31),(x,y,-1.35),.62,.62,"coat_dark",42)
+                for spoke in range(6):
+                    t=math.tau*spoke/6
+                    m.link((x+math.cos(t)*.15,y+math.sin(t)*.15,-1.39),
+                           (x+math.cos(t)*.59,y+math.sin(t)*.59,-1.39),
+                           .056,.056,"brass",10)
+                m.link((x,y,-1.37),(x,y,-1.51),.18,.18,"iron",18)
+                m.link((x,y,-1.51),(x,y,-1.56),.07,.07,"brass",12)
+            else:
+                # Negative space has more narrative weight than scattered debris.
+                m.box((x,y,-1.33),(1.38,.11,.14),"signal")
+                m.box((x,y,-1.34),(.11,1.27,.15),"signal")
+            for xx in (x-1.03,x+1.03):
+                for yy in (y-.88,y+.88):
+                    m.link((xx,yy,-1.28),(xx,yy,-1.35),.042,.042,"brass",10)
+            m.box((x,y-1.36,-1.27),(2.21,.23,.07),
+                  "label" if index!=8 else "brass")
+    m.box((0,.13,-1.14),(11.7,.24,.17),"rubber")
+    scene=m.finish()
+    # An original printed inventory identity plate, not a floating HUD.
+    im=Image.new("RGB",(1200,128),(34,37,38))
+    draw=ImageDraw.Draw(im)
+    draw.rectangle((8,7,1192,120),outline=(139,124,94),width=3)
+    font=ImageFont.load_default(size=40)
+    small=ImageFont.load_default(size=24)
+    draw.text((43,17),"B L A C K L I N E  /  M A S T E R  A R C H I V E",
+              fill=(208,199,169),font=font)
+    draw.text((46,79),"M-08  |  ANALOG MASTER INVENTORY  |  RELEASE BY ARCHIVIST",
+              fill=(146,151,140),font=small)
+    material=PBRMaterial(name="ArchiveOriginalSerialPlate",
+        baseColorTexture=im,metallicFactor=0,roughnessFactor=.89,doubleSided=True)
+    plaque=trimesh.creation.box(extents=(9.95,.59,.035))
+    plaque.apply_translation((0,7.99,-1.265))
+    vertices=np.asarray(plaque.vertices)
+    uv=np.column_stack(((vertices[:,0]+4.975)/9.95,(vertices[:,1]-7.695)/.59))
+    plaque.visual=trimesh.visual.TextureVisuals(uv=uv,material=material)
+    scene.add_geometry(plaque,node_name="ArchiveOriginalInventoryPlate",
+                       geom_name="ArchiveOriginalInventoryPlate")
+    return scene
+
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--out",type=Path,default=Path("build/roblox-glb"))
@@ -187,6 +258,7 @@ def main():
         "BlacklineTransferDeck":transfer_machine,
         "BlacklinePatchMatrix":patch_matrix,
         "BlacklineHeroConsole":blackline_hero_console,
+        "BlacklineArchiveCabinet":blackline_archive_cabinet,
     }.items():
         path=args.out/(name+".glb")
         path.write_bytes(builder().export(file_type="glb"))
