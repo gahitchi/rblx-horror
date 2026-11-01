@@ -15,6 +15,7 @@ local DoorService = require(script.Parent.DoorService)
 local MapBuilder = require(script.Parent.MapBuilder)
 local MapContract = require(script.Parent.MapContract)
 local NoiseService = require(script.Parent.NoiseService)
+local FacilityStateService = require(script.Parent.FacilityStateService)
 local ProgressService = require(script.Parent.ProgressService)
 local RoundState = require(script.Parent.RoundState)
 
@@ -54,6 +55,17 @@ end
 -- How each emergency lamp looks with the power off, as the map built it.
 local lampsOff: { [BasePart]: { material: Enum.Material, color: Color3 } } = {}
 
+-- A single objective-state projection, never a second set of progress flags.
+local function refreshFacility()
+    FacilityStateService.render(
+        RoundState.get("PowerOn")==true,
+        RoundState.get("FusesPlaced") or 0,
+        tapeRunning,
+        RoundState.get("DoorsOpen")==true,
+        Config.FUSES_NEEDED
+    )
+end
+
 -- Power on: lights on, lamps glow (in their OnColor if the map gives one). Off: as built.
 local function setPower(on: boolean)
 	RoundState.set("PowerOn", on)
@@ -70,6 +82,7 @@ local function setPower(on: boolean)
 		lamp.Material = if on then Enum.Material.Neon else off.material
 		lamp.Color = if on and typeof(onColor) == "Color3" then onColor else off.color
 	end
+    refreshFacility()
 end
 
 local function spawnFuse(position: Vector3)
@@ -148,6 +161,7 @@ local function onInsertFuse(player: Player)
 	player:SetAttribute("CarryingFuse", false)
 	local placed = (RoundState.get("FusesPlaced") or 0) + 1
 	RoundState.set("FusesPlaced", placed)
+    refreshFacility()
 	ProgressService.award(player, "Fuse fitted", Config.REWARDS.FUSE)
 	Sounds.playAt(Sounds.FUSE, layout.fuseBox.Position, 1)
 	NoiseService.emit(layout.fuseBox.Position, Config.NOISE.FUSE, "fuse", player)
@@ -172,6 +186,7 @@ local function onPlayTape(player: Player, prompt: ProximityPrompt)
 	end
 
 	tapeRunning = true
+    refreshFacility()
 	ProgressService.award(player, "Emergency tape", Config.REWARDS.TAPE_DECK)
 	prompt.Enabled = false
 	notifyAll("The emergency tape is playing on every speaker. Hold on until the doors unlock!")
@@ -193,6 +208,7 @@ local function onPlayTape(player: Player, prompt: ProximityPrompt)
 		end
 		tapeRunning = false
 		RoundState.set("DoorsOpen", true)
+        refreshFacility()
 		DoorService.set(layout.frontDoor, true)
 		notifyAll("The front doors are open. RUN!")
 	end)
@@ -218,6 +234,7 @@ function ObjectiveService.reset()
 	RoundState.set("FusesPlaced", 0)
 	RoundState.set("TapeProgress", 0)
 	RoundState.set("DoorsOpen", false)
+    refreshFacility()
 	DoorService.set(layout.frontDoor, false)
 
 	local tapePrompt = layout.tapeDeck:FindFirstChildOfClass("ProximityPrompt")
@@ -237,6 +254,7 @@ end
 function ObjectiveService.init(map: MapContract.Layout, targetCheck: (Player) -> boolean)
 	layout = map
 	isTarget = targetCheck
+    FacilityStateService.init(layout.map)
 
 	fuseFolder = Instance.new("Folder")
 	fuseFolder.Name = "Fuses"
