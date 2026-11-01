@@ -115,6 +115,28 @@ function FinishDetail.doorFields(leaf: BasePart, mapId: string, kind: string,
     end
 end
 
+-- The imported console GLB already contains its own cabinet and tabletop (its
+-- original OBJ spans y=1.07..4.13 studs). Never intersect it with a second broad
+-- procedural top; only provide a short, load-bearing pedestal at floor level.
+function FinishDetail.consoleMount(parent: Instance,mapId: string,
+    x1: number,z1: number,x2: number,z2: number)
+    local f=colors(mapId)
+    local cx=(x1+x2)/2
+    local cz=(z1+z2)/2
+    local w=x2-x1
+    local d=z2-z1
+    for _,x in {x1+0.35,x2-0.35} do
+        shape(parent,"ConsolePedestalLeg",Vector3.new(0.44,0.92,d-0.45),
+            CFrame.new(x,0.50,cz),f.case)
+    end
+    shape(parent,"ConsolePedestalFront",Vector3.new(w-0.8,0.55,0.21),
+        CFrame.new(cx,0.61,z2-0.22),f.front)
+    shape(parent,"ConsolePedestalKick",Vector3.new(w-0.9,0.16,0.2),
+        CFrame.new(cx,0.16,z2-0.35),f.inset)
+    shape(parent,"ConsolePedestalCrossbrace",Vector3.new(w-0.5,0.12,d-0.4),
+        CFrame.new(cx,0.99,cz),f.edge)
+end
+
 -- This facade lies inside the original counter collision hull. Decorative pieces
 -- are deliberately less prominent than the worktop and never obstruct walkways.
 function FinishDetail.counter(parent: Instance,mapId: string,style: string,
