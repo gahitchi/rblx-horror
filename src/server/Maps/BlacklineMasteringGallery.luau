@@ -111,7 +111,78 @@ local function nativeReference(parent: Instance, base: CFrame)
     end
 end
 
+local function nativeTransfer(parent: Instance, base: CFrame)
+    -- The imported transfer machine points toward local -Z. The base is
+    -- deliberately rotated toward the gallery / player approach. This fallback
+    -- keeps a single believable deck in the same location when GLBs are absent.
+    -- Its rear housing and two independent reel spindles share one floor pivot.
+    piece(parent, "TransferPedestal", base * CFrame.new(0, 1.22, .12),
+        Vector3.new(4.65, 2.43, 1.90), SHELL, Enum.Material.Metal)
+    piece(parent, "TransportFace", base * CFrame.new(0, 2.76, -.96),
+        Vector3.new(4.80, 1.65, .16), INK)
+    piece(parent, "TransferTopCap", base * CFrame.new(0, 3.63, -.36),
+        Vector3.new(4.93, .17, 2.18), EDGE, Enum.Material.Metal)
+    piece(parent, "TransferToe", base * CFrame.new(0, .19, -1.00),
+        Vector3.new(4.62, .19, .21), LINER, Enum.Material.Metal)
+    for _, x in {-1.27, 1.27} do
+        -- Cylinder's long axis is X in Roblox, turned so the spindle faces -Z.
+        local axis=base*CFrame.new(x,2.82,-1.12)*CFrame.Angles(0,math.pi/2,0)
+        local flange=piece(parent, "TransportFlange", axis,
+            Vector3.new(.14, 1.57, 1.57), EDGE, Enum.Material.Metal)
+        flange.Shape=Enum.PartType.Cylinder
+        local platter=piece(parent, "MagneticReel", base*CFrame.new(x,2.82,-1.23)*
+            CFrame.Angles(0,math.pi/2,0),
+            Vector3.new(.12,1.27,1.27), INK, Enum.Material.Metal)
+        platter.Shape=Enum.PartType.Cylinder
+        for spoke=0,5 do
+            piece(parent,"ReelSpoke",base*CFrame.new(x,2.82,-1.31)*
+                CFrame.Angles(0,0,math.rad(spoke*30)),
+                Vector3.new(1.08,.065,.05),EDGE,Enum.Material.Metal)
+        end
+        local spindle=piece(parent,"SpindleLock",
+            base*CFrame.new(x,2.82,-1.36)*CFrame.Angles(0,math.pi/2,0),
+            Vector3.new(.11,.32,.32),LABEL,Enum.Material.Metal)
+        spindle.Shape=Enum.PartType.Cylinder
+    end
+    -- Tape guide path and two analog, unpowered needles; no blinking LEDs.
+    piece(parent, "TapeGuideChannel", base*CFrame.new(0,1.70,-1.11),
+        Vector3.new(3.8,.15,.13),EDGE,Enum.Material.Metal)
+    for _, x in {-.90,.90} do
+        piece(parent, "AnalogVUBezel", base*CFrame.new(x,1.13,-1.09),
+            Vector3.new(1.45,.70,.10),EDGE,Enum.Material.Metal)
+        piece(parent, "AnalogVUDial", base*CFrame.new(x,1.13,-1.16),
+            Vector3.new(1.24,.49,.05),LABEL)
+        piece(parent, "AnalogVUNeedle", base*CFrame.new(x,1.12,-1.20)*
+            CFrame.Angles(0,0,math.rad(12)),Vector3.new(.74,.035,.03),AMBER)
+    end
+    for _, x in {-1.65,-.95,-.25,.45,1.15,1.85} do
+        piece(parent, "SelectorPot", base*CFrame.new(x,.48,-1.05),
+            Vector3.new(.26,.22,.15),LINER,Enum.Material.Metal)
+    end
+    legend(parent,"TransferNameplate",base*CFrame.new(0,.83,-1.14),
+        Vector3.new(3.74,.25,.035),"BLACKLINE / M-08 TRANSFER")
+end
+
+local function transferStation(parent: Instance, room: Room)
+    local model=Instance.new("Model")
+    model.Name="MasteringTransferStation"
+    model:SetAttribute("ArtPass","BlacklineVF04")
+    model:SetAttribute("Narrative","Master tape routing and abandoned transfer")
+    model.Parent=parent
+    -- Former generic fallback faced a dead wall. Both render paths now share
+    -- the same local pivot and face into the occupied south side of the room.
+    local base=CFrame.new(room.x1+13,0,room.z1+12)*
+        CFrame.Angles(0,math.pi,0)
+    if PrefabLibrary.place(model,"BlacklineTransferDeck",base) then
+        model:SetAttribute("VisualTier","ImportedPBR")
+    else
+        nativeTransfer(model,base)
+        model:SetAttribute("VisualTier","NativeFallback")
+    end
+end
+
 local function mastering(parent: Instance, room: Room)
+    transferStation(parent,room)
     local model = Instance.new("Model")
     model.Name = "MasteringReferenceWall"
     model:SetAttribute("ArtPass", "BlacklineVF03")
