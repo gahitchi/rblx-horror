@@ -36,6 +36,7 @@ function VisualFidelity.apply(layout: MapBuilder.Layout)
     -- Roblox does not allow ordinary gameplay scripts to assign them. Both are
     -- already set in the Rojo place projects and should be checked in Studio
     -- after importing the match place.
+    local blackline = map:GetAttribute("MapId") == "studio"
     Lighting.GlobalShadows = true
     Lighting.ShadowSoftness = 0.26
 
@@ -46,23 +47,25 @@ function VisualFidelity.apply(layout: MapBuilder.Layout)
     Lighting.Ambient = Color3.fromRGB(2, 3, 4)
     Lighting.OutdoorAmbient = Color3.fromRGB(8, 9, 11)
     Lighting.EnvironmentDiffuseScale = 0.08
-    Lighting.EnvironmentSpecularScale = 0.85
+    -- An institution with painted steel should not look like uniform wet rust.
+    -- Existing maps retain their approved baseline until separate review.
+    Lighting.EnvironmentSpecularScale = if blackline then 0.59 else 0.85
     Lighting.ExposureCompensation = -0.06
     Lighting.FogColor = Color3.fromRGB(4, 5, 6)
-    Lighting.FogStart = 35
-    Lighting.FogEnd = 220
+    Lighting.FogStart = if blackline then 48 else 35
+    Lighting.FogEnd = if blackline then 250 else 220
 
     local grade = ownedEffect("ColorCorrectionEffect", "StudioPhotometricGrade") :: ColorCorrectionEffect
     grade.Enabled = true
     grade.Brightness = 0.005
     grade.Contrast = 0.06
-    grade.Saturation = -0.10
+    grade.Saturation = if blackline then -0.065 else -0.10
     grade.TintColor = Color3.fromRGB(245, 242, 235)
 
     -- Small halos around genuine emissive fixtures; no exaggerated "horror glow."
     local bloom = ownedEffect("BloomEffect", "StudioLensBloom") :: BloomEffect
     bloom.Enabled = true
-    bloom.Intensity = 0.09
+    bloom.Intensity = if blackline then 0.065 else 0.09
     bloom.Size = 16
     bloom.Threshold = 1.55
 
