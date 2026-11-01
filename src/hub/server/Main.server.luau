@@ -17,8 +17,8 @@ local existing = Workspace:FindFirstChild("Hub")
 local spawnPart = existing and existing:FindFirstChild("HubSpawn", true)
 local spawnAt: BasePart = if spawnPart and spawnPart:IsA("BasePart") then spawnPart else HubEnvironment.build()
 
-Lighting.LightingStyle = Enum.LightingStyle.Realistic
-Lighting.PrioritizeLightingQuality = true
+-- High-quality lighting style and priority belong to hub.project.json / Studio,
+-- not gameplay scripts (both properties are restricted at runtime).
 Lighting.GlobalShadows = true
 Lighting.EnvironmentSpecularScale = 0.75
 Lighting.Brightness = 0.35
