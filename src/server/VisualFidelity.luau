@@ -32,9 +32,10 @@ function VisualFidelity.apply(layout: MapBuilder.Layout)
         return
     end
 
-    -- Realistic = Roblox's highest-fidelity lighting style, not real-time path tracing.
-    Lighting.LightingStyle = Enum.LightingStyle.Realistic
-    Lighting.PrioritizeLightingQuality = true
+    -- LightingStyle and PrioritizeLightingQuality are Studio/place configuration.
+    -- Roblox does not allow ordinary gameplay scripts to assign them. Both are
+    -- already set in the Rojo place projects and should be checked in Studio
+    -- after importing the match place.
     Lighting.GlobalShadows = true
     Lighting.ShadowSoftness = 0.26
 
