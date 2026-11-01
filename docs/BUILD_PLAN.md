@@ -5,9 +5,9 @@ Goal: the studio's chapter 1 ("The Last Session") playable end to end, built to 
 
 **Status (night of 1 to 2 November 2026): everything below is written and pushed, untested.**
 Batches A to D are in, and from E: chapters in hub crews (strict unlocks, quick join), saved
-progress and medals, handler and broadcast lines, documents. Still to do from E: the hub's look
-(the coast road and the van), the van's tape deck that replays recovered tapes, and a story-tape
-screen. Version 0.7.0, checklist in `docs/PLAYTEST.md`.
+progress and medals, handler and broadcast lines, documents. The van's tape deck is a screen in the hub
+for now (the chapter's evidence cassette and delivered optional tapes, as text). Still to do from
+E: the hub's look (the coast road and the van) and the tapes' real audio. Version 0.7.0, checklist in `docs/PLAYTEST.md`.
 
 Gabriel prefers testing a fuller build in one session over many small playtests, so the work is
 grouped into two playtests. Each batch below is pushed to `main` as it's done; the playtest happens

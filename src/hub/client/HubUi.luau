@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Chapters = require(Shared:WaitForChild("Chapters"))
+local StoryTapes = require(Shared:WaitForChild("StoryTapes"))
 local Config = require(Shared:WaitForChild("Config"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 
@@ -78,6 +79,76 @@ function HubUi.start()
 	panel.Parent = gui
 	rounded(panel, 6)
 
+	-- The handler's tape deck, in his van: every story tape this player has recovered.
+	local deck = Instance.new("Frame")
+	deck.Size = UDim2.fromOffset(460, 470)
+	deck.Position = UDim2.new(0, 20, 0.5, 0)
+	deck.AnchorPoint = Vector2.new(0, 0.5)
+	deck.BackgroundColor3 = PANEL
+	deck.BackgroundTransparency = 0.1
+	deck.BorderSizePixel = 0
+	deck.Visible = false
+	deck.Parent = gui
+	rounded(deck, 6)
+	local deckTitle =
+		label(deck, "THE VAN: TAPE DECK", UDim2.new(1, -120, 0, 30), UDim2.fromOffset(16, 10), 18)
+	deckTitle.TextColor3 = ACCENT
+	local deckClose = button(deck, "Close", UDim2.fromOffset(90, 28), UDim2.new(1, -106, 0, 10))
+	local tapeList = Instance.new("ScrollingFrame")
+	tapeList.Size = UDim2.new(1, -32, 0, 130)
+	tapeList.Position = UDim2.fromOffset(16, 48)
+	tapeList.BackgroundTransparency = 1
+	tapeList.BorderSizePixel = 0
+	tapeList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	tapeList.CanvasSize = UDim2.new()
+	tapeList.ScrollBarThickness = 6
+	tapeList.Parent = deck
+	local tapeListLayout = Instance.new("UIListLayout")
+	tapeListLayout.Padding = UDim.new(0, 4)
+	tapeListLayout.Parent = tapeList
+	local tapeText = Instance.new("ScrollingFrame")
+	tapeText.Size = UDim2.new(1, -32, 1, -200)
+	tapeText.Position = UDim2.fromOffset(16, 188)
+	tapeText.BackgroundTransparency = 1
+	tapeText.BorderSizePixel = 0
+	tapeText.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	tapeText.CanvasSize = UDim2.new()
+	tapeText.ScrollBarThickness = 6
+	tapeText.Parent = deck
+	local tapeBody = label(tapeText, "", UDim2.new(1, -12, 0, 0), UDim2.new(), 13)
+	tapeBody.AutomaticSize = Enum.AutomaticSize.Y
+	tapeBody.TextWrapped = true
+	tapeBody.TextYAlignment = Enum.TextYAlignment.Top
+
+	local function refreshDeck()
+		for _, child in tapeList:GetChildren() do
+			if child:IsA("TextButton") then
+				child:Destroy()
+			end
+		end
+		local tapes = StoryTapes.recovered(
+			Chapters.clearedBy(player),
+			Chapters.parse(player:GetAttribute("TapesDelivered"))
+		)
+		if #tapes == 0 then
+			tapeBody.Text =
+				"No tapes yet. Clear a chapter (carry the cassette out) or push old tapes through the studio's mail slot."
+			return
+		end
+		tapeBody.Text = "Pick a tape."
+		for _, tape in tapes do
+			local entry = button(tapeList, tape.title, UDim2.new(1, -10, 0, 28), UDim2.new())
+			entry.TextXAlignment = Enum.TextXAlignment.Left
+			entry.TextSize = 13
+			entry.Activated:Connect(function()
+				tapeBody.Text = tape.title .. "\n\n" .. tape.body
+			end)
+		end
+	end
+	deckClose.Activated:Connect(function()
+		deck.Visible = false
+	end)
+
 	local title = label(
 		panel,
 		string.upper(Config.GAME_NAME),
@@ -112,6 +183,15 @@ function HubUi.start()
 	quick.BackgroundColor3 = Color3.fromRGB(40, 60, 46)
 	quick.Activated:Connect(function()
 		Remotes.QuickJoin:FireServer()
+	end)
+	local deckButton =
+		button(panel, "Tape deck", UDim2.fromOffset(110, 26), UDim2.new(1, -126, 0, 12))
+	deckButton.TextSize = 13
+	deckButton.Activated:Connect(function()
+		deck.Visible = not deck.Visible
+		if deck.Visible then
+			refreshDeck()
+		end
 	end)
 	local function refreshCreate()
 		local list = unlocked()

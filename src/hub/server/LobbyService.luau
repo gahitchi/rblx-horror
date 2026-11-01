@@ -90,16 +90,22 @@ local function loadProgress(player: Player)
 	local ok, result = pcall(function()
 		return store:GetAsync("player_" .. player.UserId)
 	end)
-	local cleared: { string } = {}
-	if ok and type(result) == "table" and type(result.chapters) == "table" then
-		for _, id in result.chapters do
-			if type(id) == "string" then
-				table.insert(cleared, id)
+	local function ids(value: any): { string }
+		local list: { string } = {}
+		if type(value) == "table" then
+			for _, id in value do
+				if type(id) == "string" then
+					table.insert(list, id)
+				end
 			end
 		end
+		return list
 	end
+	local saved: any = if ok and type(result) == "table" then result else {}
 	if player.Parent == Players then
-		player:SetAttribute("ChaptersCleared", table.concat(cleared, ","))
+		player:SetAttribute("ChaptersCleared", table.concat(ids(saved.chapters), ","))
+		-- Optional tapes delivered (the van's tape deck plays them back).
+		player:SetAttribute("TapesDelivered", table.concat(ids(saved.tapes), ","))
 	end
 end
 

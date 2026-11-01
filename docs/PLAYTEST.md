@@ -99,7 +99,7 @@ follows the old contract, so the game would fall back to the greybox anyway.
 
 - [ ] Three old tapes lie somewhere each round. Picking one up says its title.
 - [ ] At the front doors' mail slot: "Push tapes through": "Tape delivered".
-- [ ] Delivered tapes are kept even if the crew is wiped later (not visible anywhere yet: the hub tape deck isn't built).
+- [ ] Delivered tapes are kept even if the crew is wiped later (check them in the hub's tape deck).
 
 ## 13. Results and progress
 
@@ -112,6 +112,7 @@ follows the old contract, so the game would fall back to the greybox anyway.
 - [ ] The crew panel shows "Chapter 1. The Last Session", "Create crew" and "Quick join".
 - [ ] Quick join with nobody waiting makes a crew; a second player's quick join joins it.
 - [ ] The match server starts chapter 1 (Output: `chapter studio1`).
+- [ ] "Tape deck" (top right of the crew panel) lists the chapter 1 cassette once it's cleared, and the optional tapes you delivered.
 
 ## Tell me after
 

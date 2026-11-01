@@ -20,6 +20,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Sounds = require(Shared:WaitForChild("Sounds"))
+local StoryTapes = require(Shared:WaitForChild("StoryTapes"))
 
 local Kit = require(script.Parent.Kit)
 local Text = require(script.Parent.Studio1Text)
@@ -682,7 +683,7 @@ function Studio1.start()
 	setUpSafe()
 	setUpPatchBay()
 	setUpDesk()
-	Kit.spawnTapes(Text.TAPES, S.OPTIONAL_TAPES)
+	Kit.spawnTapes(StoryTapes.optional(Studio1.id), S.OPTIONAL_TAPES)
 
 	-- Arrival: the locks slam behind the crew as the building wakes; the foghorn outside.
 	local layout = Kit.layout()

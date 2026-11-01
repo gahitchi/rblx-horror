@@ -134,23 +134,6 @@ Text.THREAD_ORDER = table.freeze({
 	"Take-up reel",
 })
 
--- Optional tapes: found in random spots, kept by pushing them through the mail slot.
-Text.TAPES = table.freeze({
-	table.freeze({
-		id = "studio1_choir",
-		title = "Choir rehearsal, December 1978",
-		body = [[A church choir warming up, someone laughing at a wrong note. Under everyone, a woman hums the alto line, warm and a little flat. The engineer, close to the microphone: "Again from the top, love. That was lovely."]],
-	}),
-	table.freeze({
-		id = "studio1_shanty",
-		title = "Harbour Lads session, October 1987",
-		body = [[Fishermen singing a work song, stamping in time. Between takes one of them says: "Your lad was down the cannery till four again. Tell him to get some sleep." The engineer doesn't answer. Under the hiss there is a low tone that isn't in the room.]],
-	}),
-	table.freeze({
-		id = "studio1_jingle",
-		title = "Wrenmouth Late Night, jingle take 3",
-		body = [[A young woman's voice over a cheap synthesizer: "Wrenmouth Late Night. Keeping you company till the fog lifts." Then, off-mic: "Dad, was that all right? ...Dad?"]],
-	}),
-})
+-- The optional tapes live in src/shared/StoryTapes.luau (the hub's tape deck plays them too).
 
 return Text

@@ -18,6 +18,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Sounds = require(Shared:WaitForChild("Sounds"))
+local StoryTapes = require(Shared:WaitForChild("StoryTapes"))
 
 local DoorService = require(script.Parent.Parent.DoorService)
 local LightingService = require(script.Parent.Parent.LightingService)
@@ -33,7 +34,7 @@ export type Hooks = {
 	catchInside: () -> (), -- Last Call is over: everyone still inside is caught
 }
 
-export type StoryTape = { id: string, title: string, body: string }
+export type StoryTape = StoryTapes.Tape
 
 -- `throw` is how it lands when thrown ("light", "glass", "heavy"), or nil if it can't be thrown.
 type ItemSpec = {
