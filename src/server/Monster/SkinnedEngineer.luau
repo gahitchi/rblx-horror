@@ -44,14 +44,14 @@ function SkinnedEngineer.mount(model:Model,root:BasePart,glows:{PointLight}):boo
         if d:IsA("MeshPart") then sourceMeshCount+=1 end
     end
     local q02Anatomical=sourceMeshCount>=28
-    -- The same two PointLights remain referenced by MonsterService.glows.
+    -- Coordinates measured from CC0 ear outer surfaces after the source\n    -- x-axis mirror: -0.20/+0.39 relative to Head Bone, not symmetric.\n    -- The same two PointLights remain referenced by MonsterService.glows.
     -- Parenting them under Attachments on the moving Head Bone follows
     -- skin motion while preserving alert / lunge brightness controls.
     for index,light in glows do
         local attachment=Instance.new("Attachment")
         attachment.Name=if index==1 then "LeftEarcupEmitter"
             else "RightEarcupEmitter"
-        attachment.Position=if q02Anatomical then Vector3.new(if index==1 then -0.47 else 0.47,-0.01,0.05)
+        attachment.Position=if q02Anatomical then Vector3.new(if index==1 then -0.20 else 0.39,-0.02,0.01)
             else Vector3.new(if index==1 then -1.13 else 1.13,0,-0.04)
         attachment.Parent=head
         light.Parent=attachment
