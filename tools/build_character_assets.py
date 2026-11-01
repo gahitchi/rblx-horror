@@ -24,7 +24,7 @@ COLORS={
  "coat_dark":((0.062,0.068,0.07,1),0.01,0.97),
  "bone":((0.30,0.27,0.225,1),0.0,0.89),
  "flesh":((0.20,0.17,0.15,1),0.01,0.91),
- "iron":((0.20,0.23,0.24,1),0.78,0.56),
+ "iron":((0.20,0.23,0.24,1),0.78,0.68),
  "brass":((0.39,0.27,0.15,1),0.76,0.47),
  "rubber":((0.055,0.06,0.06,1),0.0,0.97),
  "signal":((0.33,0.06,0.038,1),0.16,0.57),
@@ -58,7 +58,8 @@ def image_material(name):
  base=np.array(color[:3],dtype=float)[None,None,:]
  color_map=np.clip((base+variability[:,:,None])*255,0,255).astype(np.uint8)
  gx=np.gradient(height,axis=1); gy=np.gradient(height,axis=0)
- power=.14 if is_fabric else .24 if is_metal else .12
+ # Low-amplitude normals avoid high-frequency sparkle under a moving torch.
+ power=.085 if is_fabric else .13 if is_metal else .075
  nx=-gx*power;ny=-gy*power;nz=np.ones_like(nx)
  mag=np.sqrt(nx**2+ny**2+nz**2)
  normal=np.stack(((nx/mag*.5+.5)*255,(ny/mag*.5+.5)*255,
@@ -164,6 +165,12 @@ def engineer_body():
  m.box((.15,.65,-.81),(.62,.52,.07),"visor")
  m.link((.1,.69,-.85),(.37,.44,-.86),.03,.02,"signal",8)
  m.box((-.4,-.78,-.57),(.75,.31,.18),"brass")
+ # The technician was incorporated into the studio equipment. A damaged
+ # insulating harness/analog record counter reads in silhouette, not HUD text.
+ m.box((-.54,.91,-.69),(.26,.62,.17),"rubber")
+ m.link((-.57,1.11,-.76),(-.51,.61,-.76),.039,.03,"iron",12)
+ m.box((.70,.17,-.59),(.21,.75,.14),"coat_high")
+ m.box((.70,-.23,-.65),(.32,.13,.10),"brass")
  for x in (-.53,-.33,-.13,.07):
   m.box((x,-.75,-.70),(.09,.11,.055),"rubber")
  # Upright neck, destroyed face with apertures, no stereotypical skull mask.
@@ -192,9 +199,18 @@ def operator_vest():
  for i in range(5):
   m.box((-.49+i*.245,.21,-.67),(.08,.09,.09),"brass")
  m.box((-.02,-.38,-.68),(.58,.30,.10),"label")
- # Durable stitched strap lines, not glowing sci-fi armor.
+ # Durable stitched strap lines, integrated service loops and seams, not
+ # glowing armor. Backing remains the existing Roblox R15 UpperTorso.
  for side in (-1,1):
   m.link((side*.65,.72,-.38),(side*.51,-.67,-.52),.074,.052,"field_edge",10)
+  m.box((side*.75,.53,-.50),(.15,.22,.10),"iron")
+  m.link((side*.45,.61,-.566),(side*.45,-.70,-.566),
+         .022,.022,"field_edge",8)
+  m.box((side*.47,-.61,-.64),(.27,.19,.095),"field_cloth")
+ # Left-breast crew identity; no false emissive patch or live player marker.
+ m.box((-.39,.035,-.654),(.42,.19,.043),"label")
+ m.box((-.39,.036,-.691),(.31,.035,.026),"coat_dark")
+ m.box((.12,-.39,-.733),(.22,.10,.06),"rubber")
  return m.finish()
 
 def operator_mask():
@@ -205,6 +221,10 @@ def operator_mask():
  for side in (-1,1):
   m.link((side*.42,-.15,-.69),(side*.74,-.07,-.16),.066,.05,"rubber",12)
   m.ellipsoid((side*.28,-.23,-.89),(.15,.12,.07),"rubber",2)
+  m.ellipsoid((side*.27,-.245,-.943),(.125,.10,.035),"iron",2)
+  for i in range(3):
+   m.box((side*.27,-.315+i*.052,-.973),(.17,.018,.014),"rubber")
+ m.box((0,-.275,-.896),(.22,.055,.03),"field_cloth")
  return m.finish()
 
 def operator_pack():
@@ -217,6 +237,12 @@ def operator_pack():
  for side in (-1,1):
   m.link((side*.54,.63,.45),(side*.61,-.56,.56),.08,.055,"rubber",12)
  m.box((.2,-.16,1.15),(.25,.18,.08),"label")
+ # Service-routed cable is sheathed against the pack, with a modest buckle
+ # and one visible stitched seam; no radio signal or gear is simulated.
+ m.link((-.48,.50,1.02),(-.47,-.33,1.10),.038,.033,"rubber",12)
+ m.box((-.47,-.20,1.14),(.18,.11,.08),"iron")
+ m.box((0,-.68,.94),(.86,.068,.074),"field_edge")
+ m.box((.21,-.16,1.195),(.16,.036,.027),"coat_dark")
  return m.finish()
 
 # Articulated, correctly-pivoted *rigid* body sections. These are not smooth
@@ -253,6 +279,11 @@ def engineer_rig_head():
   m.link((side*.91,.43,0),(side*.50,1.14,-.03),.11,.085,"brass",12)
  m.link((-.52,1.19,0),(.52,1.19,0),.13,.11,"iron",18)
  m.box((0,-.28,-.71),(.67,.08,.12),"rubber")
+ # Small faceplate retention bolts and an asymmetrical service lead;
+ # deliberately no additional eye glow or attack feedback mechanism.
+ for side in (-1,1):
+  m.ellipsoid((side*.51,.48,-.59),(.08,.08,.045),"brass",1)
+ m.link((-.63,.65,-.48),(-.86,.28,-.31),.048,.031,"rubber",12)
  m.link((-1.14,-.22,-.09),(-1.36,-.52,-.87),.055,.04,"iron",12)
  m.ellipsoid((-1.37,-.55,-.91),(.16,.14,.18),"rubber",2)
  return m.finish()
