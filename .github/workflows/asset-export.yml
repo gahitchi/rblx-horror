@@ -9,6 +9,7 @@ on:
       - tools/build_glb_assets.py
       - assets/meshes/**
       - .github/workflows/asset-export.yml
+      - tools/audit_hero_meshes.py
   workflow_dispatch:
 
 permissions:
@@ -25,6 +26,8 @@ jobs:
         run: python3 tools/generate_pbr.py --size 1024 --out build/materials
       - name: Build import-ready glTF prefabs
         run: python3 tools/build_glb_assets.py --out build/roblox-glb
+      - name: Qualify GLB geometry and write honest fidelity inventory
+        run: python3 tools/audit_hero_meshes.py --directory build/roblox-glb --report build/art-quality-report.json
       - name: Collect original mesh source
         run: |
           mkdir -p build/meshes
