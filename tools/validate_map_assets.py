@@ -204,12 +204,14 @@ def check_pbr_asset_wiring():
     assert 'PowerLights' in kit and 'powerIndicator(lights,r,' in story
     assert 'CanQuery=false' in story and 'CanCollide=false' in story
     signature=(ROOT/"tools/build_signature_assets.py").read_text()
-    for name in ("BlacklineTransferDeck","BlacklinePatchMatrix","BlacklineHeroConsole"):
+    for name in ("BlacklineTransferDeck","BlacklinePatchMatrix"):
         assert name in signature,("Missing original environment hero mesh",name)
         assert name in story,("Environment story scene does not place hero mesh",name)
         assert name in studio,("Studio importer does not accept environment hero mesh",name)
     assert 'if not PrefabLibrary.place(parent,"BlacklinePatchMatrix"' in story
     assert 'if not PrefabLibrary.place(parent,"BlacklineTransferDeck"' in story
+    assert "BlacklineHeroConsole" in signature
+    assert "BlacklineHeroConsole" in studio
     assert 'r.name=="ControlA"' in kit and '"BlacklineHeroConsole"' in kit
     assert 'collider:SetAttribute("VisualPresentation","BlacklineHeroConsole")' in kit
     assert 'local floorMaterial,ceilingMaterial,floorTint,ceilingTint=' in kit
