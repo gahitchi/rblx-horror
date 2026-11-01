@@ -206,10 +206,14 @@ def check_pbr_asset_wiring():
     signature=(ROOT/"tools/build_signature_assets.py").read_text()
     for name in ("BlacklineTransferDeck","BlacklinePatchMatrix"):
         assert name in signature,("Missing original environment hero mesh",name)
-        assert name in story,("Environment story scene does not place hero mesh",name)
         assert name in studio,("Studio importer does not accept environment hero mesh",name)
     assert 'if not PrefabLibrary.place(parent,"BlacklinePatchMatrix"' in story
-    assert 'if not PrefabLibrary.place(parent,"BlacklineTransferDeck"' in story
+    # Mastering now has a room-owned visual fallback, not StoryProps' generic rack.
+    mastering=(ROOT/"src/server/Maps/BlacklineMasteringGallery.luau").read_text()
+    assert 'PrefabLibrary.place(model,"BlacklineTransferDeck",base)' in mastering
+    assert 'nativeTransfer(model,base)' in mastering
+    assert 'BlacklineMasteringGallery.decorate(detailFolder,room)' in kit
+    assert 'PrefabLibrary.place(parent,"BlacklineTransferDeck"' not in story
     assert "BlacklineHeroConsole" in signature
     assert "BlacklineHeroConsole" in studio
     assert 'r.name=="ControlA"' in kit and '"BlacklineHeroConsole"' in kit
