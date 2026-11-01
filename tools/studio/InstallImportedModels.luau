@@ -35,6 +35,14 @@ local SIGNATURE = {
     BlacklineTransferDeck = true,
     BlacklinePatchMatrix = true,
 }
+local RIG_PARTS = {
+    EngineerRigTorso = true,
+    EngineerRigHead = true,
+    EngineerRigArmLeft = true,
+    EngineerRigArmRight = true,
+    EngineerRigLegLeft = true,
+    EngineerRigLegRight = true,
+}
 local ROOT_NAME = "ArtLibrary"
 
 local target = ServerStorage:FindFirstChild(ROOT_NAME)
@@ -48,7 +56,7 @@ assert(target:IsA("Folder"), "ServerStorage.ArtLibrary must be a Folder")
 local installed = {}
 local skipped = {}
 for _, candidate in Selection:Get() do
-    if not EXPECTED[candidate.Name] and not OPTIONAL[candidate.Name] and not CHARACTER[candidate.Name] and not SIGNATURE[candidate.Name] then
+    if not EXPECTED[candidate.Name] and not OPTIONAL[candidate.Name] and not CHARACTER[candidate.Name] and not SIGNATURE[candidate.Name] and not RIG_PARTS[candidate.Name] then
         table.insert(skipped, candidate.Name .. ": name not recognized")
         continue
     end
@@ -139,6 +147,19 @@ table.sort(signatureMissing)
 if #signatureMissing>0 then
     print("[Dead Air] Optional Blackline signature equipment awaiting import: "
         ..table.concat(signatureMissing,", "))
+end
+local rigMissing={}
+for name in RIG_PARTS do
+    if not target:FindFirstChild(name) then
+        table.insert(rigMissing,name)
+    end
+end
+table.sort(rigMissing)
+if #rigMissing>0 then
+    print("[Dead Air] Articulated Engineer segment pack incomplete: "..
+        table.concat(rigMissing,", ").." (existing monster fallback remains active)")
+else
+    print("[Dead Air] All six articulated Engineer pieces installed")
 end
 -- Save the Studio place after successful import. The code-only Rojo build does not
 -- contain creator-owned MeshIds; do not replace the prefab with a plain Part.
