@@ -157,6 +157,7 @@ Config.DUB = table.freeze({
 	DRIFT = 0.45, -- how hard the level wanders, per second
 	NUDGE = 0.9, -- how fast the holder can push it back, per second
 	SPIKE_COOLDOWN = 2, -- seconds between noise spikes while the level is out of the band
+	PULSE = 4, -- seconds between the recording's swells that pull the monster in (decoys work between them)
 })
 
 -- Chapter 1 of the studio: the last session.

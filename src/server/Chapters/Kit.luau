@@ -676,9 +676,10 @@ local function updateDub(dt: number)
 		Kit.speakers(Sounds.RECORDING, 1, 0.8)
 		Kit.noise(d.part.Position, Config.NOISE.FADER_SPIKE, "spike", holder)
 	end
-	-- The recording itself, through the building, about once a second.
+	-- The recording swells through the building every few seconds; decoys can pull the monster
+	-- away in between.
 	recordingPulse += dt
-	if recordingPulse >= 1 then
+	if recordingPulse >= Config.DUB.PULSE then
 		recordingPulse = 0
 		Kit.speakers(Sounds.RECORDING, 0.7, 0.5)
 		Kit.noise(d.part.Position, Config.NOISE.RECORDING, "recording", nil)
