@@ -87,6 +87,22 @@ function PrefabLibrary.attach(root: BasePart, name: string, offset: CFrame): boo
     return true
 end
 
+-- Skinning is optional and must be explicitly confirmed after importing.
+-- An ordinary Model/mesh with the right filename is NOT a skinned character.
+function PrefabLibrary.hasBones(name:string, required:{string}):boolean
+    local source=sourceFor(name)
+    if not source then
+        return false
+    end
+    for _,boneName in required do
+        local child=source:FindFirstChild(boneName,true)
+        if not child or not child:IsA("Bone") then
+            return false
+        end
+    end
+    return true
+end
+
 function PrefabLibrary.has(name: string): boolean
     return sourceFor(name) ~= nil
 end
