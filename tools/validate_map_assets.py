@@ -203,7 +203,18 @@ def check_pbr_asset_wiring():
     assert 'StoryProps.decorate(detailFolder,room,theme,lights)' in kit
     assert 'PowerLights' in kit and 'powerIndicator(lights,r,' in story
     assert 'CanQuery=false' in story and 'CanCollide=false' in story
-    print("PASS Blackline story assets: four original optional GLBs and powered wayfinding")
+    signature=(ROOT/"tools/build_signature_assets.py").read_text()
+    for name in ("BlacklineTransferDeck","BlacklinePatchMatrix"):
+        assert name in signature,("Missing original environment hero mesh",name)
+        assert name in story,("Environment story scene does not place hero mesh",name)
+        assert name in studio,("Studio importer does not accept environment hero mesh",name)
+    assert 'if not PrefabLibrary.place(parent,"BlacklinePatchMatrix"' in story
+    assert 'if not PrefabLibrary.place(parent,"BlacklineTransferDeck"' in story
+    assert 'local floorMaterial,ceilingMaterial,floorTint,ceilingTint=' in kit
+    assert 'interiorFinishes(spec,room)' in kit
+    assert 'FunctionalSurfaceRole' in kit
+    print("PASS Blackline story assets: six new optional environment meshes,"
+          " map-purpose floors and powered wayfinding")
 
 def check_lighting_security():
     import json
