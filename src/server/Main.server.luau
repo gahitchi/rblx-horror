@@ -17,6 +17,7 @@ local MonsterService = require(script.Parent.MonsterService)
 local NoiseService = require(script.Parent.NoiseService)
 local ObjectiveService = require(script.Parent.ObjectiveService)
 local PlayerService = require(script.Parent.PlayerService)
+local CharacterArt = require(script.Parent.CharacterArt)
 local RoundService = require(script.Parent.RoundService)
 
 local FeedbackService = require(script.Parent.FeedbackService)
@@ -121,6 +122,12 @@ DoorService.register(layout.frontDoor, false)
 for _, door in layout.doors do
 	DoorService.register(door, true)
 end
+
+-- Register before RoundService starts spawning players; cosmetics are entirely
+-- optional, and their failure cannot interrupt round objectives or camera.
+RoundService.onSpawn(function(_, character, inRound)
+    CharacterArt.apply(character, inRound)
+end)
 
 MonsterService.init(layout.areas, RoundService.isTarget, RoundService.catch)
 ObjectiveService.init(layout, RoundService.isTarget)
