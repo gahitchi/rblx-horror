@@ -153,29 +153,49 @@ def check_lighting_security():
     print("PASS lighting security: no protected runtime writes, both Rojo places configured")
 
 
-def check_door_visual_contract():
+def check_finish_detail_contract():
     kit = (ROOT/"src/server/Maps/Kit.luau").read_text()
+    finish = (ROOT/"src/server/Maps/FinishDetail.luau").read_text()
     pbr = (ROOT/"src/server/Maps/PBRMaterials.luau").read_text()
     doors = (ROOT/"src/server/DoorService.luau").read_text()
-    start=kit.index("local function doorLeaf(")
-    end=kit.index("local function portalsForEdge(", start)
-    door=kit[start:end]
+    d0=kit.index("local function doorLeaf(")
+    d1=kit.index("local function portalsForEdge(", d0)
+    door=kit[d0:d1]
+    furnishing=kit[kit.index("local function furnishing("):d0]
     assert 'leaf:SetAttribute("DisablePBR",true)' in door
     assert 'leaf:SetAttribute("DoorArtVersion",2)' in door
     assert 'Enum.Material.SmoothPlastic,true' in door
-    assert 'upper:SetAttribute("DisablePBR",false)' in door
-    assert 'lower:SetAttribute("DisablePBR",false)' in door
-    assert 'for _, side in {-1,1} do' in door
+    assert 'FinishDetail.doorFields(leaf,mapId,portal.kind,attachment)' in door
     assert 'item:SetAttribute("DisablePBR",true)' in door
+    assert 'for _, side in {-1,1} do' in finish
+    assert 'PressedFieldBacking' in finish and 'PressedField' in finish
     assert 'local median=math.max(' in pbr and 'median>=0.6' in pbr
     assert 'doorByName[p.name]=doorLeaf(doors,p,theme,spec.id)' in kit
-    assert 'portal.kind~="open" and p.kind~="window"' in kit or (
-        'p.kind~="open" and p.kind~="window"' in kit)
+    assert 'p.kind~="open" and p.kind~="window"' in kit
     assert 'leaf:SetAttribute("Kind",portal.kind)' in door
     assert 'DoorService.register' in (ROOT/"src/server/Main.server.luau").read_text()
     assert 'state.part.CanCollide = not open' in doors
     assert 'state.part.CanQuery = not open' in doors
-    print("PASS door visual contract: painted silhouette, two-sided PBR inlays, safe leaf")
+
+    # Furniture must retain the collision proxy but make the broad color and
+    # tabletop independent of global tiled oxidized-steel/aged-oak materials.
+    assert 'collider.Transparency=1' in furnishing
+    assert 'counterProxy.Transparency=1' in furnishing
+    assert 'counterProxy:SetAttribute("DisablePBR",true)' in furnishing
+    assert 'FinishDetail.counter(parent,theme.id,"control"' in furnishing
+    assert 'FinishDetail.counter(parent,theme.id,"reception"' in furnishing
+    assert 'PrefabLibrary.place(parent,"MixingConsole"' in furnishing
+    assert 'CounterWorktop' in finish and 'CounterFrontFacade' in finish
+    assert 'CounterToeRunner' in finish and 'CounterAccessField' in finish
+    assert 'p.CanCollide = false' in finish
+    assert 'p.CanQuery = false' in finish
+    assert 'p:SetAttribute("DisablePBR",true)' in finish
+    assert 'if not PrefabLibrary.place(parent,"MixingConsole"' in furnishing
+    assert 'box(parent,"CounterTop"' not in furnishing
+    assert 'box(parent,"ConsoleSurface"' not in furnishing
+    for identifier in ("studio","radio","foundry"):
+        assert identifier + " = {" in finish, ("missing map-specific finish",identifier)
+    print("PASS finish contract: matte door fields, deliberate table facades, preserved interaction hulls")
 
 
 if __name__=="__main__":
@@ -183,4 +203,4 @@ if __name__=="__main__":
     for item in files:check_mesh(item)
     check_pbr_asset_wiring()
     check_lighting_security()
-    check_door_visual_contract()
+    check_finish_detail_contract()
