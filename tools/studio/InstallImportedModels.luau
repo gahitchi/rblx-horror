@@ -43,6 +43,7 @@ local RIG_PARTS = {
     EngineerRigLegLeft = true,
     EngineerRigLegRight = true,
 }
+local SKINNED={ EngineerSkinned=true }
 local ROOT_NAME = "ArtLibrary"
 
 local target = ServerStorage:FindFirstChild(ROOT_NAME)
@@ -56,7 +57,7 @@ assert(target:IsA("Folder"), "ServerStorage.ArtLibrary must be a Folder")
 local installed = {}
 local skipped = {}
 for _, candidate in Selection:Get() do
-    if not EXPECTED[candidate.Name] and not OPTIONAL[candidate.Name] and not CHARACTER[candidate.Name] and not SIGNATURE[candidate.Name] and not RIG_PARTS[candidate.Name] then
+    if not EXPECTED[candidate.Name] and not OPTIONAL[candidate.Name] and not CHARACTER[candidate.Name] and not SIGNATURE[candidate.Name] and not RIG_PARTS[candidate.Name] and not SKINNED[candidate.Name] then
         table.insert(skipped, candidate.Name .. ": name not recognized")
         continue
     end
@@ -160,6 +161,11 @@ if #rigMissing>0 then
         table.concat(rigMissing,", ").." (existing monster fallback remains active)")
 else
     print("[Dead Air] All six articulated Engineer pieces installed")
+end
+if not target:FindFirstChild("EngineerSkinned") then
+    print("[Dead Air] Optional skinned Engineer not installed; segmented fallback remains available")
+else
+    print("[Dead Air] Weighted skinned Engineer prefab installed; validate bones on F5 before enabling")
 end
 -- Save the Studio place after successful import. The code-only Rojo build does not
 -- contain creator-owned MeshIds; do not replace the prefab with a plain Part.
