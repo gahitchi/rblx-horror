@@ -82,7 +82,7 @@ first-person inspection.
 The optional GLB pack now includes **25 models** (the original 19 plus
 six segmented Engineer parts). The latest exported pack and its generated
 `art-quality-report.json` are available from the
-[Source Asset Export workflow](https://github.com/gahitchi/rblx-horror/actions/runs/41297392946).
+[Source Asset Export workflow](https://github.com/gahitchi/rblx-horror/actions/runs/41297996570).
 The audit recorded **51,400 triangles** and **234 embedded image-map
 instances** across 25 source meshes. These statistics measure the asset
 pack, not visual realism.
