@@ -18,6 +18,9 @@ def main():
     installer=source("tools/studio/InstallImportedModels.luau")
     art=source("src/server/CharacterArt.luau")
     engineer=source("src/server/Monster/EngineerModel.luau")
+    rig=source("src/server/Monster/ArticulatedEngineer.luau")
+    motion=source("src/client/EngineerMotion.luau")
+    main_client=source("src/client/Main.client.luau")
     main_script=source("src/server/Main.server.luau")
     prefabs=source("src/server/PrefabLibrary.luau")
     exporter=source(".github/workflows/asset-export.yml")
@@ -36,6 +39,18 @@ def main():
             "Engineer name contract changed")
     require('glow.Parent = cup' in engineer,
             "Lunge earcup indicator parts must retain controlled light")
+    require('ArticulatedEngineer.mount(m,hrp,glows)' in engineer,
+            "segmented rig not preferred over rigid body prototype")
+    for joint in ("RigTorso","RigHead","RigArmLeft","RigArmRight",
+                  "RigLegLeft","RigLegRight"):
+        require('name="'+joint+'"' in rig,(joint,"missing motor rig bone"))
+    require('joint.Part0=root' in rig and 'joint.Part1=bone' in rig,
+            "motor joints must follow original server AI root")
+    require('light.Parent=host' in rig, "live earcup glow must follow animated head")
+    require('Motor6D' in motion and 'PreSimulation' in motion,
+            "Engineer visual pose update missing")
+    require('EngineerMotion = EngineerMotion' in main_client,
+            "Engineer animation client controller not registered")
     require('h.HipHeight = 3' in engineer and 'hrp:SetNetworkOwner(nil)' in engineer,
             "Engineer collision, hip height or server authority changed")
     require('HumanoidRigType.R15' in art and
