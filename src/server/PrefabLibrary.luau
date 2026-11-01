@@ -46,6 +46,10 @@ local function placed(source: PVInstance, parent: Instance, cf: CFrame): PVInsta
         p.CanTouch = false
         p.CanQuery = false
         p.CastShadow = true
+        -- Preserve the creator's imported GLB material / SurfaceAppearance.
+        -- Broad environment PBR variants are only for procedural architecture,
+        -- never for externally authored hero meshes or their separate submeshes.
+        p:SetAttribute("DisablePBR",true)
     end)
     clone.Parent = parent
     return clone
