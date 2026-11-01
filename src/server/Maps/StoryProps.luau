@@ -276,6 +276,10 @@ function StoryProps.decorate(parent:Instance, r:Room, palette:Palette, lights:In
         title(parent,"GalleryWingDirectory",
             "PUBLIC / RECEPTION  v\nRECORDING     ^\nENGINEERING        >",
             CFrame.new(r.x1+22,10,r.z1+0.95),18,3)
+    elseif r.name=="StaffPassage" then
+        title(parent,"ServiceRouteWayfinding",
+            "SILENT ACCESS / TECHNICAL STAFF\nSERVICE SPINE  >\nRECEPTION       v",
+            CFrame.new(r.center.X,9.3,r.z1+1.1),19,2.8)
     elseif r.name=="ServiceGallery" then
         workplace(parent,r,
             "AUDIO PLANT  /  QUIET HOURS\n\nKEEP FIRE DOORS CLEAR\nARCHIVE VENTILATION 02 OFF\nSIGNAL LOSS REPORTED 03:17",
