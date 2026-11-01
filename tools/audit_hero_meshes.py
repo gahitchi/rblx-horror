@@ -72,12 +72,25 @@ def check(path: Path):
             uv=getattr(mesh.visual,"uv",None)
             assert uv is not None and len(uv)==len(mesh.vertices) and (
                 np.isfinite(uv).all()),("Q01 unwrapped mesh required",mesh)
+    if path.stem in {"EngineerBody","EngineerSkinned"}:
+        assert "BlacklineEngineerOriginalIDPlate" in materials,(
+            "Q02 needs printed, real UV-mapped studio identification",path.name)
+        assert 16000<=triangles<=60000,(
+            "Q02 technician geometry detail or budget regression",triangles)
+        assert 2.5<dims[0]<3.8 and 7.5<dims[1]<8.8 and 1.2<dims[2]<2.4,(
+            "Q02 must remain approximately human-proportioned",path.name,dims)
+        for mesh in scene.geometry.values():
+            uv=getattr(mesh.visual,"uv",None)
+            assert uv is not None and len(uv)==len(mesh.vertices) and np.isfinite(uv).all(),(
+                "Q02 requires physically UV-mapped meshes",mesh)
     assert path.stat().st_size<18_000_000,(path.name,"mesh exceeds conservative import budget")
 
     return {
         "file":path.name,
         "sourceTier":("machined-UV-console-source-prototype"
                       if path.stem=="BlacklineHeroConsole"
+                      else "grounded-character-Q02-source-candidate"
+                      if path.stem in {"EngineerBody","EngineerSkinned"}
                       else "procedural-prototype"),
         "vertices":vertices,
         "triangles":triangles,
