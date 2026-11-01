@@ -40,6 +40,9 @@ local KIND_GAIN: { [string]: number } = {
 	mail = 15,
 	hum = 18,
 	whisper = 18,
+	breath = 30,
+	gasp = 70,
+	throw = 40,
 }
 -- Objective sounds it can't ignore: it hurries to them even while backing off.
 local LOUD_KINDS: { [string]: boolean } =

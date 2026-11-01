@@ -56,9 +56,15 @@ local function update(dt: number)
 
 	local moving = humanoid.MoveDirection.Magnitude > 0.1
 	local sprinting = MovementController.isSprinting() and moving and stamina > 0
+	-- What you hold slows you: a reel or a pipe more than a bottle (Config.CARRY).
+	local held = player:GetAttribute("HoldWeight")
+	local weight: number = if type(held) == "number" then math.clamp(held, 0, 1) else 0
 
 	if sprinting then
-		stamina = math.max(0, stamina - dt / Config.STAMINA_SECONDS)
+		stamina = math.max(
+			0,
+			stamina - dt / Config.STAMINA_SECONDS * (1 + weight * Config.CARRY.STAMINA_DRAIN)
+		)
 		if stamina <= 0 then
 			exhausted = true
 		end
@@ -72,7 +78,7 @@ local function update(dt: number)
 	if crouching then
 		humanoid.WalkSpeed = Config.CROUCH_SPEED
 	elseif sprinting then
-		humanoid.WalkSpeed = Config.SPRINT_SPEED
+		humanoid.WalkSpeed = Config.SPRINT_SPEED - weight * Config.CARRY.SPRINT_LOSS
 	else
 		humanoid.WalkSpeed = Config.WALK_SPEED
 	end

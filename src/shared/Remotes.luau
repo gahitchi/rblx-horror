@@ -57,6 +57,8 @@ return table.freeze({
 	PuzzleAnswer = event("PuzzleAnswer"), -- client -> server: (kind: string, answer: any)
 	Fader = event("Fader"), -- client -> server: (push: number, -1 to 1) riding the faders during a dub
 	DropItem = event("DropItem"), -- client -> server: () put down what you're holding
+	Throw = event("Throw"), -- client -> server: (direction: Vector3) throw what you're holding
+	HoldBreath = event("HoldBreath"), -- client -> server: (holding: boolean) in a hiding spot
 	-- Echoes
 	EchoMove = event("EchoMove"), -- client -> server: (position: Vector3) where the echo floats
 	EchoPing = event("EchoPing"), -- client -> server: () mark the monster for the living

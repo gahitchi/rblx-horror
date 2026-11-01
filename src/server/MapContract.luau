@@ -53,6 +53,8 @@ export type Layout = {
 	objectives: { [string]: BasePart },
 	reelSpots: { BasePart },
 	tapeSpots: { Vector3 },
+	throwableSpots: { BasePart },
+	hidingSpots: { BasePart },
 	exitZone: BasePart,
 	frontDoor: BasePart,
 	doors: { BasePart },
@@ -202,6 +204,7 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 	local boothsFolder = map:FindFirstChild("Booths")
 	local objectivesFolder = map:FindFirstChild("Objectives")
 	local shuttersFolder = map:FindFirstChild("Shutters")
+	local hidingFolder = map:FindFirstChild("HidingSpots")
 	-- "PowerLights" was the old name of the Lamps folder; both work.
 	local lampsFolder = map:FindFirstChild("Lamps") or map:FindFirstChild("PowerLights")
 	for _, name in { "Markers", "Areas", "Doors", "Objectives" } do
@@ -236,6 +239,22 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 	for _, spot in partsNamed(markers, "OptionalTapeSpot") do
 		makeHelper(spot)
 		table.insert(tapeSpots, spot.Position)
+	end
+	local throwableSpots: { BasePart } = {}
+	for _, spot in partsNamed(markers, "Throwable") do
+		makeHelper(spot)
+		table.insert(throwableSpots, spot)
+	end
+
+	-- Hiding spots: wardrobes and lockers you can step into. Each part's front face (-Z) is the door.
+	local hidingSpots: { BasePart } = {}
+	if hidingFolder then
+		for _, child in hidingFolder:GetChildren() do
+			if child:IsA("BasePart") then
+				child.Anchored = true
+				table.insert(hidingSpots, child)
+			end
+		end
 	end
 
 	-- Areas
@@ -456,6 +475,8 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 		objectives = objectives,
 		reelSpots = reelSpots,
 		tapeSpots = tapeSpots,
+		throwableSpots = throwableSpots,
+		hidingSpots = hidingSpots,
 		exitZone = exitZone :: BasePart,
 		frontDoor = frontDoor :: BasePart,
 		doors = doors,

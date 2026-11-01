@@ -11,6 +11,7 @@ local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Co
 
 local ChapterService = require(script.Parent.ChapterService)
 local DoorService = require(script.Parent.DoorService)
+local HideService = require(script.Parent.HideService)
 local LightingService = require(script.Parent.LightingService)
 local MapBuilder = require(script.Parent.MapBuilder)
 local MapContract = require(script.Parent.MapContract)
@@ -145,6 +146,7 @@ end
 
 MonsterService.init(layout.areas, RoundService.isTarget, RoundService.catch)
 LightingService.init(layout)
+HideService.init(layout, RoundService.isTarget)
 PlayerService.init()
 ProgressService.init()
 FeedbackService.init()

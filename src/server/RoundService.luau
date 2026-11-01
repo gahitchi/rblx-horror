@@ -21,6 +21,7 @@ local Sounds = require(Shared:WaitForChild("Sounds"))
 local ChapterService = require(script.Parent.ChapterService)
 local DoorService = require(script.Parent.DoorService)
 local EchoService = require(script.Parent.EchoService)
+local HideService = require(script.Parent.HideService)
 local LightingService = require(script.Parent.LightingService)
 local MapContract = require(script.Parent.MapContract)
 local MonsterService = require(script.Parent.MonsterService)
@@ -176,6 +177,7 @@ function RoundService.catch(player: Player)
 	if phase ~= "Playing" or participants[player] ~= "alive" then
 		return
 	end
+	HideService.leave(player) -- caught in a hiding spot: the body falls out of it
 	local r = rootOf(player)
 	local position = if r then r.Position else layout.spawn.Position
 	markCaught(player, position)
@@ -333,6 +335,7 @@ local function runRound()
 	MonsterService.despawn()
 	MonsterService.setPressure(0)
 	EchoService.reset()
+	HideService.reset()
 	ChapterService.startRound()
 	for _, callback in roundStartListeners do
 		task.spawn(callback)

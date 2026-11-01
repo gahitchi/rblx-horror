@@ -92,6 +92,13 @@ local frenzyUntil = 0
 local frenzyHeld = false
 local frenzyHearing = M.FRENZY_HEARING
 
+-- Hiding spots it can open while searching (HideService). `checkSpot` returns whoever was inside.
+local hidingSpots: { BasePart } = {}
+local checkSpot: (BasePart) -> Player? = function()
+	return nil
+end
+local spotFronts: { [Vector3]: BasePart } = {} -- route points that are a hiding spot's door
+
 -- Debug overlay (Config.DEBUG_AI)
 local debugLabel: TextLabel? = nil
 local debugFolder: Folder? = nil
@@ -299,6 +306,29 @@ local function startSearch(center: Vector3)
 	end)
 	for i = 1, math.min(M.SEARCH_POINTS - 1, #nearby) do
 		table.insert(spots, nearby[i])
+	end
+	-- Hiding spots nearby: the closest one always gets opened, others now and then.
+	spotFronts = {}
+	local closestSpot: BasePart? = nil
+	local closestDistance = math.huge
+	for _, spot in hidingSpots do
+		local d = (spot.Position - center).Magnitude
+		if d < M.SEARCH_RADIUS and d < closestDistance then
+			closestSpot, closestDistance = spot, d
+		end
+	end
+	for _, spot in hidingSpots do
+		local d = (spot.Position - center).Magnitude
+		if
+			d < M.SEARCH_RADIUS
+			and (spot == closestSpot or rng:NextNumber() < Config.HIDE.CHECK_CHANCE)
+		then
+			local front = spot.CFrame * CFrame.new(0, 0, -(spot.Size.Z / 2 + 2.2))
+			local floorY = spot.Position.Y - spot.Size.Y / 2
+			local point = Vector3.new(front.X, floorY + 3, front.Z)
+			spotFronts[point] = spot
+			table.insert(spots, if spot == closestSpot then 2 else #spots + 1, point)
+		end
 	end
 	route = spots
 	pauseUntil = 0
@@ -586,6 +616,22 @@ local function think(now: number)
 			startSearch(target)
 		end
 	elseif state == "Search" then
+		-- At a hiding spot's door: it opens it.
+		local nextPoint = route[1]
+		local spot = if nextPoint then spotFronts[nextPoint] else nil
+		if spot and nextPoint and flat(nextPoint - r.Position).Magnitude < 3.2 then
+			table.remove(route, 1)
+			spotFronts[nextPoint] = nil
+			n.stop()
+			local found = checkSpot(spot)
+			local foundRoot = if found then rootOf(found) else nil
+			if found and foundRoot then
+				log("found", found.Name, "hiding")
+				startHunt(found, foundRoot.Position)
+				return
+			end
+			pauseUntil = now + 1.2
+		end
 		local done = followRoute(now, M.SEARCH_SPEED, 0.8, 1.2, 2.4)
 		if done or now >= searchUntil then
 			if Director.wantsRetreat() and not frenzied() then
@@ -805,6 +851,12 @@ end
 function MonsterService.position(): Vector3?
 	local r = root
 	return if r and state ~= "Dormant" then r.Position else nil
+end
+
+-- The hiding spots it may open while searching, and how to open one.
+function MonsterService.setHidingSpots(spots: { BasePart }, check: (BasePart) -> Player?)
+	hidingSpots = spots
+	checkSpot = check
 end
 
 -- Soft pressure from the round, 0 (calm) to 1 (full): it hears farther and comes looking sooner.

@@ -132,7 +132,7 @@ function Hud.start()
 	local help = label(gui, UDim2.fromOffset(520, 18), UDim2.new(0, 20, 1, -32), 13)
 	help.TextXAlignment = Enum.TextXAlignment.Left
 	help.TextColor3 = DIM
-	local keys = { "Shift run", "C crouch", "F light", "E interact", "G drop" }
+	local keys = { "Shift run", "C crouch", "F light", "E interact", "G drop", "T throw" }
 	if Config.FEATURES.WALKIE then
 		table.insert(keys, "V talk")
 		table.insert(keys, "1-4 callouts")
@@ -266,7 +266,19 @@ function Hud.start()
 				status.Text = string.format("THE LOCKS RE-ENGAGE IN %d", left)
 				status.TextColor3 = DANGER
 			end
-			if isEcho then
+			if player:GetAttribute("Hiding") then
+				local left: number = player:GetAttribute("BreathLeft") or 1
+				if player:GetAttribute("BreathDanger") then
+					centre.Text = string.format(
+						"It's close. Hold your breath (Space)   %s",
+						string.rep("|", math.ceil(left * 10))
+					)
+					centre.TextColor3 = DANGER
+				else
+					centre.Text = "Hiding   ·   E to step out"
+					centre.TextColor3 = DIM
+				end
+			elseif isEcho then
 				centre.Text = "You're an echo. Float anywhere and help the living."
 				centre.TextColor3 = WHISPER
 			elseif not inRound then

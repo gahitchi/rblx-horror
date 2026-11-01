@@ -589,10 +589,18 @@ function Studio1.start()
 		"spares",
 		"Spare parts",
 		Color3.fromRGB(150, 150, 140),
-		Vector3.new(1.2, 0.6, 0.8)
+		Vector3.new(1.2, 0.6, 0.8),
+		0.3
 	)
 	for _, letter in REELS do
-		Kit.defineItem(reelId(letter), "Reel " .. letter, REEL_COLOR, Vector3.new(1.6, 0.4, 1.6))
+		-- Two-inch tape on a metal reel: heavy enough to slow a sprint.
+		Kit.defineItem(
+			reelId(letter),
+			"Reel " .. letter,
+			REEL_COLOR,
+			Vector3.new(1.6, 0.4, 1.6),
+			0.6
+		)
 	end
 	local rng = Kit.random()
 	local inputs: { number } = {}

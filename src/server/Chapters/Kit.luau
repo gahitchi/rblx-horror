@@ -35,7 +35,15 @@ export type Hooks = {
 
 export type StoryTape = { id: string, title: string, body: string }
 
-type ItemSpec = { id: string, name: string, color: Color3, size: Vector3 }
+-- `throw` is how it lands when thrown ("light", "glass", "heavy"), or nil if it can't be thrown.
+type ItemSpec = {
+	id: string,
+	name: string,
+	color: Color3,
+	size: Vector3,
+	weight: number,
+	throw: string?,
+}
 type OpenPuzzle = { kind: string, part: BasePart }
 type Dub = {
 	part: BasePart,
@@ -255,9 +263,18 @@ end
 
 -- ===== Hand items =====
 
--- Registers a kind of thing players carry in their hands (one at a time).
-function Kit.defineItem(id: string, name: string, color: Color3, size: Vector3)
-	HAND_ITEMS[id] = { id = id, name = name, color = color, size = size }
+-- Registers a kind of thing players carry in their hands (one at a time). `weight` (0 to 1) slows
+-- the sprint; `throw` makes it throwable ("light", "glass" or "heavy").
+function Kit.defineItem(
+	id: string,
+	name: string,
+	color: Color3,
+	size: Vector3,
+	weight: number?,
+	throw: string?
+)
+	HAND_ITEMS[id] =
+		{ id = id, name = name, color = color, size = size, weight = weight or 0, throw = throw }
 end
 
 function Kit.holding(player: Player): string?
@@ -269,6 +286,8 @@ local function setHolding(player: Player, id: string?)
 	local spec = if id then HAND_ITEMS[id] else nil
 	player:SetAttribute("Holding", id or "")
 	player:SetAttribute("HoldingName", if spec then spec.name else "")
+	player:SetAttribute("HoldWeight", if spec then spec.weight else 0)
+	player:SetAttribute("CanThrow", spec ~= nil and spec.throw ~= nil)
 end
 
 local spawnHandItem: (string, Vector3) -> ()
@@ -331,6 +350,68 @@ local function dropHeld(player: Player, position: Vector3)
 		setHolding(player, nil)
 		spawnHandItem(held, floorUnder(position))
 	end
+end
+
+-- Throwing what you hold: it flies in an arc and makes noise where it lands (a decoy). Bottles
+-- smash; cans and pipes can be picked up again.
+local THROW_NOISE: { [string]: { loudness: number, sound: string } } = {
+	light = { loudness = Config.NOISE.THROW_LIGHT, sound = Sounds.TAPE_CLUNK },
+	glass = { loudness = Config.NOISE.THROW_GLASS, sound = Sounds.LANDING },
+	heavy = { loudness = Config.NOISE.THROW_HEAVY, sound = Sounds.CLUTTER },
+}
+
+local function onThrow(player: Player, direction: unknown)
+	local held = Kit.holding(player)
+	local spec = if held then HAND_ITEMS[held] else nil
+	local r = rootOf(player)
+	if
+		not spec
+		or not spec.throw
+		or not r
+		or not hooks.isTarget(player)
+		or typeof(direction) ~= "Vector3"
+		or direction.Magnitude < 0.1
+		or direction ~= direction
+	then
+		return
+	end
+	setHolding(player, nil)
+	local throwKind = spec.throw :: string
+	local C = Config.CARRY
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { layout.map }
+	local position = r.Position + Vector3.new(0, 1.5, 0) + direction.Unit * 1.5
+	local velocity = direction.Unit * C.THROW_SPEED
+	local flying = Kit.spawnPart(spec.name, CFrame.new(position), spec.size, spec.color)
+	local myRound = roundId
+	task.spawn(function()
+		local step = 1 / 30
+		local landed = position
+		for _ = 1, 90 do
+			local nextPosition = position + velocity * step
+			velocity -= Vector3.new(0, C.THROW_GRAVITY * step, 0)
+			local hit = Workspace:Raycast(position, nextPosition - position, params)
+			if hit then
+				landed = hit.Position + hit.Normal * 0.3
+				break
+			end
+			position = nextPosition
+			landed = position
+			flying.CFrame = CFrame.new(position)
+			task.wait(step)
+			if roundId ~= myRound then
+				return
+			end
+		end
+		flying:Destroy()
+		local noise = THROW_NOISE[throwKind]
+		Kit.sound(noise.sound, landed, 0.9, 120)
+		Kit.noise(landed, noise.loudness, "throw", nil)
+		if throwKind ~= "glass" then
+			spawnHandItem(spec.id, landed)
+		end
+	end)
 end
 
 local function onDropItem(player: Player)
@@ -758,6 +839,15 @@ function Kit.reset()
 	DoorService.set(layout.frontDoor, false)
 	resetShutters()
 	LightingService.reset()
+	-- Loose things to throw, where the map put them.
+	local kinds = { "bottle", "can", "pipe" }
+	for _, spot in layout.throwableSpots do
+		local item = spot:GetAttribute("Item")
+		local id = if type(item) == "string" and HAND_ITEMS[item]
+			then item
+			else kinds[rng:NextInteger(1, #kinds)]
+		spawnHandItem(id, spot.Position)
+	end
 	Kit.prompt(Kit.objective("MailSlot"), "Push tapes through", "Mail slot", 0.6, deliverTapes)
 end
 
@@ -770,6 +860,31 @@ function Kit.init(map: MapContract.Layout, roundHooks: Hooks)
 	Remotes.PuzzleAnswer.OnServerEvent:Connect(onPuzzleAnswer)
 	Remotes.Fader.OnServerEvent:Connect(onFader)
 	Remotes.DropItem.OnServerEvent:Connect(onDropItem)
+	Remotes.Throw.OnServerEvent:Connect(onThrow)
+	Kit.defineItem(
+		"bottle",
+		"Glass bottle",
+		Color3.fromRGB(70, 110, 80),
+		Vector3.new(0.4, 1, 0.4),
+		0.1,
+		"glass"
+	)
+	Kit.defineItem(
+		"can",
+		"Tin can",
+		Color3.fromRGB(170, 170, 160),
+		Vector3.new(0.4, 0.6, 0.4),
+		0.05,
+		"light"
+	)
+	Kit.defineItem(
+		"pipe",
+		"Metal pipe",
+		Color3.fromRGB(110, 100, 90),
+		Vector3.new(0.3, 0.3, 2.4),
+		0.7,
+		"heavy"
+	)
 
 	-- Puzzles close when their player walks away; the dub and the shocks tick here too.
 	local last = os.clock()

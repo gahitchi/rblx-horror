@@ -39,6 +39,11 @@ Config.NOISE = table.freeze({
 	FADER_SPIKE = 120, -- letting the levels drift during the last session
 	MAIL_SLOT = 12, -- pushing a tape through the front doors' mail slot
 	SHUTTER = 70, -- a quarantine shutter dropping
+	BREATH = 12, -- breathing in a hiding spot with the monster close
+	GASP = 40, -- running out of held breath
+	THROW_LIGHT = 32, -- a can landing
+	THROW_GLASS = 55, -- a bottle smashing
+	THROW_HEAVY = 48, -- a pipe clanging down
 	-- Echoes
 	HUM = 20, -- an entranced body humming the sound, every few seconds
 	WHISPER = 14, -- an echo's whisper, when the monster happens to catch it
@@ -162,6 +167,26 @@ Config.STUDIO1 = table.freeze({
 	DECOY_CARDS = 12, -- other cards in the archive's card index drawer
 	PATCH_INPUTS = 8, -- desk inputs on the patch bay
 	OPTIONAL_TAPES = 3,
+})
+
+-- Hiding in wardrobes and lockers. Inside, your noise is muffled. With the monster close your
+-- breathing grows loud: hold it (Space) for a few seconds, or it hears you. Run out and you gasp.
+Config.HIDE = table.freeze({
+	MUFFLE = 0.35, -- noise from inside a hiding spot carries this much as far
+	BREATH_RANGE = 16, -- the monster this close makes your breathing loud
+	BREATH_INTERVAL = 1.2, -- seconds between breaths it might hear
+	HOLD_SECONDS = 6, -- how long you can hold your breath
+	RECOVER_SECONDS = 8, -- from empty back to a full breath
+	CHECK_CHANCE = 0.35, -- when searching nearby, the chance it checks a hiding spot it walks past
+})
+
+-- What you hold in your hands slows you: heavier things shorten and slow your sprint.
+-- Weights run from 0 (nothing) to 1 (the heaviest thing you can carry).
+Config.CARRY = table.freeze({
+	SPRINT_LOSS = 6, -- sprint speed lost at weight 1
+	STAMINA_DRAIN = 1.2, -- extra stamina drain at weight 1 (x2.2)
+	THROW_SPEED = 48, -- how hard you throw, studs per second
+	THROW_GRAVITY = 60,
 })
 
 -- Chapters in story order. `map` is the Config.MAPS id; a chapter unlocks when the one before it is

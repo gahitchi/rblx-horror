@@ -3,9 +3,14 @@
 --   V (hold)  talk on the walkie        N  walkie on/off
 --   1 to 4    walkie callouts           R  tape recorder: record, or set it down
 --   G         put down what you're holding (a reel, spare parts)
+--   T         throw what you're holding (bottles, cans, pipes) where you're looking
+--   Space     hold your breath, while hiding with the monster close
 
 local ContextActionService = game:GetService("ContextActionService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -62,7 +67,74 @@ local function onDrop(_: string, state: Enum.UserInputState): Enum.ContextAction
 	return Enum.ContextActionResult.Pass
 end
 
+local function onThrow(_: string, state: Enum.UserInputState): Enum.ContextActionResult
+	if state == Enum.UserInputState.Begin then
+		local camera = Workspace.CurrentCamera
+		if camera then
+			Remotes.Throw:FireServer(camera.CFrame.LookVector)
+		end
+	end
+	return Enum.ContextActionResult.Pass
+end
+
+local holdingBreath = false
+
+local function onBreath(_: string, state: Enum.UserInputState): Enum.ContextActionResult
+	local holding = state == Enum.UserInputState.Begin
+	if holding ~= holdingBreath then
+		holdingBreath = holding
+		Remotes.HoldBreath:FireServer(holding)
+	end
+	return Enum.ContextActionResult.Sink
+end
+
 function ItemController.start()
+	-- Throw: only shown (on touch screens) while holding something throwable.
+	-- Hold breath: only bound while hiding, so Space is a jump again outside.
+	local player = Players.LocalPlayer
+	local throwBound = false
+	local breathBound = false
+	RunService.Heartbeat:Connect(function()
+		local canThrow = player:GetAttribute("CanThrow") == true
+		if canThrow ~= throwBound then
+			throwBound = canThrow
+			if canThrow then
+				ContextActionService:BindAction(
+					"DeadAirThrow",
+					onThrow,
+					true,
+					Enum.KeyCode.T,
+					Enum.KeyCode.DPadUp
+				)
+				ContextActionService:SetTitle("DeadAirThrow", "Throw")
+				ContextActionService:SetPosition("DeadAirThrow", UDim2.new(1, -100, 1, -230))
+			else
+				ContextActionService:UnbindAction("DeadAirThrow")
+			end
+		end
+		local hiding = player:GetAttribute("Hiding") == true
+		if hiding ~= breathBound then
+			breathBound = hiding
+			if hiding then
+				ContextActionService:BindAction(
+					"DeadAirHoldBreath",
+					onBreath,
+					true,
+					Enum.KeyCode.Space,
+					Enum.KeyCode.ButtonA
+				)
+				ContextActionService:SetTitle("DeadAirHoldBreath", "Hold breath")
+				ContextActionService:SetPosition("DeadAirHoldBreath", UDim2.new(1, -170, 1, -170))
+			else
+				ContextActionService:UnbindAction("DeadAirHoldBreath")
+				if holdingBreath then
+					holdingBreath = false
+					Remotes.HoldBreath:FireServer(false)
+				end
+			end
+		end
+	end)
+
 	ContextActionService:BindAction(
 		"DeadAirDrop",
 		onDrop,

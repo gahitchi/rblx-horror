@@ -28,6 +28,9 @@ local listeners: { (Noise) -> () } = {}
 local zones: { ZoneInfo } = {}
 local lastVoiceTime: { [Player]: number } = {}
 local extraIgnore: { Instance } = {}
+local muffle: (Player) -> number = function()
+	return 1
+end
 local wallParams = RaycastParams.new()
 wallParams.FilterType = Enum.RaycastFilterType.Exclude
 
@@ -52,6 +55,11 @@ end
 
 function NoiseService.setZones(list: { ZoneInfo })
 	zones = list
+end
+
+-- How much of a player's own noise gets out (a hiding spot muffles it).
+function NoiseService.setMuffle(callback: (Player) -> number)
+	muffle = callback
 end
 
 -- Extra things that never block sound (the monster). Player characters are always ignored.
@@ -80,6 +88,9 @@ function NoiseService.emit(
 	source: Player?,
 	replay: boolean?
 )
+	if source then
+		loudness *= muffle(source)
+	end
 	if loudness <= 0 then
 		return
 	end

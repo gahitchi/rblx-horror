@@ -540,6 +540,7 @@ function MapBuilder.build(): Model
 	local booths = folder("Booths", studio)
 	local objectives = folder("Objectives", studio)
 	local shutters = folder("Shutters", studio)
+	local hiding = folder("HidingSpots", studio)
 	local lampsFolder = folder("Lamps", studio)
 	buildAreas(folder("Areas", studio))
 
@@ -860,6 +861,74 @@ function MapBuilder.build(): Model
 	)
 	shutter:SetAttribute("Route", "short")
 	shutter:SetAttribute("StartsOpen", true)
+
+	-- Wardrobes and lockers to hide in. Each faces into its room (its front, -Z, is the door).
+	for _, spec in
+		{
+			{
+				name = "ReceptionWardrobe",
+				at = Vector3.new(-17, 0, 2.5),
+				facing = Vector3.new(0, 0, 1),
+			},
+			{
+				name = "ControlALocker",
+				at = Vector3.new(-33.2, 0, -36),
+				facing = Vector3.new(1, 0, 0),
+			},
+			{
+				name = "ControlBWardrobe",
+				at = Vector3.new(10, 0, -12),
+				facing = Vector3.new(0, 0, -1),
+			},
+			{
+				name = "BreakRoomLocker",
+				at = Vector3.new(36.8, 0, -45),
+				facing = Vector3.new(1, 0, 0),
+			},
+			{
+				name = "ArchiveLocker",
+				at = Vector3.new(68.2, 0, -100),
+				facing = Vector3.new(-1, 0, 0),
+			},
+			{
+				name = "LiveRoomWardrobe",
+				at = Vector3.new(-38.2, 0, -90),
+				facing = Vector3.new(1, 0, 0),
+			},
+		}
+	do
+		local centre = spec.at + Vector3.new(0, 3.5, 0)
+		local spot = newPart(
+			spec.name,
+			Vector3.new(3, 7, 2.5),
+			CFrame.lookAt(centre, centre + spec.facing),
+			if string.find(spec.name, "Locker") then COLORS.metal else COLORS.wood,
+			if string.find(spec.name, "Locker")
+				then Enum.Material.Metal
+				else Enum.Material.WoodPlanks,
+			hiding
+		)
+		spot:SetAttribute("Kind", if string.find(spec.name, "Locker") then "locker" else "wardrobe")
+	end
+
+	-- Loose things to throw: bottles, cans and bits of pipe.
+	for _, spec in
+		{
+			{ at = Vector3.new(-10, 3.7, 10.5), item = "can" },
+			{ at = Vector3.new(14, 0.3, 22), item = "bottle" },
+			{ at = Vector3.new(-14, 3.7, -34.5), item = "can" },
+			{ at = Vector3.new(16, 3.7, -35), item = "bottle" },
+			{ at = Vector3.new(48, 3.2, -46), item = "bottle" },
+			{ at = Vector3.new(52, 3.2, -48), item = "can" },
+			{ at = Vector3.new(-30, 0.3, -66), item = "pipe" },
+			{ at = Vector3.new(30, 0.3, -86), item = "pipe" },
+			{ at = Vector3.new(66, 0.3, -88), item = "pipe" },
+			{ at = Vector3.new(-10, 1.3, -114), item = "bottle" },
+			{ at = Vector3.new(39, 0.3, 2), item = "can" },
+		}
+	do
+		marker("Throwable", spec.at, markers):SetAttribute("Item", spec.item)
+	end
 
 	-- Lamps: dead until the building wakes
 	for _, p in
