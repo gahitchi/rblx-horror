@@ -3,6 +3,7 @@
 -- an architectural workflow, incident record, or human routine. No random scatter.
 -- These are lightweight, non-queryable scenery: gameplay navigation, acoustic walls
 -- and objective interaction remain under the main Map contract.
+local PrefabLibrary=require(script.Parent.Parent.PrefabLibrary)
 local StoryProps={}
 
 type Palette={wall:Color3,floor:Color3,ceiling:Color3,trim:Color3,steel:Color3,accent:Color3}
@@ -141,6 +142,8 @@ local function liveHall(parent:Instance,r:Room,p:Palette)
 end
 
 local function evidence(parent:Instance,r:Room)
+    PrefabLibrary.place(parent,"TapeArchiveCart",
+        CFrame.new(r.x2-12,0,r.z2-8))
     workplace(parent,r,
         "MASTER TRANSFER REGISTRY\n\n27 / 09 - TRACKS 01-07 RESTORED\n28 / 09 - 08 LOST AT 03:17\n29 / 09 - QUIET ZONE SEALED\n\nDO NOT PLAY THE MASTER REEL",
         "TransferLog")
@@ -163,6 +166,14 @@ local function reception(parent:Instance,r:Room,p:Palette)
     title(parent,"BlacklineWordmark","BLACKLINE\nRECORDING COMPLEX",
         CFrame.new(x,10.4,z+0.21),25,7.1)
     directory(parent,r.x1+15,r.z1+1.8)
+    if not PrefabLibrary.place(parent,"ReceptionTerminal",
+        CFrame.new(r.x2-8,0,r.z2-8)*CFrame.Angles(0,math.pi,0)) then
+        -- Small readable fallback while the additional GLB is awaiting import.
+        slab(parent,"VisitorRegistryPedestal",CFrame.new(r.x2-8,1.8,r.z2-8),
+            Vector3.new(2.8,3.6,1.8),dark)
+        slab(parent,"VisitorRegistryScreen",CFrame.new(r.x2-8,2.6,r.z2-9),
+            Vector3.new(2.2,0.9,0.1),mint)
+    end
     slab(parent,"ReceptionSafetyLine",CFrame.new(r.center.X,0.055,r.z2-4.4),
         Vector3.new(38,0.06,0.22),caution)
     workplace(parent,r,
@@ -232,6 +243,8 @@ function StoryProps.decorate(parent:Instance, r:Room, palette:Palette, lights:In
     elseif r.name=="GeneratorRoom" then
         generatorRoom(parent,r)
     elseif r.name=="ControlA" then
+        PrefabLibrary.place(parent,"StudioWallClock",
+            CFrame.new(r.x1+13,r.height-4,r.z1+1.25))
         workplace(parent,r,
             "A CONTROL  /  SESSION NOTES\n\nCHANNEL 08 REQUIRES ISOLATION\nTHE TAPE DECK IS CONNECTED TO P.A.\nENGINEERING SIGNATURE MISSING",
             "ControlALog")
@@ -241,6 +254,11 @@ function StoryProps.decorate(parent:Instance, r:Room, palette:Palette, lights:In
             "B CONTROL  /  MIX REVISION\n\nALL CHANNELS NORMAL EXCEPT 08\nCALL MAINTENANCE BEFORE ROUTING\nAUX BUS STILL RECEIVING AUDIO",
             "ControlBLog")
     elseif r.name=="Maintenance" then
+        if not PrefabLibrary.place(parent,"ServiceIntercom",
+            CFrame.new(r.x2-1.4,4.2,r.center.Z)*CFrame.Angles(0,math.pi/2,0)) then
+            title(parent,"MaintenanceCallPoint","CALL ENGINEERING",
+                CFrame.new(r.center.X,8,r.z1+1.1),13,1.1)
+        end
         workplace(parent,r,
             "SHIFT HANDOVER   03:17\n\nGENERATOR - INCOMPLETE\nARCHIVE - DOOR SEAL REQUESTED\nSERVICE RADIO - NO RESPONSE",
             "MaintenanceHandover")
