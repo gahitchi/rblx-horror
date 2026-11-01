@@ -11,6 +11,11 @@ local MAPS = {
     old_plaster = { color=72728932791485, normal=132441366278455, roughness=75547635259800, metalness=76884033826561 },
     oxidized_steel = { color=76293301928216, normal=86957883179573, roughness=103166159706547, metalness=118241271486095 },
     acoustic_weave = { color=126189349954361, normal=100592484093211, roughness=133073112123944, metalness=98288851413784 },
+    -- VF05 source PNGs ship in the asset pack. Leave all IDs at zero until
+    -- actual creator-approved images have been uploaded in Roblox Studio.
+    blackline_sealed_slate = { color=0, normal=0, roughness=0, metalness=0 },
+    blackline_archive_concrete = { color=0, normal=0, roughness=0, metalness=0 },
+    blackline_powder_steel = { color=0, normal=0, roughness=0, metalness=0 },
 }
 local VARIANTS = {
     { name="DA_Plaster_Concrete", base=Enum.Material.Concrete, family="old_plaster", tile=9 },
@@ -19,6 +24,11 @@ local VARIANTS = {
     { name="DA_Oak_WoodPlanks", base=Enum.Material.WoodPlanks, family="aged_oak", tile=11 },
     { name="DA_Oxidized_Metal", base=Enum.Material.Metal, family="oxidized_steel", tile=8 },
     { name="DA_Oxidized_DiamondPlate", base=Enum.Material.DiamondPlate, family="oxidized_steel", tile=8 },
+    -- Restricted to the three authored Blackline hero spaces via
+    -- PBRMaterials. No global swap of every steel/floor part.
+    { name="DA_Blackline_SealedSlate", base=Enum.Material.Slate, family="blackline_sealed_slate", tile=12 },
+    { name="DA_Blackline_ArchiveConcrete", base=Enum.Material.Concrete, family="blackline_archive_concrete", tile=11 },
+    { name="DA_Blackline_PowderSteel", base=Enum.Material.Metal, family="blackline_powder_steel", tile=7 },
 }
 local function uri(id)
     return "rbxassetid://" .. tostring(id)
