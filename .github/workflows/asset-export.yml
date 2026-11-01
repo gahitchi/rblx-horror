@@ -8,6 +8,8 @@ on:
       - tools/generate_pbr.py
       - tools/build_glb_assets.py
       - tools/build_character_assets.py
+      - tools/build_skinned_engineer.py
+      - tools/validate_skinned_engineer.py
       - tools/build_signature_assets.py
       - assets/meshes/**
       - .github/workflows/asset-export.yml
@@ -30,6 +32,10 @@ jobs:
         run: python3 tools/build_glb_assets.py --out build/roblox-glb
       - name: Build original character and monster meshes
         run: python3 tools/build_character_assets.py --out build/roblox-glb
+      - name: Export weighted skinned Engineer (glTF joint hierarchy)
+        run: python3 tools/build_skinned_engineer.py --out build/roblox-glb/EngineerSkinned.glb
+      - name: Audit every skinned vertex weight and inverse bind
+        run: python3 tools/validate_skinned_engineer.py build/roblox-glb/EngineerSkinned.glb
       - name: Build image-mapped Blackline signature equipment
         run: python3 tools/build_signature_assets.py --out build/roblox-glb
       - name: Qualify GLB geometry and write honest fidelity inventory
