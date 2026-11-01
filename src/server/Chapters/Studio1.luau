@@ -650,10 +650,6 @@ function Studio1.start()
 	Kit.prompt(Kit.objective("MemorialProgramme"), "Read", "Order of service", 0, function(player)
 		Kit.document(player, Text.PROGRAMME_TITLE, Text.PROGRAMME)
 	end)
-	local cards = cardIndexText()
-	Kit.prompt(Kit.objective("CardIndex"), "Search", "Card index", 0.6, function(player)
-		Kit.document(player, Text.CARD_TITLE, cards)
-	end)
 	Kit.prompt(
 		Kit.objective("Spares"),
 		"Take spare parts",
@@ -664,7 +660,8 @@ function Studio1.start()
 				Kit.notify(player, "Nothing else in here you need.")
 				return
 			end
-			if Kit.holding(player) == "spares" then
+			if Kit.holding(player) then
+				Kit.notify(player, "Your hands are full (G puts down what you hold).")
 				return
 			end
 			if Kit.give(player, "spares", Kit.objective("Spares").Position) then
@@ -679,6 +676,11 @@ function Studio1.start()
 
 	setUpMachine()
 	setUpArchiveReel()
+	-- After the archive reel has picked its shelf, so the card points to the right one.
+	local cards = cardIndexText()
+	Kit.prompt(Kit.objective("CardIndex"), "Search", "Card index", 0.6, function(player)
+		Kit.document(player, Text.CARD_TITLE, cards)
+	end)
 	setUpRoadCase()
 	setUpSafe()
 	setUpPatchBay()

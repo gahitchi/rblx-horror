@@ -317,11 +317,14 @@ spawnHandItem = function(id: string, position: Vector3)
 		return
 	end
 	local item = Kit.spawnPart(spec.name, CFrame.new(position), spec.size, spec.color)
-	local light = Instance.new("PointLight")
-	light.Color = spec.color
-	light.Brightness = 0.4
-	light.Range = 4
-	light.Parent = item
+	if not spec.throw then
+		-- Objective items glow faintly so they can be found in the dark; junk doesn't.
+		local light = Instance.new("PointLight")
+		light.Color = spec.color
+		light.Brightness = 0.4
+		light.Range = 4
+		light.Parent = item
+	end
 	local prompt = Kit.prompt(item, "Pick up", spec.name, 0, function(player)
 		if not item.Parent then
 			return
