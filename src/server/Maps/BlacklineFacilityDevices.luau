@@ -76,7 +76,7 @@ function FacilityDevices.decorate(parent:Instance,room:Room)
         Vector3.new(6.1,2.92,.31),PANEL)
     detail(node,"AnodizedLowerRail",CFrame.new(p+Vector3.new(0,-1.32,-.20)),
         Vector3.new(6.19,.16,.13),RIM,Enum.Material.Metal)
-    detail(node,"InsetSignalGlass",CFrame.new(p+Vector3.new(0,.10,-.193)),
+    local glass=detail(node,"InsetSignalGlass",CFrame.new(p+Vector3.new(0,.10,-.193)),
         Vector3.new(5.58,2.30,.07),GLASS,Enum.Material.SmoothPlastic)
     local lens=detail(node,"CircuitLens",CFrame.new(p+Vector3.new(2.30,.93,-.27)),
         Vector3.new(.31,.24,.085),Color3.fromRGB(76,73,65))
@@ -88,7 +88,7 @@ function FacilityDevices.decorate(parent:Instance,room:Room)
     gui.Face=Enum.NormalId.Front
     gui.PixelsPerStud=65
     gui.LightInfluence=.32
-    gui.Parent=frame
+    gui.Parent=glass
     local inset=Instance.new("Frame")
     inset.Name="TextInset"
     inset.Position=UDim2.fromScale(.06,.12)
