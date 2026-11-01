@@ -19,7 +19,7 @@ EXPECTED={
     "StudioWallClock",
     "EngineerBody","FieldOperatorVest","FieldOperatorMask","FieldOperatorPack",
     "BlacklineTransferDeck","BlacklinePatchMatrix",
-    "BlacklineHeroConsole",
+    "BlacklineHeroConsole","BlacklineArchiveCabinet",
     "EngineerRigTorso","EngineerRigHead","EngineerRigArmLeft","EngineerRigArmRight","EngineerRigLegLeft","EngineerRigLegRight",
     "EngineerSkinned",
 }
@@ -51,7 +51,7 @@ def check(path: Path):
     if path.stem in {
         "EngineerBody","FieldOperatorVest","FieldOperatorMask","FieldOperatorPack",
         "BlacklineTransferDeck","BlacklinePatchMatrix",
-        "BlacklineHeroConsole",
+        "BlacklineHeroConsole","BlacklineArchiveCabinet",
         "EngineerRigTorso","EngineerRigHead","EngineerRigArmLeft","EngineerRigArmRight","EngineerRigLegLeft","EngineerRigLegRight",
         "EngineerSkinned",
     }:
