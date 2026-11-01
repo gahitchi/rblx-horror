@@ -20,7 +20,7 @@
       "id": "Q02",
       "name": "Engineer monster",
       "priority": 1,
-      "status": "source-prototype",
+      "status": "source-candidate",
       "studioApproved": false,
       "ownerPreviewAccepted": false,
       "assetNames": [
@@ -34,9 +34,10 @@
         "EngineerRigLegLeft",
         "EngineerRigLegRight"
       ],
-      "nextGate": "Replace the placeholder with a DCC-authored realistic human base sculpt, proper anatomical face, layered workwear, studio headset and baked PBR at 1024; render real front/side/face closeups for explicit owner review before GLB promotion.",
-      "visualVerdict": "REJECTED_BY_OWNER_2026-11-01",
-      "rejectedSource": "Procedural Q02 Engineer built from ellipsoids/lofts: blocky cartoon-like face and clothing. Removed from active exports; not a fidelity upgrade."
+      "nextGate": "Owner reviews actual four-view Q02 anatomical character render; rigged GLB Studio import checks bones, texture streaming, face, headphones, motion and performance.",
+      "visualVerdict": "NEW_ANATOMICAL_CANDIDATE_NOT_REVIEWED",
+      "previousRejection": "2026-11-01 tube-and-sphere Q02 procedural model rejected; source permanently retired.",
+      "sourceLicense": "MakeHuman-derived Daniel CC0; validated exact source SHA256; see docs/art/ENGINEER_CC0_LICENSE.md"
     },
     {
       "id": "Q03",
