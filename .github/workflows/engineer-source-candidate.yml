@@ -1,0 +1,46 @@
+name: Engineer CC0 Source Candidate Acquisition
+
+on:
+  push:
+    branches:
+      - chatgpt/studio-art-pass
+    paths:
+      - .github/workflows/engineer-source-candidate.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate-cc0-base:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Obtain verifiable external CC0 rigged human reference meshes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/cc0
+          curl -fLsS --retry 2 --max-time 80 "https://vibeassets.io/download/zpepqtthci" -o build/cc0/camper_cc0.glb
+          curl -fLsS --retry 2 --max-time 80 "https://www.innerscene.com/api/library/male-base-mesh-3d-person-rigged-a-pose-380e6d89/download" -o build/cc0/makehuman_base_cc0.glb
+          curl -fLsS --retry 2 --max-time 80 "https://www.innerscene.com/api/library/daniel-3d-person-standing-casual-f788af5a/download" -o build/cc0/daniel_cc0.glb
+          file build/cc0/*.glb
+          for f in build/cc0/*.glb; do
+            test "$(head -c4 "$f")" = 'glTF'
+            stat --format='%n %s bytes' "$f"
+          done
+          sha256sum build/cc0/*.glb > build/cc0/SHA256SUMS.txt
+          cat > build/cc0/SOURCES.txt <<'EOF'
+          CC0 character source candidates for comparative artistic inspection only.
+          https://vibeassets.io/a/zpepqtthci (Meshy 7.1 rigged camper, CC0 as declared by publisher, 2026-10-24)
+          https://www.innerscene.com/tools/library/3d-parts/male-base-mesh-3d-person-rigged-a-pose-380e6d89 (MakeHuman CC0 mesh, 2026-10-18)
+          https://www.innerscene.com/tools/library/3d-parts/daniel-3d-person-standing-casual-f788af5a (MakeHuman-derived CC0 jacketed static man, 2026-10-18)
+          No claim that these meshes are approved for Dead Air until quality, rig and licensing inspection.
+          EOF
+      - name: Share original CC0 candidate assets for inspected transformative work
+        uses: actions/upload-artifact@v4
+        with:
+          name: engineer-cc0-source-candidates
+          path: build/cc0/
+          retention-days: 5
+          if-no-files-found: error
