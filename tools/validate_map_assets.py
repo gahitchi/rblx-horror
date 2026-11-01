@@ -102,6 +102,65 @@ def check_map(mapid):
     print(f"PASS {mapid}: 20 rooms, {len(edges)} links, {len(leaves)} dead ends, "
           f"{len(fuse)} fuse sites, {len(booth_names)} booths")
 
+def check_blackline_authored_geometry():
+    file=(ROOT/"src/server/Maps/BlacklineLayout.luau").read_text()
+    data=re.findall(
+        r'\\{name="([^"]+)",role="([^"]+)",x1=(-?\\d+),x2=(-?\\d+),'
+        r'z1=(-?\\d+),z2=(-?\\d+),height=(\\d+)\\}',file
+    )
+    assert len(data)==19,("expected 19 authored functional rooms",len(data))
+    room={name:(role,*map(int,(x1,x2,z1,z2,height)))
+          for name,role,x1,x2,z1,z2,height in data}
+    assert len(room)==len(data),"duplicate architectural areas"
+    for a,(role,x1,x2,z1,z2,h) in room.items():
+        assert x2-x1>=22 and z2-z1>=22 and h>=13,(a,"invalid usable room geometry")
+    names=list(room)
+    for i,a in enumerate(names):
+        _,ax1,ax2,az1,az2,_=room[a]
+        for b in names[i+1:]:
+            _,bx1,bx2,bz1,bz2,_=room[b]
+            assert min(ax2,bx2)-max(ax1,bx1)<=0 or min(az2,bz2)-max(az1,bz1)<=0,(
+                a,b,"rooms overlap in occupied space")
+    link_block=file.split('local links={',1)[1].split('    return {',1)[0]
+    links=re.findall(r'\\{"([^"]+)","([^"]+)"(?:,"([^"]+)")?\\}',link_block)
+    assert len(links)>=23,(len(links),"too few interconnecting routes")
+    graph=defaultdict(set)
+    edges=set()
+    for a,b,kind in links:
+        assert a in room and b in room and a!=b,(a,b,"bad link")
+        _,ax1,ax2,az1,az2,_=room[a]
+        _,bx1,bx2,bz1,bz2,_=room[b]
+        edge=frozenset((a,b))
+        assert edge not in edges,("duplicate link",a,b)
+        edges.add(edge)
+        width=14 if kind=="open" else 8
+        horizontal=(az2==bz1 or bz2==az1) and min(ax2,bx2)-max(ax1,bx1)>=width+4
+        vertical=(ax2==bx1 or bx2==ax1) and min(az2,bz2)-max(az1,bz1)>=width+4
+        assert horizontal or vertical,(a,b,"door endpoints not physically adjacent")
+        graph[a].add(b)
+        graph[b].add(a)
+    visited={"Reception"}
+    queue=deque(visited)
+    while queue:
+        for nxt in graph[queue.popleft()]:
+            if nxt not in visited:
+                visited.add(nxt)
+                queue.append(nxt)
+    assert len(visited)==len(room),(len(visited),"unreachable story rooms")
+    assert len(edges)-len(room)+1>=6,"not enough intentional escape loops"
+    for booth in ("IsolationWest","IsolationEast"):
+        assert len(graph[booth])==1,("unsafe booth with multiple doors",booth)
+    for objective in ("Reception","GeneratorRoom","PatchBay","ControlA","TapeArchive"):
+        assert objective in graph,(objective,"absent gameplay destination")
+    # A door and an observation pane may share an architectural boundary;
+    # the window/door modules must stagger their centers rather than overlap.
+    assert 'along=hi-6.5' in (ROOT/"src/server/Maps/Kit.luau").read_text()
+    assert 'room.height' in (ROOT/"src/server/Maps/Kit.luau").read_text()
+    assert 'wallBands' in (ROOT/"src/server/Maps/Kit.luau").read_text()
+    print(f"PASS authored Blackline: {len(room)} nonoverlapping functional rooms, "
+          f"{len(edges)} physically adjacent routes, {len(edges)-len(room)+1} loops")
+
+
 def check_mesh(name):
     file=ROOT/"assets/meshes"/name
     lines=file.read_text().splitlines()
@@ -205,7 +264,8 @@ def check_finish_detail_contract():
 
 
 if __name__=="__main__":
-    for ident in ("studio","radio","foundry"):check_map(ident)
+    for ident in ("radio","foundry"):check_map(ident)
+    check_blackline_authored_geometry()
     for item in files:check_mesh(item)
     check_pbr_asset_wiring()
     check_lighting_security()
