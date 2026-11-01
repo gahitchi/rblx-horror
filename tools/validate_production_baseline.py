@@ -43,10 +43,12 @@ def check()->dict:
     assert groups[0]["ownerPreviewAccepted"] is True
     # Real reviewer rejected the procedural Q02 body. Never confuse an
     # importable/skinned file with an accepted realistic character.
-    assert groups[1]["visualVerdict"]=="REJECTED_BY_OWNER_2026-11-01"
+    assert groups[1]["visualVerdict"]=="NEW_ANATOMICAL_CANDIDATE_NOT_REVIEWED"
     assert groups[1]["ownerPreviewAccepted"] is False
-    assert groups[1]["status"]=="source-prototype"
-    assert "DCC-authored" in groups[1]["nextGate"]
+    assert groups[1]["status"]=="source-candidate"
+    assert "2026-11-01" in groups[1]["previousRejection"]
+    assert "CC0" in groups[1]["sourceLicense"]
+    assert (ROOT/"tools/quality_engineer_real.py").exists()
     assert not (ROOT/"tools/quality_engineer.py").exists(),(
         "rejected procedural Q02 body must not return as active asset source")
 
