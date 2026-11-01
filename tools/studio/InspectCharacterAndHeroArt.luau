@@ -71,7 +71,7 @@ for _,player in Players:GetPlayers() do
 end
 local map=Workspace:FindFirstChild("Map")
 if map and map:GetAttribute("MapId")=="studio" then
-    local details=map:FindFirstChild("Details")
+    local details=map:FindFirstChild("EnvironmentArt")
     local count=0
     if details then
         for _,child in details:GetDescendants() do
