@@ -13,6 +13,22 @@ local BY_MATERIAL: { [Enum.Material]: string } = {
     [Enum.Material.Metal]="DA_Oxidized_Metal",
     [Enum.Material.DiamondPlate]="DA_Oxidized_DiamondPlate",
 }
+-- Environment-specific finishes are opt-in. They never replace creator-
+-- approved GLB SurfaceAppearances, game collider doors, or all studio metal.
+local BLACKLINE_BY_NAME: { [string]: string } = {
+    MasteringVaultFloor = "DA_Blackline_SealedSlate",
+    ViewingGalleryFloor = "DA_Blackline_SealedSlate",
+    TapeArchiveFloor = "DA_Blackline_ArchiveConcrete",
+}
+local BLACKLINE_FINISH_TAGS: { [string]: string } = {
+    PowderCoatedSteel = "DA_Blackline_PowderSteel",
+}
+local function approved(name: string, material: Enum.Material): boolean
+    local variant=MaterialService:FindFirstChild(name)
+    return variant~=nil and variant:IsA("MaterialVariant")
+        and variant.BaseMaterial==material
+end
+
 function PBRMaterials.apply(map: Instance): number
     local installed: { [Enum.Material]: string }={}
     local seen: { [string]: boolean }={}
@@ -28,6 +44,16 @@ function PBRMaterials.apply(map: Instance): number
         if part:IsA("BasePart") and part:GetAttribute("DisablePBR")~=true
             and part:FindFirstChildOfClass("SurfaceAppearance")==nil then
             local chosen=installed[part.Material]
+            if map:GetAttribute("MapId")=="studio" then
+                local special=BLACKLINE_BY_NAME[part.Name]
+                local family=part:GetAttribute("FinishFamily")
+                if type(family)=="string" then
+                    special=BLACKLINE_FINISH_TAGS[family] or special
+                end
+                if special and approved(special,part.Material) then
+                    chosen=special
+                end
+            end
             -- Sub-stud bolts, wires and narrow trim are poor receivers for a
             -- tiled 1024px PBR atlas: distance filtering creates noisy glints.
             -- Only the two largest physical dimensions must form a readable face.
