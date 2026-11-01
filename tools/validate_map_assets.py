@@ -194,6 +194,16 @@ def check_pbr_asset_wiring():
     assert "p.Massless = true" in prefabs
     assert "joint.Part0 = root" in prefabs
     print("PASS prefab integrations: nine asset keys, non-solid welded visual roots")
+    story=(ROOT/"src/server/Maps/StoryProps.luau").read_text()
+    new_assets=("ReceptionTerminal","TapeArchiveCart","ServiceIntercom","StudioWallClock")
+    for name in new_assets:
+        assert name in glb_script,("new GLB exporter missing",name)
+        assert name in studio,("studio installer missing optional asset",name)
+        assert name in story,("new Blackline prop is not placed",name)
+    assert 'StoryProps.decorate(detailFolder,room,theme,lights)' in kit
+    assert 'PowerLights' in kit and 'powerIndicator(lights,r,' in story
+    assert 'CanQuery=false' in story and 'CanCollide=false' in story
+    print("PASS Blackline story assets: four original optional GLBs and powered wayfinding")
 
 def check_lighting_security():
     import json
