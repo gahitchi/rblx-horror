@@ -36,6 +36,7 @@ local SIGNATURE = {
     BlacklinePatchMatrix = true,
     BlacklineHeroConsole = true,
     BlacklineArchiveCabinet = true,
+    BlacklineMasterReference = true,
 }
 local RIG_PARTS = {
     EngineerRigTorso = true,
