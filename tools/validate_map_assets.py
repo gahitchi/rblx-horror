@@ -136,7 +136,25 @@ def check_pbr_asset_wiring():
     assert "joint.Part0 = root" in prefabs
     print("PASS prefab integrations: nine asset keys, non-solid welded visual roots")
 
+def check_lighting_security():
+    import json
+    # Restricted properties may be authored in a place, never assigned at runtime.
+    for script in ("src/server/VisualFidelity.luau", "src/hub/server/Main.server.luau"):
+        body = (ROOT / script).read_text()
+        for property_name in ("LightingStyle", "PrioritizeLightingQuality"):
+            assert not re.search(r"\\bLighting\\." + property_name + r"\\s*=", body), (
+                script, "restricted lighting property was assigned at runtime", property_name
+            )
+    for project in ("default.project.json", "hub.project.json"):
+        tree = json.loads((ROOT / project).read_text())["tree"]
+        props = tree["Lighting"]["$properties"]
+        assert props["LightingStyle"] == "Realistic", (project, "missing Realistic lighting")
+        assert props["PrioritizeLightingQuality"] is True, (project, "missing lighting priority")
+    print("PASS lighting security: no protected runtime writes, both Rojo places configured")
+
+
 if __name__=="__main__":
     for ident in ("studio","radio","foundry"):check_map(ident)
     for item in files:check_mesh(item)
     check_pbr_asset_wiring()
+    check_lighting_security()
