@@ -190,6 +190,10 @@ def check_finish_detail_contract():
     assert 'p.CanCollide = false' in finish
     assert 'p.CanQuery = false' in finish
     assert 'p:SetAttribute("DisablePBR",true)' in finish
+    prefabs=(ROOT/"src/server/PrefabLibrary.luau").read_text()
+    assert 'p:SetAttribute("DisablePBR",true)' in prefabs, "imported mesh PBR must be preserved"
+    assert 'part:FindFirstChildOfClass("SurfaceAppearance")==nil' in pbr, (
+        "SurfaceAppearance should never be overridden by environment tiling")
     assert 'if not PrefabLibrary.place(parent,"MixingConsole"' in furnishing
     assert 'box(parent,"CounterTop"' not in furnishing
     assert 'box(parent,"ConsoleSurface"' not in furnishing
