@@ -55,6 +55,9 @@ function Blackline.make()
         {"StaffPassage","Lounge"},
         {"StaffGallery","Reception","open"},
         {"Maintenance","GeneratorRoom"},
+        -- Fire-rated plant access from the public entry: a real emergency/service
+        -- alternative, not a second invented corridor or a teleport.
+        {"Reception","GeneratorRoom"},
         {"Lounge","Reception"},
         {"GeneratorRoom","LoadingDock"},
     }
