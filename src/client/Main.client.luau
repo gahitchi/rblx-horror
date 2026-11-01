@@ -4,7 +4,9 @@
 
 local StarterGui = game:GetService("StarterGui")
 
+local ChapterUi = require(script.Parent.ChapterUi)
 local DangerEffect = require(script.Parent.DangerEffect)
+local EchoController = require(script.Parent.EchoController)
 local FlashlightController = require(script.Parent.FlashlightController)
 local Hud = require(script.Parent.Hud)
 local ItemController = require(script.Parent.ItemController)
@@ -21,6 +23,8 @@ end)
 
 local controllers: { [string]: { start: () -> () } } = {
 	MovementController = MovementController,
+	ChapterUi = ChapterUi,
+	EchoController = EchoController,
 	FlashlightController = FlashlightController,
 	VoiceController = VoiceController,
 	Hud = Hud,

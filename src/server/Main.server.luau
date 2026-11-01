@@ -9,12 +9,13 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
 
+local ChapterService = require(script.Parent.ChapterService)
 local DoorService = require(script.Parent.DoorService)
+local LightingService = require(script.Parent.LightingService)
 local MapBuilder = require(script.Parent.MapBuilder)
 local MapContract = require(script.Parent.MapContract)
 local MonsterService = require(script.Parent.MonsterService)
 local NoiseService = require(script.Parent.NoiseService)
-local ObjectiveService = require(script.Parent.ObjectiveService)
 local PlayerService = require(script.Parent.PlayerService)
 local RoundService = require(script.Parent.RoundService)
 
@@ -38,9 +39,9 @@ end
 
 -- The map: a hand-made Workspace.Map if there is one (see docs/MAP_CONTRACT.md), otherwise the
 -- code-built greybox, which follows the same contract.
--- Which map: the one the hub lobby (or the replay vote) picked, sent with the teleport. A reserved
--- server starts because players are on their way, so wait for the first one to read it.
-local function chosenMap(): string
+-- Which map and chapter: the ones the hub lobby (or the replay vote) picked, sent with the teleport.
+-- A reserved server starts because players are on their way, so wait for the first one to read it.
+local function teleportData(): { [string]: any }?
 	if game.PrivateServerId ~= "" and game.PrivateServerOwnerId == 0 then
 		local deadline = os.clock() + 20
 		while #Players:GetPlayers() == 0 and os.clock() < deadline do
@@ -49,16 +50,24 @@ local function chosenMap(): string
 		local first = Players:GetPlayers()[1]
 		local joinData = if first then first:GetJoinData() else nil
 		local data: any = joinData and joinData.TeleportData
-		local wanted = if type(data) == "table" then data.map else nil
-		for _, entry in Config.MAPS do
-			if entry.id == wanted then
-				return entry.id
-			end
+		if type(data) == "table" then
+			return data
+		end
+	end
+	return nil
+end
+local sent = teleportData()
+local function chosenMap(): string
+	local wanted = if sent then sent.map else nil
+	for _, entry in Config.MAPS do
+		if entry.id == wanted then
+			return entry.id
 		end
 	end
 	return Config.MAPS[1].id
 end
 local mapId = chosenMap()
+local chapterId = ChapterService.pick(mapId, if sent then sent.chapter else nil)
 
 -- A hand-made map: Workspace.Map (testing in Studio), or ServerStorage.Maps.<id> for that map.
 -- Otherwise the code-built greybox (the recording studio).
@@ -92,7 +101,23 @@ if not loaded then
 	loaded = greybox
 end
 assert(loaded, "the greybox map failed its own contract")
-local layout = loaded
+-- The map must also have every objective the chapter uses (an older map may not).
+local missing = ChapterService.missing(loaded, chapterId)
+if #missing > 0 then
+	warn(
+		string.format(
+			"[Map] %s has no %s for chapter %s; using the greybox instead",
+			loaded.map.Name,
+			table.concat(missing, ", "),
+			chapterId
+		)
+	)
+	loaded.map.Name = "Map (unusable)"
+	local greybox = MapContract.read(MapBuilder.build(), lobbySpawn)
+	assert(greybox, "the greybox map failed its own contract")
+	loaded = greybox
+end
+local layout = loaded :: MapContract.Layout
 
 -- Darkness, unless the map has its own lighting (attribute OwnsLighting on the Map).
 -- (Lighting technology is set to Future in the project file.)
@@ -119,7 +144,7 @@ for _, door in layout.doors do
 end
 
 MonsterService.init(layout.areas, RoundService.isTarget, RoundService.catch)
-ObjectiveService.init(layout, RoundService.isTarget)
+LightingService.init(layout)
 PlayerService.init()
 ProgressService.init()
 FeedbackService.init()
@@ -128,6 +153,13 @@ WalkieService.init(layout.areas)
 TapeService.init()
 ReplayService.init(mapId)
 RoundService.afterResults(ReplayService.run)
-RoundService.init(layout)
+RoundService.init(layout, chapterId)
 
-print(string.format("[%s] server running, v%s", Config.GAME_NAME, Config.VERSION))
+print(
+	string.format(
+		"[%s] server running, v%s, chapter %s",
+		Config.GAME_NAME,
+		Config.VERSION,
+		chapterId
+	)
+)

@@ -27,6 +27,9 @@ local function onToggleFlashlight(player: Player)
 	if not character or not root or not root:IsA("BasePart") then
 		return
 	end
+	if character:GetAttribute("Entranced") then
+		return -- an echo's body has no hands for a torch
+	end
 	character:SetAttribute("FlashlightOn", not character:GetAttribute("FlashlightOn"))
 	if character:GetAttribute("InRound") then
 		NoiseService.emit(root.Position, Config.NOISE.FLASHLIGHT, "flashlight", player)

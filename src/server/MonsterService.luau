@@ -85,6 +85,13 @@ local lungeReadyAt = 0
 
 local stepTimer = 0
 
+-- Pacing from the chapter: soft pressure (hearing grows as the round drags on) and frenzy (after
+-- the second shock and through Last Call it hears far, never backs off, and hurries to every sound).
+local pressureHearing = 1
+local frenzyUntil = 0
+local frenzyHeld = false
+local frenzyHearing = M.FRENZY_HEARING
+
 -- Debug overlay (Config.DEBUG_AI)
 local debugLabel: TextLabel? = nil
 local debugFolder: Folder? = nil
@@ -138,21 +145,27 @@ local function ear(): Vector3
 	return r.Position + Vector3.new(0, 3.6, 0)
 end
 
--- Its own footsteps mask quiet sounds: it hears best standing still.
+local function frenzied(): boolean
+	return frenzyHeld or os.clock() < frenzyUntil
+end
+
+-- Its own footsteps mask quiet sounds: it hears best standing still. Pressure and frenzy widen it.
 local function hearing(): number
 	local r = root
+	local base = M.HEARING_WALKING
 	if not r then
-		return M.HEARING_STILL
+		base = M.HEARING_STILL
+	else
+		local speed = flat(r.AssemblyLinearVelocity).Magnitude
+		if speed < 1.5 then
+			base = M.HEARING_STILL
+		elseif state == "Hunt" then
+			base = M.HEARING_HUNTING
+		elseif speed > M.INVESTIGATE_SPEED + 1 then
+			base = M.HEARING_HURRYING
+		end
 	end
-	local speed = flat(r.AssemblyLinearVelocity).Magnitude
-	if speed < 1.5 then
-		return M.HEARING_STILL
-	elseif state == "Hunt" then
-		return M.HEARING_HUNTING
-	elseif speed > M.INVESTIGATE_SPEED + 1 then
-		return M.HEARING_HURRYING
-	end
-	return M.HEARING_WALKING
+	return base * pressureHearing * (if frenzied() then frenzyHearing else 1)
 end
 
 local function setState(newState: State)
@@ -355,11 +368,16 @@ local function react(stimulus: Perception.Stimulus)
 		end
 		return
 	end
-	if state == "Retreat" and not stimulus.loud then
+	if state == "Retreat" and not stimulus.loud and not frenzied() then
 		return
 	end
 
 	local awareness = Perception.awareness()
+	if frenzied() then
+		-- In a frenzy nothing is too faint to chase down.
+		Perception.set(math.max(awareness, M.HURRY_AT))
+		awareness = Perception.awareness()
+	end
 	if
 		source
 		and isTarget(source)
@@ -483,8 +501,14 @@ local function tryCatch(now: number)
 						Sounds.playAt(Sounds.CATCH, targetRoot.Position, 1)
 						onCatch(player)
 						endLunge(now)
-						-- It takes its catch away: the others get room to breathe.
-						startRetreat()
+						if frenzied() then
+							-- No breathing room in a frenzy: it goes straight back to listening.
+							huntTarget = nil
+							startSearch(r.Position)
+						else
+							-- It leaves its catch behind and backs off: the others get room to breathe.
+							startRetreat()
+						end
 						return
 					end
 				end
@@ -535,7 +559,7 @@ local function think(now: number)
 			route = pickRoute(area, rng:NextInteger(2, 3))
 		end
 		followRoute(now, M.ROAM_SPEED, 0.45, 1, 3)
-		if Director.wantsRetreat() then
+		if Director.wantsRetreat() and not frenzied() then
 			startRetreat()
 		end
 	elseif state == "Listen" then
@@ -564,7 +588,7 @@ local function think(now: number)
 	elseif state == "Search" then
 		local done = followRoute(now, M.SEARCH_SPEED, 0.8, 1.2, 2.4)
 		if done or now >= searchUntil then
-			if Director.wantsRetreat() then
+			if Director.wantsRetreat() and not frenzied() then
 				startRetreat()
 			else
 				startRoam()
@@ -572,7 +596,7 @@ local function think(now: number)
 		end
 	elseif state == "Retreat" then
 		local done = followRoute(now, M.RETREAT_SPEED, 0, 0, 0)
-		if Director.mode() ~= "Retreat" then
+		if Director.mode() ~= "Retreat" or frenzied() then
 			startRoam()
 		elseif done and currentArea then
 			-- Still backstage: idle around the far room until the director lets it go.
@@ -739,6 +763,8 @@ function MonsterService.despawn()
 	lungePhase = "None"
 	lungeReadyAt = 0
 	glows = {}
+	frenzyUntil = 0
+	frenzyHeld = false
 	Perception.reset()
 	NoiseService.setIgnoreList({})
 end
@@ -773,6 +799,53 @@ end
 
 function MonsterService.getModel(): Model?
 	return model
+end
+
+-- Where the monster is, if it's in the building.
+function MonsterService.position(): Vector3?
+	local r = root
+	return if r and state ~= "Dormant" then r.Position else nil
+end
+
+-- Soft pressure from the round, 0 (calm) to 1 (full): it hears farther and comes looking sooner.
+function MonsterService.setPressure(pressure: number)
+	local p = math.clamp(pressure, 0, 1)
+	pressureHearing = 1 + Config.PACING.PRESSURE_HEARING * p
+	Director.setHintScale(1 - Config.PACING.PRESSURE_HINT * p)
+end
+
+-- A frenzy for `seconds` (a shock).
+function MonsterService.frenzyFor(seconds: number, hearingMultiplier: number?)
+	frenzyUntil = math.max(frenzyUntil, os.clock() + seconds)
+	frenzyHearing = hearingMultiplier or M.FRENZY_HEARING
+	if model then
+		model:SetAttribute("Frenzy", true)
+	end
+	task.delay(seconds + 0.1, function()
+		if model and not frenzied() then
+			model:SetAttribute("Frenzy", false)
+		end
+	end)
+end
+
+-- A frenzy that lasts until released (Last Call).
+function MonsterService.holdFrenzy(on: boolean, hearingMultiplier: number?)
+	frenzyHeld = on
+	if on then
+		frenzyHearing = hearingMultiplier or M.FRENZY_HEARING
+	end
+	if model then
+		model:SetAttribute("Frenzy", frenzied())
+	end
+end
+
+-- Sends it straight to a place (a loud objective it can't miss), unless it's mid-hunt.
+function MonsterService.callTo(position: Vector3)
+	if state == "Dormant" or not root or state == "Hunt" then
+		return
+	end
+	Perception.set(math.max(Perception.awareness(), M.HURRY_AT))
+	startInvestigate(position, true)
 end
 
 -- Keeps the monster's physics owned by the server even if it touches players.

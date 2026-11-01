@@ -11,6 +11,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 
+local EchoController = require(script.Parent.EchoController)
 local MovementController = require(script.Parent.MovementController)
 local SpectateController = require(script.Parent.SpectateController)
 local VoiceController = require(script.Parent.VoiceController)
@@ -20,8 +21,10 @@ local player = Players.LocalPlayer
 local FONT = Enum.Font.RobotoMono
 local TEXT = Color3.fromRGB(225, 220, 210)
 local DIM = Color3.fromRGB(130, 125, 118)
-local DONE = Color3.fromRGB(120, 200, 140)
 local RADIO = Color3.fromRGB(235, 190, 110)
+local BROADCAST = Color3.fromRGB(170, 160, 200)
+local WHISPER = Color3.fromRGB(160, 200, 230)
+local DANGER = Color3.fromRGB(230, 70, 60)
 local NOISE_FULL = 60 -- a noise this loud fills the meter
 local TOAST_SECONDS = 4.5
 
@@ -62,8 +65,34 @@ local function bar(parent: Instance, position: UDim2, caption: string): (Frame, 
 	return back, fill
 end
 
-local function formatTime(seconds: number): string
-	return string.format("%d:%02d", seconds // 60, seconds % 60)
+-- A red mark where an echo saw the monster, for a few seconds.
+local function showPing(position: Vector3)
+	local anchor = Instance.new("Part")
+	anchor.Name = "EchoPing"
+	anchor.Anchored = true
+	anchor.CanCollide = false
+	anchor.CanQuery = false
+	anchor.CanTouch = false
+	anchor.Transparency = 1
+	anchor.Size = Vector3.one
+	anchor.Position = position + Vector3.new(0, 4, 0)
+	anchor.Parent = workspace
+	local board = Instance.new("BillboardGui")
+	board.Size = UDim2.fromOffset(60, 60)
+	board.AlwaysOnTop = true
+	board.Parent = anchor
+	local mark = Instance.new("TextLabel")
+	mark.Size = UDim2.fromScale(1, 1)
+	mark.BackgroundTransparency = 1
+	mark.Text = "!"
+	mark.TextScaled = true
+	mark.Font = Enum.Font.GothamBlack
+	mark.TextColor3 = DANGER
+	mark.TextStrokeTransparency = 0.3
+	mark.Parent = board
+	task.delay(Config.ECHO.PING_SECONDS, function()
+		anchor:Destroy()
+	end)
 end
 
 function Hud.start()
@@ -103,7 +132,7 @@ function Hud.start()
 	local help = label(gui, UDim2.fromOffset(520, 18), UDim2.new(0, 20, 1, -32), 13)
 	help.TextXAlignment = Enum.TextXAlignment.Left
 	help.TextColor3 = DIM
-	local keys = { "Shift run", "C crouch", "F light", "E interact" }
+	local keys = { "Shift run", "C crouch", "F light", "E interact", "G drop" }
 	if Config.FEATURES.WALKIE then
 		table.insert(keys, "V talk")
 		table.insert(keys, "1-4 callouts")
@@ -116,7 +145,7 @@ function Hud.start()
 	help.Text = table.concat(keys, " · ")
 
 	-- Bottom left, above the controls: the items' state.
-	local items = label(gui, UDim2.fromOffset(620, 18), UDim2.new(0, 20, 1, -54), 14)
+	local items = label(gui, UDim2.fromOffset(900, 18), UDim2.new(0, 20, 1, -54), 14)
 	items.TextXAlignment = Enum.TextXAlignment.Left
 	items.RichText = true
 
@@ -159,21 +188,65 @@ function Hud.start()
 		showToast(message)
 	end)
 	Remotes.Radio.OnClientEvent:Connect(function(sender: string, room: string, text: string)
-		showToast(string.format("[radio] %s, %s: %s", sender, room, text), RADIO, TOAST_SECONDS + 2)
+		if sender == "1987 broadcast" then
+			showToast(text, BROADCAST, TOAST_SECONDS + 3)
+		elseif room == "" then
+			showToast(string.format("[%s] %s", sender, text), RADIO, TOAST_SECONDS + 4)
+		else
+			showToast(
+				string.format("[radio] %s, %s: %s", sender, room, text),
+				RADIO,
+				TOAST_SECONDS + 2
+			)
+		end
 	end)
+	Remotes.Whisper.OnClientEvent:Connect(function(from: string, text: string)
+		showToast(string.format("%s, faintly: %s", from, text), WHISPER, TOAST_SECONDS)
+	end)
+	Remotes.Ping.OnClientEvent:Connect(function(position: Vector3, from: string)
+		showPing(position)
+		showToast(from .. " marked where it is.", WHISPER, TOAST_SECONDS)
+	end)
+
+	-- Echo panel: whisper lines and the mark button, while you're an echo.
+	local echoPanel = Instance.new("Frame")
+	echoPanel.AnchorPoint = Vector2.new(0.5, 1)
+	echoPanel.Position = UDim2.new(0.5, 0, 1, -70)
+	echoPanel.Size = UDim2.fromOffset(600, 44)
+	echoPanel.BackgroundTransparency = 1
+	echoPanel.Visible = false
+	echoPanel.Parent = gui
+	local echoLayout = Instance.new("UIListLayout")
+	echoLayout.FillDirection = Enum.FillDirection.Horizontal
+	echoLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	echoLayout.Padding = UDim.new(0, 6)
+	echoLayout.Parent = echoPanel
+	local function echoButton(text: string, onClick: () -> ()): TextButton
+		local b = Instance.new("TextButton")
+		b.Size = UDim2.fromOffset(112, 36)
+		b.BackgroundColor3 = Color3.fromRGB(30, 40, 48)
+		b.BackgroundTransparency = 0.2
+		b.BorderSizePixel = 0
+		b.Font = FONT
+		b.TextSize = 13
+		b.TextColor3 = WHISPER
+		b.Text = text
+		b.Parent = echoPanel
+		b.Activated:Connect(onClick)
+		return b
+	end
+	local pingButton = echoButton("Mark it (P)", EchoController.ping)
+	pingButton.TextColor3 = DANGER
+	for i, line in Config.ECHO.WHISPERS do
+		echoButton(string.format("%d: %s", i + 4, line), function()
+			EchoController.whisper(i)
+		end)
+	end
 
 	local noise = 0
 	Remotes.NoiseFeedback.OnClientEvent:Connect(function(radius: number)
 		noise = math.max(noise, math.clamp(radius / NOISE_FULL, 0, 1))
 	end)
-
-	local function progressText(n: number?, goal: number): string
-		local value = n or 0
-		if value >= goal then
-			return string.format('<font color="#%s">done</font>', DONE:ToHex())
-		end
-		return string.format("%d/%d", value, goal)
-	end
 
 	RunService.RenderStepped:Connect(function(dt: number)
 		local phase = state:GetAttribute("Phase")
@@ -182,13 +255,21 @@ function Hud.start()
 
 		-- Status line and centre message.
 		centre.Text = ""
+		centre.TextColor3 = TEXT
+		local isEcho = EchoController.isActive()
 		if phase == "Playing" then
-			status.Text = string.format(
-				"%s   ·   %d alive",
-				formatTime(state:GetAttribute("TimeLeft") or 0),
-				state:GetAttribute("Alive") or 0
-			)
-			if not inRound then
+			status.Text = string.format("%d alive", state:GetAttribute("Alive") or 0)
+			status.TextColor3 = TEXT
+			local ends = state:GetAttribute("LastCallEnds")
+			if state:GetAttribute("LastCall") and type(ends) == "number" then
+				local left = math.max(0, math.ceil(ends - workspace:GetServerTimeNow()))
+				status.Text = string.format("THE LOCKS RE-ENGAGE IN %d", left)
+				status.TextColor3 = DANGER
+			end
+			if isEcho then
+				centre.Text = "You're an echo. Float anywhere and help the living."
+				centre.TextColor3 = WHISPER
+			elseif not inRound then
 				local watching = SpectateController.getTarget()
 				centre.Text = if watching
 					then string.format("Watching %s   ·   Q / E to switch", watching.DisplayName)
@@ -196,44 +277,24 @@ function Hud.start()
 			end
 		elseif phase == "Results" then
 			status.Text = "ROUND OVER"
+			status.TextColor3 = TEXT
 		else
+			status.TextColor3 = TEXT
 			local countdown = state:GetAttribute("Countdown") or -1
 			status.Text = if countdown >= 0
 				then string.format("DEAD AIR   ·   next round in %d", countdown)
 				else "DEAD AIR   ·   waiting for players"
 		end
+		echoPanel.Visible = isEcho
 
-		-- Objectives, only while playing.
-		if phase == "Playing" and inRound then
-			local lines = {
-				"<b>GET OUT OF THE STUDIO</b>",
-				"Generator (basement)   "
-					.. progressText(state:GetAttribute("GeneratorPulls"), Config.GENERATOR_PULLS),
-				"Fuses to the fuse box  "
-					.. progressText(state:GetAttribute("FusesPlaced"), Config.FUSES_NEEDED),
-			}
-			local progress: number = state:GetAttribute("TapeProgress") or 0
-			if state:GetAttribute("DoorsOpen") then
-				table.insert(lines, "Emergency tape         " .. progressText(1, 1))
-				table.insert(
-					lines,
-					string.format('<font color="#%s">FRONT DOORS OPEN. RUN.</font>', DONE:ToHex())
-				)
-			elseif progress > 0 then
-				table.insert(
-					lines,
-					string.format("Emergency tape         %d%%", math.floor(progress * 100))
-				)
-			else
-				table.insert(lines, "Emergency tape (control A)")
+		-- Objectives come from the chapter (RoundState.ObjectiveText), while playing.
+		if phase == "Playing" and (inRound or isEcho) then
+			local text: string = state:GetAttribute("ObjectiveText") or ""
+			local dub: number = state:GetAttribute("DubProgress") or 0
+			if dub > 0 and dub < 1 then
+				text ..= string.format("\nLast session: %d%%", math.floor(dub * 100))
 			end
-			if player:GetAttribute("CarryingFuse") then
-				table.insert(
-					lines,
-					string.format('<font color="#%s">Carrying a fuse</font>', DIM:ToHex())
-				)
-			end
-			objectives.Text = table.concat(lines, "\n")
+			objectives.Text = text
 		else
 			objectives.Text = ""
 		end
@@ -280,6 +341,23 @@ function Hud.start()
 					elseif tapeState == "placed" then "set down"
 					else "blank (R to record)"
 				table.insert(parts, "Tape: " .. tapeText)
+			end
+			local holding = player:GetAttribute("HoldingName")
+			if type(holding) == "string" and holding ~= "" then
+				table.insert(parts, "Holding: " .. holding)
+			end
+			if player:GetAttribute("HasCassette") then
+				table.insert(
+					parts,
+					string.format('<font color="#%s">CASSETTE</font>', RADIO:ToHex())
+				)
+			end
+			local tapes = player:GetAttribute("TapesCarried") or 0
+			if tapes > 0 then
+				table.insert(
+					parts,
+					string.format("%d old tape%s", tapes, if tapes == 1 then "" else "s")
+				)
 			end
 			items.Text = table.concat(parts, "     ")
 		else

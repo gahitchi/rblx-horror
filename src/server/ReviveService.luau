@@ -1,12 +1,13 @@
 --!strict
 -- Bringing a caught teammate back. Once per round per player (rules in RoundService.canRevive).
 --
---   1. The caught player, while spectating, puts up the price: a level (back to the start of the
---      previous one, which relocks its rewards), a revive bought earlier, or Robux (a Developer
---      Product priced as a rare exception).
---   2. Their walkie lies where they were caught; teammates get a radio message with the room.
---   3. A living teammate holds E on it for a few seconds while it screeches back to life (loud:
---      the monster hears it), and the caught player comes back on that spot.
+--   1. When the monster catches someone it rips their filter headset off; it lies next to their
+--      entranced body. The caught player, now an echo, puts up the price: a level (back to the start
+--      of the previous one, which relocks its rewards), a revive bought earlier, or Robux (a
+--      Developer Product priced as a rare exception).
+--   2. Teammates get a radio message with the room.
+--   3. A living teammate holds E on the headset for a few seconds while it re-syncs with loud
+--      static (the monster hears it), and puts it back on: the caught player is back on that spot.
 --   4. If nobody comes before the round ends, the price is refunded.
 -- Robux purchases are stored as revive tokens and saved before being granted, so none is ever lost.
 
@@ -49,7 +50,7 @@ local function clearMarker(player: Player)
 	end
 end
 
--- The caught player's walkie, left on the floor where it happened. Inert until they pay.
+-- The caught player's headset, on the floor next to their body. Inert until they pay.
 local function dropMarker(player: Player, position: Vector3)
 	clearMarker(player)
 	local params = RaycastParams.new()
@@ -65,9 +66,9 @@ local function dropMarker(player: Player, position: Vector3)
 	local spot = if floor then floor.Position else position - Vector3.new(0, 3, 0)
 
 	local marker = Instance.new("Part")
-	marker.Name = player.Name .. "Walkie"
-	marker.Size = Vector3.new(0.6, 0.3, 1)
-	marker.CFrame = CFrame.new(spot + Vector3.new(0, 0.15, 0))
+	marker.Name = player.Name .. "Headset"
+	marker.Size = Vector3.new(1, 0.4, 0.8)
+	marker.CFrame = CFrame.new(spot + Vector3.new(1.2, 0.2, 0))
 	marker.Color = Color3.fromRGB(35, 35, 32)
 	marker.Anchored = true
 	marker.CanCollide = false
@@ -81,8 +82,8 @@ local function dropMarker(player: Player, position: Vector3)
 	light.Parent = marker
 
 	local prompt = Instance.new("ProximityPrompt")
-	prompt.ActionText = "Bring back " .. player.DisplayName
-	prompt.ObjectText = "Lost walkie"
+	prompt.ActionText = "Put the headset back on " .. player.DisplayName
+	prompt.ObjectText = "Headset"
 	prompt.HoldDuration = Config.REVIVE.HOLD_SECONDS
 	prompt.MaxActivationDistance = 7
 	prompt.RequiresLineOfSight = false
@@ -112,7 +113,7 @@ local function dropMarker(player: Player, position: Vector3)
 		local at = CFrame.new(marker.Position + Vector3.new(0, 3, 0))
 		pending[player] = nil
 		clearMarker(player)
-		if RoundService.revive(player, at) then
+		if RoundService.revive(player, at, by) then
 			ProgressService.award(by, "Brought a teammate back", Config.REWARDS.REVIVE)
 		end
 	end)
@@ -121,7 +122,7 @@ local function dropMarker(player: Player, position: Vector3)
 	markers[player] = marker
 end
 
--- The price is paid: wake the walkie up and tell the team where it is.
+-- The price is paid: wake the headset up and tell the team where it is.
 local function activate(player: Player, method: string, xpBefore: number)
 	local marker = markers[player]
 	if not marker then
@@ -144,11 +145,11 @@ local function activate(player: Player, method: string, xpBefore: number)
 				other,
 				player.DisplayName,
 				room,
-				"Bring me back! My walkie is here."
+				"Bring me back! My headset is by me."
 			)
 		end
 	end
-	notify(player, "Your team has been told where your walkie is. Wait for someone to reach it.")
+	notify(player, "Your team knows where you fell. Wait for someone to put your headset back on.")
 end
 
 local function canAsk(player: Player): boolean
@@ -175,7 +176,7 @@ local function onAsk(player: Player, method: unknown)
 	end
 end
 
--- Round over: refund anyone still waiting, clear the walkies.
+-- Round over: refund anyone still waiting, clear the headsets.
 local function onRoundEnd()
 	for player, ask in pending do
 		if ask.method == "level" then
@@ -183,7 +184,7 @@ local function onRoundEnd()
 		else
 			ProgressService.addReviveToken(player)
 		end
-		notify(player, "Nobody reached your walkie in time. The revive was refunded.")
+		notify(player, "Nobody reached your headset in time. The revive was refunded.")
 	end
 	pending = {}
 	for player in markers do
@@ -240,7 +241,7 @@ end
 function ReviveService.init(mapAreas: { MapContract.Area })
 	areas = mapAreas
 	folder = Instance.new("Folder")
-	folder.Name = "LostWalkies"
+	folder.Name = "LostHeadsets"
 	folder.Parent = Workspace
 	local ok, result = pcall(function()
 		return DataStoreService:GetDataStore("Purchases_v1")

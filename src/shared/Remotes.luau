@@ -51,6 +51,18 @@ return table.freeze({
 	FeedbackReceived = event("FeedbackReceived"), -- server -> client: (ok: boolean, message: string)
 	Revive = event("Revive"), -- client -> server: (method: "level" | "token") come back after being caught
 	SetSkin = event("SetSkin"), -- client -> server: (skinId: string) equip an unlocked flashlight look
+	-- Chapters
+	Document = event("Document"), -- server -> client: (title: string, body: string) something to read
+	Puzzle = event("Puzzle"), -- server -> client: (kind: string, data: any) open a puzzle; ("", nil) closes it
+	PuzzleAnswer = event("PuzzleAnswer"), -- client -> server: (kind: string, answer: any)
+	Fader = event("Fader"), -- client -> server: (push: number, -1 to 1) riding the faders during a dub
+	DropItem = event("DropItem"), -- client -> server: () put down what you're holding
+	-- Echoes
+	EchoMove = event("EchoMove"), -- client -> server: (position: Vector3) where the echo floats
+	EchoPing = event("EchoPing"), -- client -> server: () mark the monster for the living
+	EchoWhisper = event("EchoWhisper"), -- client -> server: (index: number) into Config.ECHO.WHISPERS
+	Ping = event("Ping"), -- server -> client: (position: Vector3, from: string) the monster was marked
+	Whisper = event("Whisper"), -- server -> client: (from: string, text: string) an echo whispered nearby
 	-- Hub
 	CreateLobby = event("CreateLobby"), -- client -> server: ({ map, max, friendsOnly })
 	JoinLobby = event("JoinLobby"), -- client -> server: (lobbyId: string)

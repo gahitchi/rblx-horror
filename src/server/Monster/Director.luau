@@ -23,7 +23,12 @@ local mode: Mode = "Grace"
 local modeUntil = 0
 local menace = 0 -- 0 to 1: how long it has been close to the players lately
 local lastContact = 0
+local hintScale = 1 -- soft pressure shrinks how long it waits before drifting toward the players
 local rng = Random.new()
+
+function Director.setHintScale(scale: number)
+	hintScale = math.clamp(scale, 0.1, 1)
+end
 
 function Director.reset(now: number)
 	mode = "Grace"
@@ -107,7 +112,7 @@ function Director.pickArea(
 		return candidates[rng:NextInteger(1, math.min(3, #candidates))]
 	end
 
-	if now - lastContact > M.HINT_AFTER and #players > 0 then
+	if now - lastContact > M.HINT_AFTER * hintScale and #players > 0 then
 		-- Drift toward one player's part of the building: one of the two rooms closest to them.
 		local focus = players[rng:NextInteger(1, #players)]
 		table.sort(candidates, function(a, b)

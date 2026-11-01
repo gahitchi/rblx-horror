@@ -5,10 +5,20 @@
 local Sounds = {}
 
 Sounds.DOOR = "rbxasset://sounds/switch.wav"
-Sounds.FUSE = "rbxasset://sounds/switch.wav"
-Sounds.GENERATOR_PULL = "rbxasset://sounds/action_jump_land.mp3"
-Sounds.GENERATOR_HUM = "" -- needs a looping engine sound
-Sounds.ALARM = "rbxasset://sounds/electronicpingshort.wav" -- needs a proper siren
+Sounds.LOCK_SLAM = "rbxasset://sounds/action_jump_land.mp3" -- needs heavy magnetic locks slamming
+Sounds.FOGHORN = "rbxasset://sounds/electronicpingshort.wav" -- played very slow; needs a real foghorn
+Sounds.REEL_TRACK = "rbxasset://sounds/electronicpingshort.wav" -- a reel's track; needs the eerie recording
+Sounds.RECORDING = "rbxasset://sounds/electronicpingshort.wav" -- the complete sound; needs the real thing
+Sounds.TAPE_THREAD = "rbxasset://sounds/switch.wav" -- tape seating on a guide
+Sounds.TAPE_SLIP = "rbxasset://sounds/action_jump_land.mp3" -- tape clattering off
+Sounds.SAFE_CLICK = "rbxasset://sounds/switch.wav"
+Sounds.CLUTTER = "rbxasset://sounds/action_jump_land.mp3" -- an instrument being moved; needs a cymbal or amp scrape
+Sounds.BUZZ = "rbxasset://sounds/electronicpingshort.wav" -- played low; needs a mains hum
+Sounds.SHUTTER = "rbxasset://sounds/action_jump_land.mp3" -- needs a metal shutter crashing down
+Sounds.THUMP = "rbxasset://sounds/action_jump_land.mp3" -- something behind the barricaded door
+Sounds.HUM = "rbxasset://sounds/uuhhh.mp3" -- an entranced body humming; needs a hummed melody
+Sounds.WHISPER = "rbxasset://sounds/uuhhh.mp3" -- played fast and quiet; needs a breathy whisper
+Sounds.STINGER = "rbxasset://sounds/electronicpingshort.wav" -- escaping; needs a music sting
 Sounds.CATCH = "rbxasset://sounds/uuhhh.mp3"
 Sounds.LUNGE = "rbxasset://sounds/swordlunge.wav" -- needs a proper shriek
 Sounds.FLASHLIGHT = "rbxasset://sounds/switch.wav"
@@ -36,12 +46,16 @@ function Sounds.forKind(kind: string): (string, number)
 		return Sounds.WALKIE_CRACKLE, 0.5
 	elseif kind == "flashlight" then
 		return Sounds.FLASHLIGHT, 1
-	elseif kind == "generator" then
-		return Sounds.GENERATOR_PULL, 1
-	elseif kind == "fuse" then
-		return Sounds.FUSE, 1
-	elseif kind == "alarm" then
-		return Sounds.ALARM, 1
+	elseif kind == "reel" then
+		return Sounds.REEL_TRACK, 0.7
+	elseif kind == "recording" then
+		return Sounds.RECORDING, 0.5
+	elseif kind == "clutter" then
+		return Sounds.CLUTTER, 1
+	elseif kind == "buzz" then
+		return Sounds.BUZZ, 0.3
+	elseif kind == "hum" then
+		return Sounds.HUM, 0.6
 	end
 	return "", 1
 end

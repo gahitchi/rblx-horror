@@ -2,6 +2,7 @@
 -- Keys for the items. The server checks everything; this only sends what the player pressed.
 --   V (hold)  talk on the walkie        N  walkie on/off
 --   1 to 4    walkie callouts           R  tape recorder: record, or set it down
+--   G         put down what you're holding (a reel, spare parts)
 
 local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -51,7 +52,24 @@ local function onTape(_: string, state: Enum.UserInputState): Enum.ContextAction
 	return Enum.ContextActionResult.Pass
 end
 
+local function onDrop(_: string, state: Enum.UserInputState): Enum.ContextActionResult
+	if state == Enum.UserInputState.Begin then
+		local roundState = ReplicatedStorage:FindFirstChild("RoundState")
+		if roundState and roundState:GetAttribute("Phase") == "Playing" then
+			Remotes.DropItem:FireServer()
+		end
+	end
+	return Enum.ContextActionResult.Pass
+end
+
 function ItemController.start()
+	ContextActionService:BindAction(
+		"DeadAirDrop",
+		onDrop,
+		false,
+		Enum.KeyCode.G,
+		Enum.KeyCode.DPadLeft
+	)
 	if Config.FEATURES.WALKIE then
 		ContextActionService:BindAction(
 			"DeadAirTalk",

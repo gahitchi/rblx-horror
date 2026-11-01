@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.6.0"
+Config.VERSION = "0.7.0"
 Config.DEBUG = true -- extra Output logging while in development
 Config.DEBUG_AI = false -- shows the monster's state, awareness and path in the world
 
@@ -24,14 +24,24 @@ Config.NOISE = table.freeze({
 	DOOR = 36,
 	DOOR_SLAM = 50, -- the monster opening a door
 	FLASHLIGHT = 8,
-	FUSE = 50,
-	GENERATOR_PULL = 140,
-	GENERATOR_HUM = 55,
-	ALARM = 400, -- the emergency tape on the speakers: everyone hears it
 	VOICE_MAX = 60, -- shouting
 	WALKIE_CRACKLE = 26, -- a teammate's transmission coming out of your walkie
 	WALKIE_CLICK = 6, -- pressing talk, switching it on or off
 	TAPE_PLACE = 8, -- setting the recorder down
+	-- Chapter objectives (loud on purpose: getting out means making noise)
+	LOCK_SLAM = 90, -- the quarantine locks slamming as the building wakes
+	REEL_PLAYBACK = 160, -- loading a reel plays its track out loud for a few seconds
+	RECORDING = 400, -- the complete recording through every speaker: everyone hears it
+	CLUTTER = 34, -- moving an instrument off the road case
+	TAPE_SLIP = 18, -- a rethreading mistake: the tape clatters off a guide
+	SAFE_CLUNK = 16, -- a wrong combination
+	BUZZ = 48, -- a wrong patch: the desk buzzes through the speakers
+	FADER_SPIKE = 120, -- letting the levels drift during the last session
+	MAIL_SLOT = 12, -- pushing a tape through the front doors' mail slot
+	SHUTTER = 70, -- a quarantine shutter dropping
+	-- Echoes
+	HUM = 20, -- an entranced body humming the sound, every few seconds
+	WHISPER = 14, -- an echo's whisper, when the monster happens to catch it
 })
 Config.FOOTSTEP_INTERVAL = 0.4 -- how often movement noise is sampled per player
 Config.WALL_DAMPING = 0.5 -- each wall between the noise and the listener halves its reach
@@ -93,21 +103,72 @@ Config.MONSTER = table.freeze({
 	MENACE_COOL_SECONDS = 30, -- far from players, the menace drains in this long
 	RETREAT_TIME = 35,
 	HINT_AFTER = 75, -- seconds away from everyone before it drifts toward the players' area
+	-- Frenzy (shocks): it hears much farther, never backs off, and goes straight for loud sounds
+	FRENZY_HEARING = 2.5,
 })
 
 -- Rounds
 Config.MIN_PLAYERS = 1
 Config.LOBBY_COUNTDOWN = if Config.DEBUG then 8 else 20 -- short while testing alone
-Config.ROUND_TIME = 1200
 Config.RESULTS_TIME = 12 -- long enough to read the results
-Config.RESPAWN_DELAY = 3
+-- There is no round timer: a round ends when the crew escapes or the monster catches everyone.
 
--- Objectives
-Config.GENERATOR_PULLS = 3
-Config.GENERATOR_HUM_INTERVAL = 6
-Config.FUSES_NEEDED = 3
-Config.TAPE_DURATION = 20
-Config.ALARM_INTERVAL = 1.5
+-- Pacing a chapter (20 to 25 minutes of play). Two shocks fire on progress; if the crew stalls,
+-- each fires anyway after its fallback time. The longer the round runs, the closer the sound gets:
+-- thicker fog, sharper hearing, and the director sends the monster toward the crew more often.
+Config.PACING = table.freeze({
+	SHOCK1_FALLBACK = 9 * 60, -- seconds into the round
+	SHOCK2_FALLBACK = 16 * 60,
+	SHOCK_MIN_GAP = 90, -- the second shock never follows the first sooner than this
+	PRESSURE_START = 6 * 60, -- soft pressure starts building here...
+	PRESSURE_FULL = 25 * 60, -- ...and is at its strongest here
+	PRESSURE_HEARING = 0.5, -- at full pressure the monster hears this much farther (x1.5)
+	PRESSURE_HINT = 0.6, -- at full pressure it drifts toward the crew this much sooner
+	FOG_END_CALM = 160, -- how far you see through the fog at the start
+	FOG_END_FULL = 70, -- and at full pressure
+})
+
+-- The shocks.
+Config.SHOCK = table.freeze({
+	BLACKOUT = 7, -- seconds of total darkness in the second shock
+	FRENZY = 20, -- seconds the monster frenzies after the second shock
+	FOG_END = 35, -- the fog that seeps in with the second shock
+	FOG_SECONDS = 25, -- before it thins back to the pressure level
+	REPLAYED_SOUNDS = 6, -- the team's own sounds played back through the speakers
+})
+
+-- Last Call: the complete sound wakes every machine and the doors release for a while.
+Config.LAST_CALL = table.freeze({
+	DOORS_OPEN = 45, -- seconds before the locks re-engage
+	FRENZY_HEARING = 3, -- during Last Call the monster hears this much farther
+})
+
+-- Holding a machine while the sound dubs onto the cassette (the last session, and later chapters).
+-- Whoever holds it rides the faders: keep the level inside the safe band, or the sound spikes.
+Config.DUB = table.freeze({
+	SECONDS = 20,
+	RANGE = 9, -- the holder must stay this close to the machine
+	BAND = 0.18, -- half the width of the safe band (the level runs from 0 to 1)
+	DRIFT = 0.45, -- how hard the level wanders, per second
+	NUDGE = 0.9, -- how fast the holder can push it back, per second
+	SPIKE_COOLDOWN = 2, -- seconds between noise spikes while the level is out of the band
+})
+
+-- Chapter 1 of the studio: the last session.
+Config.STUDIO1 = table.freeze({
+	SAFE_COMBO = "031179", -- the date the engineer's wife drowned (3 November 1979), DDMMYY
+	SAFE_LOCKOUT = 6, -- seconds the safe refuses input after three wrong tries
+	ROAD_CASE_CLUTTER = 3, -- instruments to move off the road case
+	DECOY_CARDS = 12, -- other cards in the archive's card index drawer
+	PATCH_INPUTS = 8, -- desk inputs on the patch bay
+	OPTIONAL_TAPES = 3,
+})
+
+-- Chapters in story order. `map` is the Config.MAPS id; a chapter unlocks when the one before it is
+-- cleared (its evidence cassette carried out of the building).
+Config.CHAPTERS = table.freeze({
+	table.freeze({ id = "studio1", map = "studio", number = 1, name = "The Last Session" }),
+})
 
 -- Where the lobby floats, far above the map
 Config.LOBBY_ORIGIN = Vector3.new(0, 400, 0)
@@ -116,12 +177,18 @@ Config.LOBBY_ORIGIN = Vector3.new(0, 400, 0)
 -- objectives, not only escaping, so a round where you got caught still moves you forward.
 Config.REWARDS = table.freeze({
 	ROUND = 20, -- for playing a round
-	GENERATOR_PULL = 10,
-	FUSE = 25,
-	TAPE_DECK = 40, -- starting the emergency tape
+	SPARES = 10,
+	MACHINE_FIXED = 40,
+	REEL_FOUND = 20,
+	REEL_LOADED = 30,
+	PATCHED = 40,
+	LAST_SESSION = 60, -- holding the desk through the dub
+	CASSETTE_OUT = 80, -- carrying the evidence out
+	TAPE_DELIVERED = 30, -- an optional tape through the mail slot
 	DECOY = 15, -- a tape recorder playing back
 	ESCAPE = 100,
 	REVIVE = 30, -- bringing a teammate back
+	PING = 5, -- an echo marking the monster for the living
 })
 -- The free reward track (a battle pass nobody has to buy): reaching a level unlocks its reward.
 -- A level lost to a revive relocks its rewards until it's reached again.
@@ -149,16 +216,33 @@ Config.FLASHLIGHT_SKINS = table.freeze({
 Config.FLASHLIGHT_SKIN_ORDER =
 	table.freeze({ "warm", "cold", "sodium", "darkroom", "ultraviolet", "tape" })
 
--- Coming back after being caught: once per round, while teammates are still inside. You put up the
--- price (a level, normally; Robux is possible but priced as a rare exception), then a teammate has
--- to reach the walkie you dropped and hold E on it while it screeches back to life. If nobody
--- comes before the round ends, the price is refunded.
+-- Coming back after being caught: once per round, while teammates are still inside. When the
+-- monster catches you it rips your filter headset off: you become an echo and your body stays
+-- where it fell, entranced and humming. You put up the price (a level, normally; Robux is possible
+-- but priced as a rare exception), then a teammate has to reach your headset and hold E to put it
+-- back on you while it re-syncs with loud static. If nobody comes before the round ends, the
+-- price is refunded.
 Config.REVIVE = table.freeze({
 	HOLD_SECONDS = 4,
-	NOISE = 40, -- the reconnecting static, every second of the hold
-
+	NOISE = 40, -- the re-syncing static, every second of the hold
 	PRODUCT_ID = 0, -- the Developer Product id from the Creator Dashboard; 0 hides the Robux option
-	MIN_TIME_LEFT = 45, -- no revives in the last seconds of a round
+})
+
+-- Echoes: caught players float anywhere in the building. They sense the monster through walls and
+-- can ping it for the living, and whisper short lines to living players nearby (the monster
+-- sometimes hears a whisper). Whispers fade if used too often, so they can't be used to troll.
+Config.ECHO = table.freeze({
+	SPEED = 16, -- floating speed
+	SEND_INTERVAL = 0.25, -- how often an echo's position reaches the server
+	PING_COOLDOWN = 20,
+	PING_SECONDS = 6, -- how long the living see the mark
+	WHISPER_RANGE = 30, -- living players this close hear a whisper
+	WHISPER_COOLDOWN = 4,
+	WHISPER_WINDOW = 30, -- at most WHISPER_MAX whispers in this many seconds, then they fade out
+	WHISPER_MAX = 4,
+	WHISPER_HEARD_CHANCE = 0.25, -- chance the monster catches a whisper
+	HUM_INTERVAL = 8, -- seconds between an entranced body's hums
+	WHISPERS = table.freeze({ "It's close.", "Hide. Now.", "This way.", "It's gone." }),
 })
 
 Config.READY_COUNTDOWN = 3 -- when everyone in the lobby is ready, the round starts this soon
@@ -204,7 +288,7 @@ Config.WALKIE = table.freeze({
 	CRACKLE_INTERVAL = 0.6, -- seconds between crackle noises while someone talks
 	MAX_TALK_SECONDS = 12, -- a held talk button lets go by itself after this
 	CALLOUT_COOLDOWN = 2.5,
-	CALLOUTS = table.freeze({ "It's here!", "Need help!", "Found a fuse.", "Going quiet." }),
+	CALLOUTS = table.freeze({ "It's here!", "Need help!", "Found a reel.", "Going quiet." }),
 })
 
 -- Tape recorder: record the noises around you, set it down, and it plays them back later as a lure.

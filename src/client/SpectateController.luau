@@ -1,6 +1,7 @@
 --!strict
--- After you're caught (or once you've escaped), you watch a teammate who's still in, over their
--- shoulder, until the round ends. Q and E switch between them.
+-- Once you've escaped (or left the round some other way), you watch a teammate who's still in,
+-- over their shoulder, until the round ends. Q and E switch between them. Caught players don't
+-- spectate: they're echoes (EchoController).
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -97,7 +98,8 @@ end
 local function update()
 	local state = ReplicatedStorage:FindFirstChild("RoundState")
 	local playing = state ~= nil and state:GetAttribute("Phase") == "Playing"
-	local out = playing and not inRound(player)
+	-- Echoes float on their own (EchoController) instead of watching someone.
+	local out = playing and not inRound(player) and player:GetAttribute("Echo") ~= true
 	local list = if out then stillIn() else {}
 
 	if not Config.FEATURES.SPECTATE or not out or #list == 0 then

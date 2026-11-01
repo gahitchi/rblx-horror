@@ -69,6 +69,16 @@ local function play(kind: string, spot: Vector3)
 	end
 end
 
+-- The kinds of sound it has heard players make lately (newest last).
+function Mimicry.heard(): { string }
+	return table.clone(memory)
+end
+
+-- Plays one sound of `kind` at `spot` (used by the second shock to throw the team's sounds back).
+function Mimicry.playAt(kind: string, spot: Vector3)
+	play(kind, spot)
+end
+
 -- If it's time and there's a good spot, plays a remembered sound and returns where; otherwise nil.
 function Mimicry.tryPerform(
 	now: number,

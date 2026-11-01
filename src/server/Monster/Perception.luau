@@ -28,11 +28,22 @@ local KIND_GAIN: { [string]: number } = {
 	landing = 25,
 	door = 30,
 	flashlight = 8,
-	generator = 100,
-	fuse = 70,
-	alarm = 100,
+	lock = 80,
+	reel = 100,
+	recording = 100,
+	spike = 90,
+	buzz = 60,
+	clutter = 35,
+	slip = 25,
+	safe = 20,
+	shutter = 45,
+	mail = 15,
+	hum = 18,
+	whisper = 18,
 }
-local LOUD_KINDS: { [string]: boolean } = { generator = true, fuse = true, alarm = true }
+-- Objective sounds it can't ignore: it hurries to them even while backing off.
+local LOUD_KINDS: { [string]: boolean } =
+	{ lock = true, reel = true, recording = true, spike = true }
 
 local Perception = {}
 

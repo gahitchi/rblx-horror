@@ -291,7 +291,7 @@ function LobbyUi.start()
 		end
 	end)
 
-	-- Coming back after being caught (shown while spectating, once per round).
+	-- Coming back after being caught (shown while you're an echo, once per round).
 	local revive =
 		frame(gui, UDim2.fromOffset(440, 96), UDim2.new(0.5, 0, 1, -230), Vector2.new(0.5, 0))
 	revive.Visible = false
@@ -385,12 +385,12 @@ function LobbyUi.start()
 		skinButton.Text = string.format("Flashlight: %s  >", if skin then skin.name else "Warm")
 		skinButton.Modal = skinButton.Visible
 
-		-- Revive, while spectating.
+		-- Revive, while you're an echo.
 		local canRevive = player:GetAttribute("CanRevive") == true
 		local waiting = player:GetAttribute("RevivePending") == true
 		revive.Visible = canRevive
 		reviveTitle.Text = if waiting
-			then "Waiting for a teammate to reach your walkie..."
+			then "Waiting for a teammate to put your headset back on..."
 			else "Ask your team to bring you back? (once per round)"
 		byLevel.Visible = not waiting
 		byRobux.Visible = not waiting and Config.REVIVE.PRODUCT_ID ~= 0

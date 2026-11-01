@@ -3,12 +3,11 @@
 -- Folder named "Map" in Workspace, laid out as docs/MAP_CONTRACT.md describes. This turns it into
 -- the Layout the game systems use, and lists every problem it finds in plain words.
 --
--- The scripts never hard-code positions: everything they need comes from here.
+-- The scripts never hard-code positions: everything they need comes from here. Which objectives a
+-- map needs depends on the chapter played on it (see Chapters/<chapter>.requires); this only reads
+-- whatever the Objectives folder holds.
 
 local Workspace = game:GetService("Workspace")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
 
 -- A soundproof room: sound inside it doesn't leave while its door is shut.
 export type Zone = {
@@ -28,28 +27,47 @@ export type Area = {
 	points: { Vector3 },
 }
 
+-- A navy quarantine shutter. `closed` is where the map built it (blocking the way); `opened` is
+-- the same part lifted out of the way by its own height.
+export type Shutter = {
+	part: BasePart,
+	route: string,
+	closed: CFrame,
+	opened: CFrame,
+	startsOpen: boolean,
+}
+
+-- A lamp: a part with lights inside, switched by LightingService between dead, woken and red.
+export type Lamp = {
+	part: BasePart?,
+	lights: { Light },
+}
+
 export type Layout = {
 	map: Instance,
 	spawn: CFrame,
 	lobbySpawn: CFrame,
 	monsterSpawn: Vector3,
 	areas: { Area },
-	fuseSpots: { Vector3 },
 	speakers: { Vector3 },
-	generator: BasePart,
-	fuseBox: BasePart,
-	tapeDeck: BasePart,
+	objectives: { [string]: BasePart },
+	reelSpots: { BasePart },
+	tapeSpots: { Vector3 },
 	exitZone: BasePart,
 	frontDoor: BasePart,
 	doors: { BasePart },
+	sealedDoors: { BasePart },
 	zones: { Zone },
-	powerLights: { Light },
-	powerLamps: { BasePart },
+	shutters: { Shutter },
+	lamps: { Lamp },
+	boundsMin: Vector3, -- the whole building, a little padded (echoes float inside it)
+	boundsMax: Vector3,
 }
 
 local MIN_DOOR_WIDTH = 6
 local MIN_DOOR_HEIGHT = 9
 local ROOT_HEIGHT = 3 -- spots and spawns are this far above the floor
+local DOOR_KINDS = { normal = true, booth = true, front = true, sealed = true, barricaded = true }
 
 local MapContract = {}
 
@@ -149,6 +167,22 @@ local function describe(instance: Instance): string
 	return instance:GetFullName()
 end
 
+local function lampOf(holder: Instance): Lamp?
+	local lights: { Light } = {}
+	if holder:IsA("Light") then
+		table.insert(lights, holder)
+	end
+	for _, descendant in holder:GetDescendants() do
+		if descendant:IsA("Light") then
+			table.insert(lights, descendant)
+		end
+	end
+	if #lights == 0 then
+		return nil
+	end
+	return { part = if holder:IsA("BasePart") then holder else nil, lights = lights }
+end
+
 -- Reads `map` (normally Workspace.Map). Returns the layout, or nil when something essential is
 -- missing, plus a list of problems (errors and warnings) to print.
 function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string })
@@ -166,8 +200,10 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 	local areasFolder = map:FindFirstChild("Areas")
 	local doorsFolder = map:FindFirstChild("Doors")
 	local boothsFolder = map:FindFirstChild("Booths")
-	local objectives = map:FindFirstChild("Objectives")
-	local lightsFolder = map:FindFirstChild("PowerLights")
+	local objectivesFolder = map:FindFirstChild("Objectives")
+	local shuttersFolder = map:FindFirstChild("Shutters")
+	-- "PowerLights" was the old name of the Lamps folder; both work.
+	local lampsFolder = map:FindFirstChild("Lamps") or map:FindFirstChild("PowerLights")
 	for _, name in { "Markers", "Areas", "Doors", "Objectives" } do
 		if not map:FindFirstChild(name) then
 			err(string.format("%s has no '%s' folder", map.Name, name))
@@ -183,31 +219,29 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 	if not monsterPart then
 		err("Markers/MonsterSpawn is missing")
 	end
-	local fuseSpots: { Vector3 } = {}
-	for _, spot in partsNamed(markers, "FuseSpot") do
-		makeHelper(spot)
-		table.insert(fuseSpots, spot.Position)
-	end
-	if #fuseSpots < Config.FUSES_NEEDED then
-		err(
-			string.format(
-				"needs at least %d Markers/FuseSpot parts, found %d",
-				Config.FUSES_NEEDED,
-				#fuseSpots
-			)
-		)
-	end
 	local speakers: { Vector3 } = {}
 	for _, speaker in partsNamed(markers, "Speaker") do
 		makeHelper(speaker)
 		table.insert(speakers, speaker.Position)
 	end
 	if #speakers == 0 then
-		err("needs at least one Markers/Speaker part (where the alarm plays)")
+		err("needs at least one Markers/Speaker part (where the building's speakers are)")
+	end
+	local reelSpots: { BasePart } = {}
+	for _, spot in partsNamed(markers, "ReelSpot") do
+		makeHelper(spot)
+		table.insert(reelSpots, spot)
+	end
+	local tapeSpots: { Vector3 } = {}
+	for _, spot in partsNamed(markers, "OptionalTapeSpot") do
+		makeHelper(spot)
+		table.insert(tapeSpots, spot.Position)
 	end
 
 	-- Areas
 	local areas: { Area } = {}
+	local allMin = Vector3.new(math.huge, math.huge, math.huge)
+	local allMax = Vector3.new(-math.huge, -math.huge, -math.huge)
 	if areasFolder then
 		for _, room in areasFolder:GetChildren() do
 			local box = part(room, "Bounds")
@@ -217,6 +251,8 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 			end
 			makeHelper(box)
 			local lo, hi = bounds(box)
+			allMin = allMin:Min(lo)
+			allMax = allMax:Max(hi)
 			local points: { Vector3 } = {}
 			local sum = Vector3.zero
 			for _, spot in partsNamed(room, "Spot") do
@@ -255,6 +291,7 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 
 	-- Doors
 	local doors: { BasePart } = {}
+	local sealedDoors: { BasePart } = {}
 	local doorsByName: { [string]: BasePart } = {}
 	local frontDoor: BasePart? = nil
 	if doorsFolder then
@@ -267,16 +304,26 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 				continue
 			end
 			local kind = child:GetAttribute("Kind")
-			if kind ~= "normal" and kind ~= "booth" and kind ~= "front" then
+			if type(kind) ~= "string" or not DOOR_KINDS[kind] then
 				warnAbout(
 					describe(child)
-						.. " has no valid Kind attribute (normal, booth or front); treated as normal"
+						.. " has no valid Kind attribute (normal, booth, front, sealed or barricaded); treated as normal"
 				)
 				kind = "normal"
 				child:SetAttribute("Kind", kind)
 			end
 			child.Anchored = true
 			child:SetAttribute("Open", false)
+			if kind == "sealed" or kind == "barricaded" then
+				-- Shut in plain sight for this chapter: a wall as far as anyone is concerned.
+				local modifier = child:FindFirstChildOfClass("PathfindingModifier")
+				if modifier then
+					modifier:Destroy()
+				end
+				table.insert(sealedDoors, child)
+				doorsByName[child.Name] = child
+				continue
+			end
 			if not child:FindFirstChildOfClass("PathfindingModifier") then
 				-- Lets the monster plan paths through closed doors; it opens them on arrival.
 				local modifier = Instance.new("PathfindingModifier")
@@ -331,41 +378,58 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 		end
 	end
 
-	-- Objectives
-	local generator = part(objectives, "Generator")
-	local fuseBox = part(objectives, "FuseBox")
-	local tapeDeck = part(objectives, "TapeDeck")
-	local exitZone = part(objectives, "ExitZone")
-	for _, name in { "Generator", "FuseBox", "TapeDeck", "ExitZone" } do
-		if not part(objectives, name) then
-			err("Objectives/" .. name .. " is missing")
+	-- Objectives: every part in the folder, by name. The chapter decides which it needs.
+	local objectives: { [string]: BasePart } = {}
+	if objectivesFolder then
+		for _, child in objectivesFolder:GetChildren() do
+			if child:IsA("BasePart") then
+				if objectives[child.Name] then
+					warnAbout("two objectives are named " .. child.Name .. "; only one is used")
+				end
+				objectives[child.Name] = child
+			end
 		end
 	end
+	local exitZone = objectives.ExitZone
 	if exitZone then
 		makeHelper(exitZone)
 		exitZone.CanTouch = true -- players escape by touching it
+	else
+		err("Objectives/ExitZone is missing")
 	end
 
-	-- Emergency lights
-	local powerLights: { Light } = {}
-	local powerLamps: { BasePart } = {}
-	if lightsFolder then
-		for _, lamp in lightsFolder:GetChildren() do
-			if lamp:IsA("BasePart") then
-				table.insert(powerLamps, lamp)
+	-- Quarantine shutters
+	local shutters: { Shutter } = {}
+	if shuttersFolder then
+		for _, child in shuttersFolder:GetChildren() do
+			if not child:IsA("BasePart") then
+				continue
 			end
-			for _, descendant in lamp:GetDescendants() do
-				if descendant:IsA("Light") then
-					table.insert(powerLights, descendant)
-				end
-			end
-			if lamp:IsA("Light") then
-				table.insert(powerLights, lamp)
+			child.Anchored = true
+			local route = child:GetAttribute("Route")
+			local startsOpen = child:GetAttribute("StartsOpen")
+			table.insert(shutters, {
+				part = child,
+				route = if type(route) == "string" then route else "other",
+				closed = child.CFrame,
+				opened = child.CFrame + Vector3.new(0, child.Size.Y - 0.3, 0),
+				startsOpen = startsOpen ~= false,
+			})
+		end
+	end
+
+	-- Lamps
+	local lamps: { Lamp } = {}
+	if lampsFolder then
+		for _, holder in lampsFolder:GetChildren() do
+			local lamp = lampOf(holder)
+			if lamp then
+				table.insert(lamps, lamp)
 			end
 		end
 	end
-	if #powerLights == 0 then
-		warnAbout("no PowerLights: starting the generator won't light anything")
+	if #lamps == 0 then
+		warnAbout("no Lamps: the building stays pitch dark even when it wakes")
 	end
 
 	if fatal or not spawnPart or not monsterPart then
@@ -380,6 +444,7 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 	if flatLook.Magnitude < 0.1 then
 		flatLook = Vector3.new(0, 0, -1)
 	end
+	local pad = Vector3.new(6, 6, 6)
 
 	return {
 		map = map,
@@ -387,17 +452,19 @@ function MapContract.read(map: Instance, lobbySpawn: CFrame): (Layout?, { string
 		lobbySpawn = lobbySpawn,
 		monsterSpawn = monsterAt + Vector3.new(0, 1.5, 0), -- the monster's root sits a bit higher
 		areas = areas,
-		fuseSpots = fuseSpots,
 		speakers = speakers,
-		generator = generator :: BasePart,
-		fuseBox = fuseBox :: BasePart,
-		tapeDeck = tapeDeck :: BasePart,
+		objectives = objectives,
+		reelSpots = reelSpots,
+		tapeSpots = tapeSpots,
 		exitZone = exitZone :: BasePart,
 		frontDoor = frontDoor :: BasePart,
 		doors = doors,
+		sealedDoors = sealedDoors,
 		zones = zones,
-		powerLights = powerLights,
-		powerLamps = powerLamps,
+		shutters = shutters,
+		lamps = lamps,
+		boundsMin = allMin - pad,
+		boundsMax = allMax + pad,
 	},
 		problems
 end

@@ -21,6 +21,8 @@ type Data = {
 	peak: number,
 	skin: string,
 	reviveTokens: number,
+	chapters: { string }, -- chapter ids cleared (the story is played in order)
+	tapes: { string }, -- optional story tapes delivered
 }
 export type Gain = { xp: number, coins: number, lines: { string } }
 
@@ -84,12 +86,36 @@ local function publish(player: Player)
 		player:SetAttribute("XPBoost", boostFor(ProgressService.levelFor(d.xp)))
 		player:SetAttribute("FlashlightSkin", d.skin)
 		player:SetAttribute("ReviveTokens", d.reviveTokens)
+		player:SetAttribute("ChaptersCleared", table.concat(d.chapters, ","))
+		player:SetAttribute("TapesKept", #d.tapes)
 	end
 end
 
+-- A saved list of ids, keeping only strings.
+local function idList(value: unknown): { string }
+	local list: { string } = {}
+	if type(value) == "table" then
+		for _, item in value :: { any } do
+			if type(item) == "string" and not table.find(list, item) then
+				table.insert(list, item)
+			end
+		end
+	end
+	return list
+end
+
 local function load(player: Player)
-	local d: Data =
-		{ xp = 0, coins = 0, rounds = 0, escapes = 0, peak = 1, skin = "warm", reviveTokens = 0 }
+	local d: Data = {
+		xp = 0,
+		coins = 0,
+		rounds = 0,
+		escapes = 0,
+		peak = 1,
+		skin = "warm",
+		reviveTokens = 0,
+		chapters = {},
+		tapes = {},
+	}
 	local ok = false
 	if store then
 		for _ = 1, 3 do
@@ -104,6 +130,8 @@ local function load(player: Player)
 					d.rounds = tonumber(result.rounds) or 0
 					d.escapes = tonumber(result.escapes) or 0
 					d.reviveTokens = tonumber(result.reviveTokens) or 0
+					d.chapters = idList(result.chapters)
+					d.tapes = idList(result.tapes)
 					d.peak = math.max(tonumber(result.peak) or 1, ProgressService.levelFor(d.xp))
 					local skin = result.skin
 					d.skin = if type(skin) == "string" and skinUnlocked(d, skin)
@@ -130,6 +158,8 @@ local function save(player: Player)
 		return
 	end
 	local snapshot = table.clone(d)
+	snapshot.chapters = table.clone(d.chapters)
+	snapshot.tapes = table.clone(d.tapes)
 	pcall(function()
 		(store :: DataStore):SetAsync("player_" .. player.UserId, snapshot)
 	end)
@@ -232,6 +262,8 @@ function ProgressService.saveNow(player: Player): boolean
 		return false
 	end
 	local snapshot = table.clone(d)
+	snapshot.chapters = table.clone(d.chapters)
+	snapshot.tapes = table.clone(d.tapes)
 	local ok = pcall(function()
 		(store :: DataStore):SetAsync("player_" .. player.UserId, snapshot)
 	end)
@@ -260,6 +292,31 @@ function ProgressService.finishRound(player: Player, escaped: boolean): Gain
 		end
 	end
 	return gains[player] or { xp = 0, coins = 0, lines = {} }
+end
+
+-- The chapter's evidence left the building with this player's crew.
+function ProgressService.clearChapter(player: Player, chapterId: string)
+	local d = data[player]
+	if d and not table.find(d.chapters, chapterId) then
+		table.insert(d.chapters, chapterId)
+		publish(player)
+	end
+end
+
+function ProgressService.hasCleared(player: Player, chapterId: string): boolean
+	local d = data[player]
+	return d ~= nil and table.find(d.chapters, chapterId) ~= nil
+end
+
+-- An optional story tape reached the handler. Returns true if it's new for this player.
+function ProgressService.addStoryTape(player: Player, tapeId: string): boolean
+	local d = data[player]
+	if d and not table.find(d.tapes, tapeId) then
+		table.insert(d.tapes, tapeId)
+		publish(player)
+		return true
+	end
+	return false
 end
 
 function ProgressService.saveAll()
