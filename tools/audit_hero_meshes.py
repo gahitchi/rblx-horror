@@ -101,8 +101,21 @@ def main():
     found={p.stem for p in args.directory.glob("*.glb")}
     assert found==EXPECTED,("unexpected asset pack",sorted(EXPECTED-found),sorted(found-EXPECTED))
     assets=[check(args.directory/(name+".glb")) for name in sorted(EXPECTED)]
+    from validate_production_baseline import check as check_production_baseline
+    policy=check_production_baseline()
+    quality_ledger=json.loads((Path(__file__).resolve().parent.parent /
+        "docs/art/asset_quality_ledger.json").read_text())
+    by_name={name:group for group in quality_ledger["groups"]
+             for name in group["assetNames"]}
+    for asset in assets:
+        group=by_name[Path(asset["file"]).stem]
+        asset["productionGroup"]=group["id"]
+        asset["studioApproved"]=group["studioApproved"]
+        asset["userAcceptedSourceDirection"]=group["ownerPreviewAccepted"]
+
     data={
         "benchmark":"TTK Testing-level visual fidelity: aspirational; no parity claim",
+        "productionBaseline":policy,
         "count":len(assets),
         "sourceStatus":"VALIDATED_GEOMETRY_PROTOTYPES_NOT_FINAL_ART",
         "notes":[
