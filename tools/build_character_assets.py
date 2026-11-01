@@ -10,6 +10,7 @@ UpperTorso/Head attachment (player cosmetics), forward is negative Z.
 from __future__ import annotations
 
 import argparse
+import os
 import math
 from pathlib import Path
 from PIL import Image
@@ -133,7 +134,7 @@ class Model:
    scene.add_geometry(mesh,node_name="PBR_"+name,geom_name="PBR_"+name)
   return scene
 
-def engineer_body():
+def _legacy_engineer_body():
  m=Model()
  # Gaunt late-shift repair worker, anatomy intentionally incompatible with a
  # normal player: concave rib cage, overlong forearms, torsion and bad posture.
@@ -185,6 +186,23 @@ def engineer_body():
  for offset in (-.45,.45):
   m.box((offset,1.53,-.47),(.26,.38,.18),"brass")
  return m.finish()
+
+def engineer_body():
+    """Q02 realistic candidate sourced from licensed, fully modeled CC0 human.
+
+    Preserve original fallback only when offline without the retrieved CC0
+    source. Official CI export requires the real mesh and must never silently
+    substitute the rejected primitive model.
+    """
+    source=Path(__file__).resolve().parent.parent/"build/cc0/daniel_cc0.glb"
+    if source.is_file():
+        from quality_engineer_real import build
+        return build(source)
+    if os.environ.get("REQUIRE_REAL_ENGINEER")=="1":
+        raise FileNotFoundError(
+            "Q02 realistic human source required; run CC0 download step first")
+    return _legacy_engineer_body()
+
 
 def operator_vest():
  # Root is R15 UpperTorso center. Vest does not obscure the rig's limb joints.
