@@ -244,7 +244,7 @@ function StoryProps.decorate(parent:Instance, r:Room, palette:Palette, lights:In
         generatorRoom(parent,r)
     elseif r.name=="ControlA" then
         PrefabLibrary.place(parent,"StudioWallClock",
-            CFrame.new(r.x1+13,r.height-4,r.z1+1.25))
+            CFrame.new(r.x1+13,r.height-4,r.z1+1.25)*CFrame.Angles(0,math.pi,0))
         workplace(parent,r,
             "A CONTROL  /  SESSION NOTES\n\nCHANNEL 08 REQUIRES ISOLATION\nTHE TAPE DECK IS CONNECTED TO P.A.\nENGINEERING SIGNATURE MISSING",
             "ControlALog")
