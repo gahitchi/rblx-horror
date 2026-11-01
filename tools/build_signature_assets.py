@@ -9,6 +9,9 @@ from pathlib import Path
 import argparse
 import math
 import trimesh
+import numpy as np
+from PIL import Image,ImageDraw,ImageFont
+from trimesh.visual.material import PBRMaterial
 from build_character_assets import Model
 
 def transfer_machine():
@@ -84,6 +87,97 @@ def patch_matrix():
             m.link((x,y,-1.23),(x,y,-1.32),.052,.052,"brass",12)
     return m.finish()
 
+def console_legend(scene:trimesh.Scene):
+    """Original, authored blacklined identification/operation plate with
+    image-space text, not a floating BillboardGui or generic rusty texture."""
+    im=Image.new("RGB",(1024,192),(26,29,30))
+    draw=ImageDraw.Draw(im)
+    font=ImageFont.load_default(size=47)
+    minor=ImageFont.load_default(size=24)
+    draw.rectangle((12,10,1012,182),outline=(122,116,92),width=5)
+    draw.text((42,29),"B L A C K L I N E  /  C O N T R O L  A",
+              fill=(223,209,177),font=font)
+    draw.text((44,118),"SESSION 08  /  MASTER BUS  /  ANALOG SIGNAL PATH",
+              fill=(138,154,148),font=minor)
+    # No material metalness on printed laminate; rough, diffuse lettering.
+    material=PBRMaterial(name="OriginalConsoleLegend",
+        baseColorTexture=im,metallicFactor=.0,roughnessFactor=.89,
+        doubleSided=True)
+    # Rectangle facing the player along negative Z, mounted on meter bridge.
+    mesh=trimesh.Trimesh(vertices=np.array([
+        [-2.48,4.24,-1.75],[2.48,4.24,-1.75],
+        [2.48,3.59,-1.75],[-2.48,3.59,-1.75]],dtype=np.float64),
+        faces=np.array([[0,1,2],[0,2,3]],dtype=np.int64),process=False)
+    mesh.visual=trimesh.visual.TextureVisuals(
+        uv=np.array([[0,1],[1,1],[1,0],[0,0]],dtype=float),material=material)
+    scene.add_geometry(mesh,node_name="ConsoleOriginalSerialLegend",
+                       geom_name="ConsoleOriginalSerialLegend")
+    return scene
+
+
+def blackline_hero_console():
+    """Purpose-authored, scale-conscious studio desk, with structural cabinet,
+    sloped steel meter bridge, 16 channel strips, physical faders and VU units.
+
+    A substitute for the original rough MixingConsole in Blackline's Control A;
+    old import and procedural fallback are still functional and installed.
+    """
+    m=Model()
+    # Self-supporting, polished workstation with a cable/vent service recess.
+    for side in (-1,1):
+        x=side*2.88
+        m.box((x,1.28,.24),(.48,2.48,2.76),"coat_dark")
+        m.box((x,2.42,.24),(.53,.14,2.92),"iron")
+        for i in range(4):
+            m.box((x,1.2+i*.33,-1.21),(.36,.06,.08),"brass")
+    m.box((0,.36,1.12),(5.48,.43,.58),"coat_high")
+    m.box((0,.16,-1.00),(5.64,.17,.21),"rubber")
+    m.box((0,1.86,1.20),(5.32,1.19,.24),"iron")
+    m.box((0,2.52,.09),(6.10,.25,3.22),"field_edge")
+    m.box((0,2.70,-1.49),(6.28,.18,.13),"brass")
+    m.box((0,2.74,1.37),(6.28,.18,.18),"brass")
+    for side in (-1,1):
+        m.box((side*3.08,2.62,-.06),(.16,.33,3.24),"brass")
+    # Independent channel strips, controlled from the operator's front edge.
+    for ch in range(16):
+        x=-2.65+ch*(5.30/15)
+        m.box((x,2.72,-.39),(.29,.075,1.77),
+              "coat_high" if ch%4 else "iron")
+        # Recessed fader slot, stem and tactile black knob.
+        m.box((x,2.77,-.71),(.068,.055,1.10),"coat_dark")
+        faderZ=-.98+(ch%5)*.13
+        m.box((x,2.835,faderZ),(.21,.085,.27),"rubber")
+        m.box((x,2.883,faderZ),(.11,.022,.17),"brass")
+        for row in range(3):
+            z=.06+row*.27
+            m.link((x,2.78,z),(x,2.96,z),.10,.083,
+                   "brass" if row==2 else "iron",14)
+            m.box((x,2.99,z-.014),(.03,.027,.11),"rubber")
+        for row in range(4):
+            m.box((x,2.79,-1.27+row*.115),(.11,.035,.035),
+                  "signal" if ch==7 and row<2 else "visor")
+    # A rising master meter bridge with physical bezels, needles and glass.
+    m.box((0,3.40,1.24),(5.85,1.45,.60),"iron")
+    m.box((0,3.98,.88),(5.60,.18,.40),"brass")
+    m.box((0,3.12,.91),(5.66,.13,.38),"coat_dark")
+    for meter in range(2):
+        x=-1.42+meter*2.84
+        m.box((x,3.47,.87),(2.13,.72,.11),"brass")
+        m.box((x,3.49,.795),(1.85,.48,.065),"label")
+        for tick in range(9):
+            m.box((x-.78+tick*.195,3.45,.74),(.028,.20,.024),
+                  "signal" if tick>=7 else "coat_dark")
+        m.link((x-.35,3.32,.70),(x+.23,3.53,.70),.031,.027,"signal",10)
+    for side in (-1,1):
+        x=side*2.60
+        for row in range(5):
+            m.box((x,3.16+row*.12,.68),(.11,.045,.035),
+                  "visor" if row<4 else "signal")
+    # Details stay behind operator-accessible surface, not across the aisle.
+    scene=m.finish()
+    return console_legend(scene)
+
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--out",type=Path,default=Path("build/roblox-glb"))
@@ -92,6 +186,7 @@ def main():
     for name,builder in {
         "BlacklineTransferDeck":transfer_machine,
         "BlacklinePatchMatrix":patch_matrix,
+        "BlacklineHeroConsole":blackline_hero_console,
     }.items():
         path=args.out/(name+".glb")
         path.write_bytes(builder().export(file_type="glb"))
