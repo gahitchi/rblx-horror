@@ -17,6 +17,7 @@ EXPECTED={
     "AnalogRack","NearfieldMonitor","TapeReel",
     "ReceptionTerminal","TapeArchiveCart","ServiceIntercom",
     "StudioWallClock",
+    "EngineerBody","FieldOperatorVest","FieldOperatorMask","FieldOperatorPack",
 }
 
 
