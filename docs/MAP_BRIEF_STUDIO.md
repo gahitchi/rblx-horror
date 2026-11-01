@@ -48,6 +48,11 @@ for this floor. Rooms the round needs:
     flat another way).
 - **Hiding spots:** wardrobes and lockers spread around (at least 6), each near an Area `Spot`.
 - **Loose props** that can be thrown: bottles, cans, metal pipes.
+- **Chapter 1's objective props** (see the design doc, "Chapter 1"): the booking diary at the
+  reception desk; a maintenance cupboard with spare parts; the multitrack tape machine with a
+  visible tape path; a card index cabinet in the archive; a road case in the live room, under
+  instruments; a desk safe in control room B; a choir memorial programme in the break room; a patch
+  bay next to the mixing desk; a mail slot in the front doors; a few spots for optional tapes.
 
 ## Plan ahead for later chapters
 

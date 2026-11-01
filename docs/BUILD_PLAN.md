@@ -35,25 +35,43 @@ with a checklist in `docs/PLAYTEST.md` saying what to try and what is untested.
 - **Optional story tapes:** a few per chapter at their own markers; pushing one through the front
   doors' mail slot delivers it to the handler, and delivered tapes count even if the crew is wiped.
 
-### B. Chapter 1's round
+### B. Chapter 1's round (about 22 minutes)
 
-- **Arrival:** front-door locks slam, foghorn, handler line on the walkies (subtitled text for now).
-- **Session log:** reading it at control room A starts the reel step.
-- **Reels:** 3 picked from the `ReelSpot`s each round. Loading one into the tape machine plays its
-  track aloud for a few seconds (a big noise event).
-- **Two shocks:** chapter 1 is being re-paced to 20 to 25 minutes with a first shock about a third
-  of the way in and a second about two thirds in (design doc open question). The one designed so far:
-  **mid-round shock** after the second reel: blackout, fog, every speaker replays sounds the team
-  made earlier (reusing `Monster/Mimicry` recordings), the Engineer frenzies for about 20 seconds,
-  lights return red.
-- **The last session:** the third reel, then a 20-second hold at the mixing desk that dubs onto the
-  cassette while the full recording plays through the building.
+The full sequence is in the design doc ("Chapter 1"). What gets built:
+
+- **Arrival:** front-door locks slam, foghorn, handler line on the walkies (subtitled text for
+  now). The booking diary at reception points to control room A.
+- **Fix the tape machine:** spares (pinch roller, belt) picked up in the maintenance cupboard, then
+  a rethreading puzzle at the machine: route the tape around the guides in the right order. Quiet,
+  interruptible, works with mouse, touch and gamepad.
+- **The session log** at control room A names the three reels by catalogue number (random each
+  round).
+- **Three reels, three ways:**
+  - archive: a card index gives the shelf for the number, then the shelf in the aisle maze;
+  - live room: a road case under instruments that must be moved first (each move is noisy);
+  - control room B: a desk safe whose combination is a fixed story date, found on the memorial
+    programme in the break room.
+  Loading a reel plays its track aloud for a few seconds (a big noise event).
+- **Two shocks, on progress with a time fallback:** shock 1 when the first reel is loaded (the
+  building wakes: lamps flicker on, speakers crackle, the barricaded door bangs, the first real
+  hunt); shock 2 after the second reel (blackout, fog, every speaker replays sounds the team made
+  earlier from `Monster/Mimicry` recordings, about 20 seconds of frenzy, then red lights). If the
+  crew stalls, each shock fires anyway after a while (times in `Config`).
+- **Patch the desk:** a patch-bay puzzle (connect the three track outputs to the desk inputs the log
+  lists, different each round).
+- **The last session:** a 20-second hold at the mixing desk that dubs onto the cassette while the
+  full recording plays through the building. The holder rides the faders (keep the levels in the
+  safe band); letting them drift makes louder noise spikes.
 - **The cassette:** a pocket item (no weight). A caught carrier drops it where they fell. The
   chapter is cleared only if it crosses the `ExitZone`.
+- **Optional tapes:** three per chapter at their own markers; delivered through the mail slot in
+  the front doors (counts even after a wipe).
 - **Last Call:** door locks release for 45 seconds with a HUD countdown, the short-route shutter
   drops, the Engineer frenzies (director back-off off, top hunt speed just under a sprint), then the
   doors relock and anyone inside is caught. Escape moment and near-miss results (closest distance,
   seconds left, who rescued whom).
+- **New contract markers** for all of this: `BookingDiary`, `Spares`, `CardIndex`, `RoadCase`,
+  `Safe`, `MemorialProgramme`, `PatchBay`, `MailSlot`, `OptionalTapeSpot`.
 - **Retire** the generator, fuse and emergency-tape code and their `Config`, `Sounds` and rewards.
 
 ### C. Catches, echoes and revive
