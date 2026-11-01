@@ -9,6 +9,7 @@ on:
       - tools/build_glb_assets.py
       - tools/build_character_assets.py
       - tools/quality_engineer_real.py
+      - tools/validate_headset_fit.py
       - tools/build_skinned_engineer.py
       - tools/validate_skinned_engineer.py
       - tools/build_signature_assets.py
@@ -53,6 +54,8 @@ jobs:
         run: python3 tools/build_skinned_engineer.py --out build/roblox-glb/EngineerSkinned.glb
       - name: Audit every skinned vertex weight and inverse bind
         run: python3 tools/validate_skinned_engineer.py build/roblox-glb/EngineerSkinned.glb
+      - name: Verify physical headset fit and rigid Head weighting on actual GLBs
+        run: python3 tools/validate_headset_fit.py
       - name: Build image-mapped Blackline signature equipment
         run: python3 tools/build_signature_assets.py --out build/roblox-glb
       - name: Qualify GLB geometry and write honest fidelity inventory
