@@ -10,14 +10,19 @@ local PBRMaterials = require(script.Parent.PBRMaterials)
 local PrefabLibrary = require(script.Parent.Parent.PrefabLibrary)
 
 local Kit = {}
-export type Room = { name: string, role: string, col: number, row: number }
+export type Room = {
+    name: string, role: string,
+    col: number?, row: number?,
+    x1: number?, x2: number?, z1: number?, z2: number?,
+    height: number?,
+}
 export type Specification = {
     id: string, name: string, palette: { wall: Color3, floor: Color3, ceiling: Color3, trim: Color3, steel: Color3, accent: Color3 },
-    x: { number }, z: { number }, height: number, rooms: { Room },
+    x: { number }, z: { number }, height: number, rooms: { Room }, authored: boolean?,
     links: { { number | string } }, booths: { string }, windows: { { string } }?, fuseRooms: { string },
     generator: string, fuseBox: string, tape: string, spawn: string, monster: string,
 }
-type AreaInfo = { name: string, role: string, x1: number, x2: number, z1: number, z2: number, center: Vector3 }
+type AreaInfo = { name: string, role: string, x1: number, x2: number, z1: number, z2: number, height: number, center: Vector3 }
 type Portal = { axis: string, at: number, along: number, width: number, kind: string, name: string }
 local function folder(name: string, parent: Instance): Folder
     local f = Instance.new("Folder")
@@ -346,17 +351,31 @@ function Kit.build(spec: Specification): Model
     local objectives=folder("Objectives",model)
     local lights=folder("PowerLights",model)
     local byName: { [string]: AreaInfo }={}
-    local byCell: { [string]: AreaInfo }={}
+    local byCell: { [string]: boolean }={}
     local roomList: { AreaInfo }={}
     for _,r in spec.rooms do
-        local x1,x2=spec.x[r.col],spec.x[r.col+1]
-        local z1,z2=spec.z[r.row],spec.z[r.row+1]
+        -- Production Blackline uses hand-authored nonuniform bounding rectangles.
+        -- Radio and Foundry retain the independently validated grid fallback.
+        local x1: number
+        local x2: number
+        local z1: number
+        local z2: number
+        if r.x1~=nil and r.x2~=nil and r.z1~=nil and r.z2~=nil then
+            x1,x2,z1,z2=r.x1,r.x2,r.z1,r.z2
+        else
+            local col=assert(r.col, "Grid room has no col")
+            local row=assert(r.row, "Grid room has no row")
+            x1,x2=spec.x[col],spec.x[col+1]
+            z1,z2=spec.z[row],spec.z[row+1]
+            local key=tostring(row)..":"..tostring(col)
+            assert(not byCell[key], "Duplicate room cell "..key)
+            byCell[key]=true
+        end
+        assert(x2-x1>=22 and z2-z1>=22,"Undersized authored room "..r.name)
         local info: AreaInfo={name=r.name,role=r.role,x1=x1,x2=x2,z1=z1,z2=z2,
+            height=r.height or spec.height,
             center=Vector3.new((x1+x2)/2,0,(z1+z2)/2)}
-        local key=tostring(r.row)..":"..tostring(r.col)
-        assert(not byCell[key], "Duplicate room cell "..key)
         assert(not byName[r.name], "Duplicate room name "..r.name)
-        byCell[key]=info
         byName[r.name]=info
         table.insert(roomList,info)
     end
@@ -444,34 +463,39 @@ function Kit.build(spec: Specification): Model
     local front: Portal={axis="X",at=entrance.z2,along=entrance.center.X,width=10,kind="front",name="FrontDoors"}
     table.insert(portals,front)
     attach(spec.spawn,front)
-    local visited: { [string]: boolean }={}
     local theme=spec.palette
+    -- Build one shared wall per atomic collinear interval. This supports rooms
+    -- with nonmatching lengths, while avoiding double wall faces/door occlusion.
+    type WallBand = {
+        axis: string, at: number, cuts: { number },
+        spans: { { number } },
+    }
+    local wallBands: { [string]: WallBand }={}
+    local function offerSide(axis: string, at: number, lo: number, hi: number, h: number)
+        local key=axis..":"..tostring(at)
+        local band=wallBands[key]
+        if not band then
+            band={axis=axis,at=at,cuts={},spans={}}
+            wallBands[key]=band
+        end
+        table.insert(band.cuts,lo)
+        table.insert(band.cuts,hi)
+        table.insert(band.spans,{lo,hi,h})
+    end
     for _,room in roomList do
         box(structure,room.name.."Floor",room.x1,-1,room.z1,room.x2,0,room.z2,
             theme.floor,Enum.Material.Concrete,true)
-        box(structure,room.name.."Ceiling",room.x1,spec.height,room.z1,room.x2,spec.height+0.9,room.z2,
-            theme.ceiling,Enum.Material.Concrete,true)
-        local sides={
-            {"X",room.z1,room.x1,room.x2},
-            {"X",room.z2,room.x1,room.x2},
-            {"Z",room.x1,room.z1,room.z2},
-            {"Z",room.x2,room.z1,room.z2},
-        }
-        for _,side in sides do
-            local axis=side[1] :: string
-            local at=side[2] :: number
-            local low=side[3] :: number
-            local high=side[4] :: number
-            local key=axis..":"..tostring(at)..":"..tostring(low)..":"..tostring(high)
-            if not visited[key] then
-                visited[key]=true
-                wall(structure,axis,at,low,high,spec.height,theme,portalsForEdge(portals,axis,at,low,high))
-            end
-        end
+        box(structure,room.name.."Ceiling",room.x1,room.height,room.z1,
+            room.x2,room.height+0.9,room.z2,theme.ceiling,Enum.Material.Concrete,true)
+        offerSide("X",room.z1,room.x1,room.x2,room.height)
+        offerSide("X",room.z2,room.x1,room.x2,room.height)
+        offerSide("Z",room.x1,room.z1,room.z2,room.height)
+        offerSide("Z",room.x2,room.z1,room.z2,room.height)
+
         local dir=folder(room.name,areas)
-        mark(dir,"Bounds",(room.center+Vector3.new(0,spec.height/2-0.5,0))).Size=Vector3.new(
-            room.x2-room.x1,spec.height+1,room.z2-room.z1)
-        -- Avoid machinery at the north-west and leave clear patrol routes.
+        mark(dir,"Bounds",(room.center+Vector3.new(0,room.height/2-0.5,0))).Size=Vector3.new(
+            room.x2-room.x1,room.height+1,room.z2-room.z1)
+        -- Keep three purposeful patrol positions clear of large equipment.
         for _,delta in {
             Vector3.new((room.x2-room.x1)*0.22,3,-(room.z2-room.z1)*0.22),
             Vector3.new(-(room.x2-room.x1)*0.22,3,(room.z2-room.z1)*0.22),
@@ -480,8 +504,29 @@ function Kit.build(spec: Specification): Model
             mark(dir,"Spot",room.center+delta)
         end
         furnishing(room,spec,detailFolder)
-        AssetLibrary.decorate(detailFolder,room.role,spec.id,room.x1,room.x2,room.z1,room.z2,spec.height,theme)
-        ArchitecturalDetail.decorate(detailFolder,spec.id,room.role,room.x1,room.x2,room.z1,room.z2,spec.height,theme)
+        AssetLibrary.decorate(detailFolder,room.role,spec.id,room.x1,room.x2,
+            room.z1,room.z2,room.height,theme)
+        ArchitecturalDetail.decorate(detailFolder,spec.id,room.role,room.x1,room.x2,
+            room.z1,room.z2,room.height,theme)
+    end
+    for _,band in wallBands do
+        table.sort(band.cuts)
+        for i=1,#band.cuts-1 do
+            local lo=band.cuts[i]
+            local hi=band.cuts[i+1]
+            if hi-lo>=0.1 then
+                local h=0
+                for _,span in band.spans do
+                    if span[1]<=lo+0.01 and span[2]>=hi-0.01 then
+                        h=math.max(h,span[3])
+                    end
+                end
+                if h>0 then
+                    wall(structure,band.axis,band.at,lo,hi,h,theme,
+                        portalsForEdge(portals,band.axis,band.at,lo,hi))
+                end
+            end
+        end
     end
     local doorByName: { [string]: Part }={}
     for _,p in portals do
@@ -498,8 +543,8 @@ function Kit.build(spec: Specification): Model
             end
         end
         assert(doorName,"Booth has no isolation door: "..roomName)
-        local v=mark(booths,"Isolation_"..roomName,room.center+Vector3.new(0,spec.height/2,0))
-        v.Size=Vector3.new(room.x2-room.x1-1,spec.height,room.z2-room.z1-1)
+        local v=mark(booths,"Isolation_"..roomName,room.center+Vector3.new(0,room.height/2,0))
+        v.Size=Vector3.new(room.x2-room.x1-1,room.height,room.z2-room.z1-1)
         v:SetAttribute("Door",doorName)
     end
     local function roomPos(name: string): Vector3
@@ -513,11 +558,11 @@ function Kit.build(spec: Specification): Model
         mark(markers,"FuseSpot",Vector3.new(r.center.X+7,0.25,r.center.Z+5))
     end
     for _,r in roomList do
-        mark(markers,"Speaker",Vector3.new(r.center.X,spec.height-2,r.center.Z))
+        mark(markers,"Speaker",Vector3.new(r.center.X,r.height-2,r.center.Z))
         piece(detailFolder,"FixtureHousing_"..r.name,Vector3.new(2.8,0.32,1.2),
-            CFrame.new(r.center.X,spec.height-1.0,r.center.Z),theme.steel,Enum.Material.Metal,false)
+            CFrame.new(r.center.X,r.height-1.0,r.center.Z),theme.steel,Enum.Material.Metal,false)
         local housing=piece(lights,"FixtureLens_"..r.name,Vector3.new(2.4,0.07,0.95),
-            CFrame.new(r.center.X,spec.height-1.23,r.center.Z),theme.trim,Enum.Material.SmoothPlastic,false)
+            CFrame.new(r.center.X,r.height-1.23,r.center.Z),theme.trim,Enum.Material.SmoothPlastic,false)
         housing:SetAttribute("OnColor",theme.accent)
         local spot=Instance.new("SpotLight")
         spot.Face=Enum.NormalId.Bottom
