@@ -15,9 +15,16 @@ local power=roundState.get("PowerOn")==true
 local fuses=roundState.get("FusesPlaced") or 0
 local broadcasting=roundState.get("TapeProgress") or 0
 local released=roundState.get("DoorsOpen")==true
+local objectives=assert(map:FindFirstChild("Objectives"),"Map.Objectives missing")
+local tapeDeck=assert(objectives:FindFirstChild("TapeDeck"),"TapeDeck missing")
+local prompt=tapeDeck:FindFirstChildOfClass("ProximityPrompt")
+-- The broadcast phase is entered as soon as the tape prompt is consumed,
+-- which precedes the first (nonzero) TapeProgress tick.
+local transmitting=broadcasting>0 or (power and fuses>=Config.FUSES_NEEDED
+    and prompt~=nil and prompt.Enabled==false and not released)
 local expected=if not power then "Dead"
     else if released then "Released"
-    else if broadcasting>0 then "Broadcast"
+    else if transmitting then "Broadcast"
     else if fuses>=Config.FUSES_NEEDED then "Routed"
     else "Powered"
 local actual=map:GetAttribute("FacilityPhase")
@@ -62,7 +69,4 @@ end
 print(("[VF01] %d instruments; %d errors; Power=%s; Fuses=%d/%d; Tape=%.2f; Exit=%s"):format(
     number,errors,tostring(power),fuses,Config.FUSES_NEEDED,
     broadcasting,tostring(released)))
-if broadcasting==0 and expected=="Routed" then
-    print("[VF01] During the first instant of playback, tape progression may still be 0; rerun after its first alarm interval")
-end
 print("[VF01] Repeat after each real objective transition. Visual readability, FPS and screenshots still require client inspection.")
