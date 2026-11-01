@@ -28,7 +28,7 @@ jobs:
           selene --version
       - name: Lint art and rendering Lua sources
         run: |
-          selene src/server/FacilityStateService.luau src/server/Maps/BlacklineFacilityDevices.luau src/server/ObjectiveService.luau src/server/PrefabLibrary.luau src/server/VisualFidelity.luau src/server/ItemArt.luau src/server/Monster/EngineerModel.luau src/server/Monster/ArticulatedEngineer.luau src/client/EngineerMotion.luau src/server/Monster/SkinnedEngineer.luau src/client/SkinnedEngineerMotion.luau src/server/MapBuilder.luau src/server/Maps/Kit.luau src/server/Maps/Layouts.luau src/server/Maps/Lobby.luau src/server/Maps/AssetLibrary.luau src/server/Maps/PBRMaterials.luau src/server/Maps/ArchitecturalDetail.luau src/server/Maps/FinishDetail.luau src/server/Maps/BlacklineLayout.luau src/server/Maps/StoryProps.luau src/server/Maps/BlacklineHeroRooms.luau src/hub/server/HubEnvironment.luau src/hub/server/Main.server.luau
+          selene src/server/FacilityStateService.luau src/server/Maps/BlacklineFacilityDevices.luau src/server/ObjectiveService.luau src/server/PrefabLibrary.luau src/server/VisualFidelity.luau src/server/ItemArt.luau src/server/Monster/EngineerModel.luau src/server/Monster/ArticulatedEngineer.luau src/client/EngineerMotion.luau src/server/Monster/SkinnedEngineer.luau src/client/SkinnedEngineerMotion.luau src/server/MapBuilder.luau src/server/Maps/Kit.luau src/server/Maps/Layouts.luau src/server/Maps/Lobby.luau src/server/Maps/AssetLibrary.luau src/server/Maps/PBRMaterials.luau src/server/Maps/ArchitecturalDetail.luau src/server/Maps/FinishDetail.luau src/server/Maps/BlacklineLayout.luau src/server/Maps/StoryProps.luau src/server/Maps/BlacklineHeroRooms.luau src/server/Maps/BlacklineArchiveHero.luau src/hub/server/HubEnvironment.luau src/hub/server/Main.server.luau
       - name: Validate focused Blackline signal and power sequence
         run: python3 tools/validate_facility_vf01.py
       - name: Verify map topology and imported mesh geometry
@@ -43,6 +43,8 @@ jobs:
         run: python3 tools/validate_character_assets.py
       - name: Qualify Blackline offline portal / acoustic geometry
         run: python3 tools/qualify_blackline_offline.py
+      - name: Validate archive hero art and gameplay isolation
+        run: python3 tools/validate_archive_hero.py
       - name: Validate source tree and project serialization
         run: |
           rojo build default.project.json -o dead-air-validation.rbxl
