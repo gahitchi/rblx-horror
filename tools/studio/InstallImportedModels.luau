@@ -34,6 +34,7 @@ local CHARACTER = {
 local SIGNATURE = {
     BlacklineTransferDeck = true,
     BlacklinePatchMatrix = true,
+    BlacklineHeroConsole = true,
 }
 local RIG_PARTS = {
     EngineerRigTorso = true,
