@@ -82,6 +82,8 @@ def check(path: Path):
             path.name,"must retain authored Blackline equipment graphics")
         assert 70_000<=triangles<=120_000,(path.name,
             "unexpected loss of source anatomy or unbounded geometry",triangles)
+        assert all(len(mesh.faces)<=20_000 for mesh in scene.geometry.values()),(
+            path.name,"Roblox per-MeshPart 20k triangle import ceiling exceeded")
         assert 2.0<dims[0]<3.0 and 6.2<dims[1]<6.9 and 1.1<dims[2]<2.0,(
             path.name,"human proportions/pivot drift",dims)
     assert path.stat().st_size<18_000_000,(path.name,"mesh exceeds conservative import budget")
