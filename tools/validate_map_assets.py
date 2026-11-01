@@ -105,8 +105,8 @@ def check_map(mapid):
 def check_blackline_authored_geometry():
     file=(ROOT/"src/server/Maps/BlacklineLayout.luau").read_text()
     data=re.findall(
-        r'\\{name="([^"]+)",role="([^"]+)",x1=(-?\\d+),x2=(-?\\d+),'
-        r'z1=(-?\\d+),z2=(-?\\d+),height=(\\d+)\\}',file
+        r'\{name="([^"]+)",role="([^"]+)",x1=(-?\d+),x2=(-?\d+),'
+        r'z1=(-?\d+),z2=(-?\d+),height=(\d+)\}',file
     )
     assert len(data)==19,("expected 19 authored functional rooms",len(data))
     room={name:(role,*map(int,(x1,x2,z1,z2,height)))
@@ -122,7 +122,7 @@ def check_blackline_authored_geometry():
             assert min(ax2,bx2)-max(ax1,bx1)<=0 or min(az2,bz2)-max(az1,bz1)<=0,(
                 a,b,"rooms overlap in occupied space")
     link_block=file.split('local links={',1)[1].split('    return {',1)[0]
-    links=re.findall(r'\\{"([^"]+)","([^"]+)"(?:,"([^"]+)")?\\}',link_block)
+    links=re.findall(r'\{"([^"]+)","([^"]+)"(?:,"([^"]+)")?\}',link_block)
     assert len(links)>=23,(len(links),"too few interconnecting routes")
     graph=defaultdict(set)
     edges=set()
