@@ -230,7 +230,7 @@ end
 
 function StoryProps.decorate(parent:Instance, r:Room, palette:Palette, lights:Instance)
     if r.name=="ControlA" or r.name=="ControlB" or r.name=="LiveHall" then
-        powerIndicator(lights,r,"SIGNAL  /  ON AIR",Color3.fromRGB(129,44,41))
+        powerIndicator(lights,r,"SIGNAL  /  CONTROL",Color3.fromRGB(129,44,41))
     elseif r.name=="PatchBay" or r.name=="GeneratorRoom" then
         powerIndicator(lights,r,"FACILITY POWER",Color3.fromRGB(88,116,78))
     end
