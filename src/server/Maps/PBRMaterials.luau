@@ -27,7 +27,13 @@ function PBRMaterials.apply(map: Instance): number
     for _,part in map:GetDescendants() do
         if part:IsA("BasePart") and part:GetAttribute("DisablePBR")~=true then
             local chosen=installed[part.Material]
-            if chosen and part.MaterialVariant~=chosen then
+            -- Sub-stud bolts, wires and narrow trim are poor receivers for a
+            -- tiled 1024px PBR atlas: distance filtering creates noisy glints.
+            -- Only the two largest physical dimensions must form a readable face.
+            local size=part.Size
+            local median=math.max(math.min(size.X,size.Y),
+                math.min(size.X,size.Z),math.min(size.Y,size.Z))
+            if chosen and median>=0.6 and part.MaterialVariant~=chosen then
                 part.MaterialVariant=chosen
                 changed+=1
             end
