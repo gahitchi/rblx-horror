@@ -219,6 +219,72 @@ def operator_pack():
  m.box((.2,-.16,1.15),(.25,.18,.08),"label")
  return m.finish()
 
+# Articulated, correctly-pivoted *rigid* body sections. These are not smooth
+# skin-weighted meshes yet. They let Motor6D joints provide an expressive,
+# readable gait with no dependence on Roblox default avatar animations.
+def engineer_rig_torso():
+ m=Model()
+ m.ellipsoid((0,.71,.05),(1.02,1.53,.54),"coat",3)
+ m.ellipsoid((0,-.97,.09),(.70,.84,.43),"coat_dark",2)
+ m.ellipsoid((0,1.80,.09),(1.35,.30,.53),"coat_high",2)
+ for side in (-1,1):
+  m.link((side*.52,1.45,-.13),(side*.36,-1.30,-.45),.14,.09,"field_edge",14)
+  m.box((side*.41,-1.35,-.34),(.38,1.34,.20),"coat_high")
+  m.box((side*.59,.65,-.54),(.25,.69,.14),"brass")
+ for row in range(4):
+  m.box((0,1.26-row*.39,-.56),(1.10-row*.10,.065,.09),"bone")
+ m.box((.14,.55,-.64),(.88,.94,.20),"iron")
+ m.box((.14,.72,-.78),(.62,.40,.06),"visor")
+ m.box((-.25,-.67,-.61),(.59,.22,.11),"brass")
+ return m.finish()
+
+def engineer_rig_head():
+ m=Model()
+ # Pivot: face centre is 3.68 studs above HRP.
+ m.ellipsoid((.03,.08,-.06),(.72,.98,.65),"flesh",3)
+ m.ellipsoid((0,-.42,-.29),(.43,.33,.46),"bone",2)
+ for side in (-1,1):
+  m.ellipsoid((side*.30,.29,-.68),(.24,.16,.10),"rubber",2)
+  m.link((side*.37,-.08,-.61),(side*.55,.51,-.49),.065,.05,"iron",12)
+  # Headphone cans, wing plates and restrained signal window.
+  m.ellipsoid((side*.91,.03,-.01),(.25,.52,.45),"iron",2)
+  m.box((side*1.14,.05,-.01),(.12,.47,.52),"rubber")
+  m.box((side*1.22,.10,-.02),(.05,.20,.24),"signal")
+  m.link((side*.91,.43,0),(side*.50,1.14,-.03),.11,.085,"brass",12)
+ m.link((-.52,1.19,0),(.52,1.19,0),.13,.11,"iron",18)
+ m.box((0,-.28,-.71),(.67,.08,.12),"rubber")
+ m.link((-1.14,-.22,-.09),(-1.36,-.52,-.87),.055,.04,"iron",12)
+ m.ellipsoid((-1.37,-.55,-.91),(.16,.14,.18),"rubber",2)
+ return m.finish()
+
+def engineer_rig_arm(side):
+ m=Model()
+ # Origin: shoulder centre. Forearm and hooked fingers form one articulated
+ # group in this baseline; future elbow/hand bones can split it further.
+ m.ellipsoid((0,0,0),(.39,.43,.37),"coat_high",2)
+ m.link((0,-.16,-.03),(side*.15,-1.54,-.13),.36,.24,"coat",16)
+ m.ellipsoid((side*.15,-1.58,-.13),(.27,.31,.27),"iron",2)
+ m.link((side*.16,-1.72,-.15),(side*.29,-3.57,-.20),.23,.15,"flesh",16)
+ m.ellipsoid((side*.32,-3.81,-.25),(.24,.39,.20),"flesh",2)
+ m.box((side*.25,-3.54,-.26),(.39,.17,.35),"brass")
+ for i in (-1,0,1):
+  m.link((side*.32+i*.10,-4.06,-.33),
+         (side*.32+i*.11,-4.58,-.42),.064,.036,"bone",10)
+ m.link((side*.10,-.16,-.35),(side*.37,-2.98,-.41),.066,.044,"iron",10)
+ return m.finish()
+
+def engineer_rig_leg(side):
+ m=Model()
+ # Origin: pelvis. Y=-3.3 sits at the floor with HRP height ~4.0.
+ m.ellipsoid((0,-.34,0),(.43,.59,.43),"coat_high",2)
+ m.link((0,-.18,0),(side*.08,-1.54,-.06),.40,.28,"coat",16)
+ m.ellipsoid((side*.08,-1.61,-.07),(.34,.27,.34),"iron",2)
+ m.link((side*.08,-1.70,-.07),(side*.16,-2.99,-.03),.28,.21,"coat_dark",16)
+ m.ellipsoid((side*.16,-3.23,-.31),(.34,.22,.71),"iron",2)
+ m.box((side*.16,-3.29,-.51),(.49,.14,.60),"rubber")
+ m.box((side*.15,-2.62,-.29),(.35,.17,.12),"brass")
+ return m.finish()
+
 def main():
  parser=argparse.ArgumentParser()
  parser.add_argument("--out",type=Path,default=Path("build/roblox-glb"))
@@ -229,6 +295,12 @@ def main():
      "FieldOperatorVest":operator_vest,
      "FieldOperatorMask":operator_mask,
      "FieldOperatorPack":operator_pack,
+     "EngineerRigTorso":engineer_rig_torso,
+     "EngineerRigHead":engineer_rig_head,
+     "EngineerRigArmLeft":lambda:engineer_rig_arm(-1),
+     "EngineerRigArmRight":lambda:engineer_rig_arm(1),
+     "EngineerRigLegLeft":lambda:engineer_rig_leg(-1),
+     "EngineerRigLegRight":lambda:engineer_rig_leg(1),
  }.items():
   path=args.out/(name+".glb")
   path.write_bytes(builder().export(file_type="glb"))
