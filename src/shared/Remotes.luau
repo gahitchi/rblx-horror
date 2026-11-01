@@ -66,10 +66,11 @@ return table.freeze({
 	Ping = event("Ping"), -- server -> client: (position: Vector3, from: string) the monster was marked
 	Whisper = event("Whisper"), -- server -> client: (from: string, text: string) an echo whispered nearby
 	-- Hub
-	CreateLobby = event("CreateLobby"), -- client -> server: ({ map, max, friendsOnly })
+	CreateLobby = event("CreateLobby"), -- client -> server: ({ chapter, max, friendsOnly })
 	JoinLobby = event("JoinLobby"), -- client -> server: (lobbyId: string)
 	LeaveLobby = event("LeaveLobby"), -- client -> server: ()
 	StartLobby = event("StartLobby"), -- client -> server: () host only
+	QuickJoin = event("QuickJoin"), -- client -> server: () a crew on your next unplayed chapter
 	LobbyList = event("LobbyList"), -- server -> client: ({ LobbyEntry }, myLobbyId: string?)
 	-- Match: after a round
 	ReplayChoice = event("ReplayChoice"), -- client -> server: (again: boolean)

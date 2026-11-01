@@ -23,6 +23,7 @@ type Data = {
 	reviveTokens: number,
 	chapters: { string }, -- chapter ids cleared (the story is played in order)
 	tapes: { string }, -- optional story tapes delivered
+	medals: { string }, -- "chapterId:medal"
 }
 export type Gain = { xp: number, coins: number, lines: { string } }
 
@@ -115,6 +116,7 @@ local function load(player: Player)
 		reviveTokens = 0,
 		chapters = {},
 		tapes = {},
+		medals = {},
 	}
 	local ok = false
 	if store then
@@ -132,6 +134,7 @@ local function load(player: Player)
 					d.reviveTokens = tonumber(result.reviveTokens) or 0
 					d.chapters = idList(result.chapters)
 					d.tapes = idList(result.tapes)
+					d.medals = idList(result.medals)
 					d.peak = math.max(tonumber(result.peak) or 1, ProgressService.levelFor(d.xp))
 					local skin = result.skin
 					d.skin = if type(skin) == "string" and skinUnlocked(d, skin)
@@ -160,6 +163,7 @@ local function save(player: Player)
 	local snapshot = table.clone(d)
 	snapshot.chapters = table.clone(d.chapters)
 	snapshot.tapes = table.clone(d.tapes)
+	snapshot.medals = table.clone(d.medals)
 	pcall(function()
 		(store :: DataStore):SetAsync("player_" .. player.UserId, snapshot)
 	end)
@@ -264,6 +268,7 @@ function ProgressService.saveNow(player: Player): boolean
 	local snapshot = table.clone(d)
 	snapshot.chapters = table.clone(d.chapters)
 	snapshot.tapes = table.clone(d.tapes)
+	snapshot.medals = table.clone(d.medals)
 	local ok = pcall(function()
 		(store :: DataStore):SetAsync("player_" .. player.UserId, snapshot)
 	end)
@@ -301,6 +306,17 @@ function ProgressService.clearChapter(player: Player, chapterId: string)
 		table.insert(d.chapters, chapterId)
 		publish(player)
 	end
+end
+
+-- A chapter medal. Returns true if it's new for this player.
+function ProgressService.addMedal(player: Player, chapterId: string, medal: string): boolean
+	local d = data[player]
+	local key = chapterId .. ":" .. medal
+	if d and not table.find(d.medals, key) then
+		table.insert(d.medals, key)
+		return true
+	end
+	return false
 end
 
 function ProgressService.hasCleared(player: Player, chapterId: string): boolean

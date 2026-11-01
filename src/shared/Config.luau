@@ -189,6 +189,17 @@ Config.CARRY = table.freeze({
 	THROW_GRAVITY = 60,
 })
 
+-- Chapter medals, earned when a chapter is cleared: everyone escaped, nobody was ever caught
+-- (revived players count as caught), and a fast run.
+Config.MEDALS = table.freeze({
+	FAST_SECONDS = 15 * 60,
+	NAMES = table.freeze({
+		survivors = "Everyone made it out",
+		clean = "Nobody was caught",
+		fast = "Fast run (under 15 minutes)",
+	}),
+})
+
 -- Chapters in story order. `map` is the Config.MAPS id; a chapter unlocks when the one before it is
 -- cleared (its evidence cassette carried out of the building).
 Config.CHAPTERS = table.freeze({

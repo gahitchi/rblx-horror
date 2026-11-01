@@ -1,12 +1,15 @@
 --!strict
--- Hub lobbies. Players create a lobby (map, size, friends only or not), others join, and the host
--- starts it: everyone in it is teleported together to a fresh reserved match server on that map.
+-- Hub lobbies (crews). Players create a crew (chapter, size, friends only or not), others join, and
+-- the host starts it: everyone in it is teleported together to a fresh reserved match server for
+-- that chapter. Lobbies are strict: everyone must have the chapter unlocked (the story is played in
+-- order). Quick join puts you in a crew on your next unplayed chapter, or makes one.
 --
 -- Who sees what:
 --   * lobbies in this hub server: everyone, except friends-only ones (only the host's friends);
 --   * lobbies in other hub servers: only those whose host is your friend. They're shared between
 --     hub servers through a MemoryStore map; joining one first moves you to that hub server.
 
+local DataStoreService = game:GetService("DataStoreService")
 local HttpService = game:GetService("HttpService")
 local MemoryStoreService = game:GetService("MemoryStoreService")
 local Players = game:GetService("Players")
@@ -15,6 +18,7 @@ local RunService = game:GetService("RunService")
 local TeleportService = game:GetService("TeleportService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Chapters = require(Shared:WaitForChild("Chapters"))
 local Config = require(Shared:WaitForChild("Config"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 
@@ -24,6 +28,7 @@ type Lobby = {
 	id: string,
 	host: Player,
 	map: string,
+	chapter: string,
 	max: number,
 	friendsOnly: boolean,
 	members: { Player },
@@ -36,6 +41,7 @@ type Published = {
 	hostId: number,
 	hostName: string,
 	map: string,
+	chapter: string,
 	max: number,
 	count: number,
 	friendsOnly: boolean,
@@ -70,6 +76,35 @@ local function validMap(id: unknown): string
 		end
 	end
 	return Config.MAPS[1].id
+end
+
+-- The chapters a player has cleared live in the match place's progress save; read them here.
+local progressStore: DataStore? = nil
+
+local function loadProgress(player: Player)
+	local store = progressStore
+	if not store then
+		player:SetAttribute("ChaptersCleared", "")
+		return
+	end
+	local ok, result = pcall(function()
+		return store:GetAsync("player_" .. player.UserId)
+	end)
+	local cleared: { string } = {}
+	if ok and type(result) == "table" and type(result.chapters) == "table" then
+		for _, id in result.chapters do
+			if type(id) == "string" then
+				table.insert(cleared, id)
+			end
+		end
+	end
+	if player.Parent == Players then
+		player:SetAttribute("ChaptersCleared", table.concat(cleared, ","))
+	end
+end
+
+local function canPlay(player: Player, chapterId: string): boolean
+	return Chapters.unlocked(Chapters.clearedBy(player), chapterId)
 end
 
 local function isFriend(viewer: Player, userId: number): boolean
@@ -132,6 +167,16 @@ local function join(player: Player, lobby: Lobby): boolean
 		notify(player, "That lobby is for the host's friends.")
 		return false
 	end
+	-- Strict: the story is played in order.
+	if not canPlay(player, lobby.chapter) then
+		notify(
+			player,
+			"You haven't unlocked "
+				.. Chapters.name(lobby.chapter)
+				.. " yet. Clear the chapter before it first."
+		)
+		return false
+	end
 	leave(player)
 	table.insert(lobby.members, player)
 	lobbyOf[player] = lobby
@@ -141,11 +186,18 @@ end
 local function onCreate(player: Player, settings: unknown)
 	local raw: { [any]: any } = if type(settings) == "table" then settings :: any else {}
 	local max = math.clamp(math.floor(tonumber(raw.max) or L.MAX_PLAYERS), 1, L.MAX_PLAYERS)
+	-- The chapter: the one asked for if this player has unlocked it, otherwise their next one.
+	local entry = Chapters.find(raw.chapter)
+	local chapterId = if entry and canPlay(player, entry.id)
+		then entry.id
+		else Chapters.nextFor(Chapters.clearedBy(player))
+	local chapter = Chapters.find(chapterId)
 	leave(player)
 	local lobby: Lobby = {
 		id = string.sub(HttpService:GenerateGUID(false), 1, 8),
 		host = player,
-		map = validMap(raw.map),
+		map = validMap(if chapter then chapter.map else raw.map),
+		chapter = chapterId,
 		max = max,
 		friendsOnly = raw.friendsOnly == true,
 		members = {},
@@ -186,6 +238,27 @@ local function onJoin(player: Player, id: unknown)
 	notify(player, "That lobby doesn't exist any more.")
 end
 
+-- Quick join: a public crew here on this player's next unplayed chapter, or a new one.
+local function onQuickJoin(player: Player)
+	local wanted = Chapters.nextFor(Chapters.clearedBy(player))
+	for _, lobby in lobbies do
+		if
+			lobby.chapter == wanted
+			and not lobby.friendsOnly
+			and not lobby.starting
+			and #lobby.members < lobby.max
+			and lobbyOf[player] ~= lobby
+		then
+			if join(player, lobby) then
+				notify(player, "Joined " .. lobby.host.DisplayName .. "'s crew.")
+				return
+			end
+		end
+	end
+	onCreate(player, { chapter = wanted, max = L.MAX_PLAYERS, friendsOnly = false })
+	notify(player, "No crew was waiting, so you made one. Others can join it.")
+end
+
 local function onStart(player: Player)
 	local lobby = lobbyOf[player]
 	if not lobby or lobby.host ~= player or lobby.starting then
@@ -202,11 +275,11 @@ local function onStart(player: Player)
 	removeShared(lobby.id)
 	local members = table.clone(lobby.members)
 	for _, member in members do
-		notify(member, "Starting: heading to " .. mapName(lobby.map) .. "...")
+		notify(member, "Starting " .. Chapters.name(lobby.chapter) .. "...")
 	end
 	local options = Instance.new("TeleportOptions")
 	options.ShouldReserveServer = true
-	options:SetTeleportData({ map = lobby.map, fromHub = true })
+	options:SetTeleportData({ map = lobby.map, chapter = lobby.chapter, fromHub = true })
 	local ok, err = pcall(function()
 		TeleportService:TeleportAsync(Config.PLACES.MATCH, members, options)
 	end)
@@ -231,6 +304,8 @@ local function listFor(viewer: Player): { any }
 				id = lobby.id,
 				host = lobby.host.DisplayName,
 				map = mapName(lobby.map),
+				chapter = Chapters.name(lobby.chapter),
+				locked = not canPlay(viewer, lobby.chapter),
 				count = #lobby.members,
 				max = lobby.max,
 				friendsOnly = lobby.friendsOnly,
@@ -250,6 +325,8 @@ local function listFor(viewer: Player): { any }
 				id = entry.id,
 				host = entry.hostName,
 				map = mapName(entry.map),
+				chapter = Chapters.name(entry.chapter),
+				locked = not canPlay(viewer, entry.chapter),
 				count = entry.count,
 				max = entry.max,
 				friendsOnly = entry.friendsOnly,
@@ -274,6 +351,7 @@ local function publishLoop()
 						hostId = lobby.host.UserId,
 						hostName = lobby.host.DisplayName,
 						map = lobby.map,
+						chapter = lobby.chapter,
 						max = lobby.max,
 						count = #lobby.members,
 						friendsOnly = lobby.friendsOnly,
@@ -312,8 +390,16 @@ function LobbyService.init()
 	Remotes.JoinLobby.OnServerEvent:Connect(onJoin)
 	Remotes.LeaveLobby.OnServerEvent:Connect(leave)
 	Remotes.StartLobby.OnServerEvent:Connect(onStart)
+	Remotes.QuickJoin.OnServerEvent:Connect(onQuickJoin)
+	local storeOk, storeResult = pcall(function()
+		return DataStoreService:GetDataStore("Progress_v1")
+	end)
+	if storeOk then
+		progressStore = storeResult
+	end
 
 	local function onPlayer(player: Player)
+		task.spawn(loadProgress, player)
 		loadFriends(player)
 		-- Arrived from another hub server to join a friend's lobby?
 		local joinData = player:GetJoinData()

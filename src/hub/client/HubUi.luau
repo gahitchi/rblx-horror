@@ -6,6 +6,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Chapters = require(Shared:WaitForChild("Chapters"))
 local Config = require(Shared:WaitForChild("Config"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 
@@ -87,31 +88,55 @@ function HubUi.start()
 	title.TextColor3 = ACCENT
 	label(
 		panel,
-		"Make a lobby, or join one. Friends' lobbies in other servers show too.",
+		"Make a crew, join one, or quick join. Friends' crews in other servers show too.",
 		UDim2.new(1, -32, 0, 30),
 		UDim2.fromOffset(16, 40),
 		12
 	).TextColor3 =
 		DIM
 
-	-- Create
-	local mapIndex = 1
+	-- Create (the chapter cycles through the ones you've unlocked: the story is played in order)
+	local chapterIndex = 1
 	local size = Config.LOBBY.MAX_PLAYERS
 	local friendsOnly = false
 	local mapButton = button(panel, "", UDim2.fromOffset(200, 30), UDim2.fromOffset(16, 78))
+	local function unlocked(): { Chapters.Entry }
+		return Chapters.unlockedList(Chapters.clearedBy(player))
+	end
 	local sizeButton = button(panel, "", UDim2.fromOffset(90, 30), UDim2.fromOffset(222, 78))
 	local privacyButton = button(panel, "", UDim2.fromOffset(110, 30), UDim2.fromOffset(318, 78))
 	local create =
-		button(panel, "Create lobby", UDim2.fromOffset(412, 32), UDim2.fromOffset(16, 114))
+		button(panel, "Create crew", UDim2.fromOffset(200, 32), UDim2.fromOffset(16, 114))
 	create.BackgroundColor3 = Color3.fromRGB(80, 40, 34)
+	local quick = button(panel, "Quick join", UDim2.fromOffset(200, 32), UDim2.fromOffset(228, 114))
+	quick.BackgroundColor3 = Color3.fromRGB(40, 60, 46)
+	quick.Activated:Connect(function()
+		Remotes.QuickJoin:FireServer()
+	end)
 	local function refreshCreate()
-		mapButton.Text = "Map: " .. Config.MAPS[mapIndex].name
+		local list = unlocked()
+		if chapterIndex > #list then
+			chapterIndex = #list
+		end
+		local entry = list[math.max(chapterIndex, 1)]
+		mapButton.Text = if entry then "Chapter " .. Chapters.name(entry.id) else "Chapter: ..."
 		sizeButton.Text = string.format("%d players", size)
 		privacyButton.Text = if friendsOnly then "Friends only" else "Public"
 	end
 	refreshCreate()
 	mapButton.Activated:Connect(function()
-		mapIndex = mapIndex % #Config.MAPS + 1
+		chapterIndex = chapterIndex % math.max(#unlocked(), 1) + 1
+		refreshCreate()
+	end)
+	player:GetAttributeChangedSignal("ChaptersCleared"):Connect(function()
+		-- Start on the next unplayed chapter.
+		local list = unlocked()
+		local nextId = Chapters.nextFor(Chapters.clearedBy(player))
+		for index, entry in list do
+			if entry.id == nextId then
+				chapterIndex = index
+			end
+		end
 		refreshCreate()
 	end)
 	sizeButton.Activated:Connect(function()
@@ -123,8 +148,9 @@ function HubUi.start()
 		refreshCreate()
 	end)
 	create.Activated:Connect(function()
+		local entry = unlocked()[math.max(chapterIndex, 1)]
 		Remotes.CreateLobby:FireServer({
-			map = Config.MAPS[mapIndex].id,
+			chapter = if entry then entry.id else nil,
 			max = size,
 			friendsOnly = friendsOnly,
 		})
@@ -193,8 +219,8 @@ function HubUi.start()
 			end
 			if entry.mine then
 				mineText.Text = string.format(
-					"Your lobby: %s  %d/%d",
-					tostring(entry.map),
+					"Your crew: %s  %d/%d",
+					tostring(entry.chapter),
 					entry.count,
 					entry.max
 				)
@@ -212,10 +238,10 @@ function HubUi.start()
 			local info = label(
 				row,
 				string.format(
-					"%s's lobby%s\n%s  %d/%d%s",
+					"%s's crew%s\n%s  %d/%d%s",
 					tostring(entry.host),
 					where,
-					tostring(entry.map),
+					tostring(entry.chapter),
 					entry.count,
 					entry.max,
 					lock
@@ -227,6 +253,12 @@ function HubUi.start()
 			info.TextWrapped = true
 			local joinButton =
 				button(row, "Join", UDim2.fromOffset(80, 28), UDim2.fromOffset(316, 6))
+			if entry.locked then
+				-- Strict lobbies: the chapter before it has to be cleared first.
+				joinButton.Text = "Locked"
+				joinButton.TextColor3 = DIM
+				joinButton.AutoButtonColor = false
+			end
 			joinButton.Activated:Connect(function()
 				Remotes.JoinLobby:FireServer(entry.id)
 			end)

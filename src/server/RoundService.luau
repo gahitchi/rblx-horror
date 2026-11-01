@@ -42,6 +42,8 @@ local rng = Random.new()
 local closest: { [Player]: number } = {}
 local doorsLeft: { [Player]: number } = {}
 local rescues: { [Player]: { string } } = {}
+local anyCaught = false
+local roundStarted = 0
 
 local function notifyAll(message: string)
 	Remotes.Notify:FireAllClients(message)
@@ -164,6 +166,7 @@ end
 -- Marks a player caught where they are: what they carried stays behind, the team is told.
 local function markCaught(player: Player, position: Vector3)
 	participants[player] = "caught"
+	anyCaught = true
 	ChapterService.onLost(player, position)
 	for _, callback in caughtListeners do
 		task.spawn(callback, player, position)
@@ -321,6 +324,8 @@ local function runRound()
 	doorsLeft = {}
 	rescues = {}
 	revived = {}
+	anyCaught = false
+	roundStarted = os.clock()
 	for _, player in Players:GetPlayers() do
 		participants[player] = "alive"
 	end
@@ -432,6 +437,26 @@ local function runResults()
 		)
 	)
 
+	-- Medals for the crew when the chapter is cleared.
+	local medals: { string } = {}
+	if cleared then
+		local allOut = true
+		for _, status in participants do
+			if status ~= "escaped" then
+				allOut = false
+			end
+		end
+		if allOut then
+			table.insert(medals, "survivors")
+		end
+		if not anyCaught then
+			table.insert(medals, "clean")
+		end
+		if os.clock() - roundStarted <= Config.MEDALS.FAST_SECONDS then
+			table.insert(medals, "fast")
+		end
+	end
+
 	-- Everyone sees everyone's outcome and what they earned.
 	local rows = {}
 	for player, status in participants do
@@ -442,6 +467,19 @@ local function runResults()
 		local lines = table.clone(gain.lines)
 		for _, line in resultLines(player) do
 			table.insert(lines, line)
+		end
+		for _, medal in medals do
+			if player.Parent == Players then
+				local isNew = ProgressService.addMedal(player, ChapterService.chapterId(), medal)
+				table.insert(
+					lines,
+					string.format(
+						"Medal: %s%s",
+						Config.MEDALS.NAMES[medal],
+						if isNew then " (new)" else ""
+					)
+				)
+			end
 		end
 		table.insert(rows, {
 			name = player.DisplayName,

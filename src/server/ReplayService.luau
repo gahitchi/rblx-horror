@@ -18,6 +18,7 @@ local RoundState = require(script.Parent.RoundState)
 local ReplayService = {}
 
 local currentMap = Config.MAPS[1].id
+local currentChapter = "" -- the chapter being played; a replay keeps it
 local voting = false
 local choices: { [Player]: boolean } = {}
 local votes: { [Player]: string } = {}
@@ -125,12 +126,18 @@ function ReplayService.run(players: { Player })
 	end
 	teleport(Config.PLACES.HUB, leaving, { fromMatch = true }, false)
 	if winner ~= currentMap then
-		teleport(Config.PLACES.MATCH, staying, { map = winner, fromMatch = true }, true)
+		teleport(
+			Config.PLACES.MATCH,
+			staying,
+			{ map = winner, chapter = currentChapter, fromMatch = true },
+			true
+		)
 	end
 end
 
-function ReplayService.init(mapId: string)
+function ReplayService.init(mapId: string, chapterId: string)
 	currentMap = mapId
+	currentChapter = chapterId
 	Remotes.ReplayChoice.OnServerEvent:Connect(function(player, again)
 		if voting and type(again) == "boolean" then
 			choices[player] = again

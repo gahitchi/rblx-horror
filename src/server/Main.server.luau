@@ -153,7 +153,7 @@ FeedbackService.init()
 ReviveService.init(layout.areas)
 WalkieService.init(layout.areas)
 TapeService.init()
-ReplayService.init(mapId)
+ReplayService.init(mapId, chapterId)
 RoundService.afterResults(ReplayService.run)
 RoundService.init(layout, chapterId)
 
