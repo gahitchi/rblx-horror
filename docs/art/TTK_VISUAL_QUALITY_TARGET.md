@@ -149,3 +149,9 @@ plaster treatment. This is a material-intent correction, **not** a photographic
 reference-match or finished TTK-standard art grade. See
 `CHARACTER_ENVIRONMENT_BUILD.md` for the remaining rigging, texture baking,
 Studio and performance acceptance gates.
+
+## November 1 articulated rig and Blackline flagship-room progress
+
+The six imported articulated Engineer GLBs, client-side gait/listening/hunt/lunge posing, and four authored Blackline hero-room overlays (Reception, StaffGallery, ControlA, LiveHall) are implemented in the development branch. The asset pack now contains **25 GLBs**; all six new rig segments embed original image-based PBR material data. Practical lighting is tied to generator power and decorative geometry is non-solid and non-queryable.
+
+These improvements remain a **prototype fidelity stage**, not TTK Testing parity. The final skinned creature, actor animation and original artist-baked hero materials, photographic lighting match, measured frame times and real Studio checks remain outstanding. See `ENGINEER_ARTICULATION_AND_BLACKLINE_HERO.md`.
