@@ -79,6 +79,40 @@ local function sign(parent: Instance, text: string, position: Vector3, faceYaw: 
     label.Parent=gui
 end
 
+-- Authored material intent by function, rather than recycling the same
+-- plaster-like environment texture onto every floor and ceiling.
+-- Only Blackline's specialized rooms opt in; other maps keep tested defaults.
+local function interiorFinishes(spec: Specification, room: AreaInfo):
+    (Enum.Material, Enum.Material, Color3, Color3)
+    local p=spec.palette
+    if spec.id~="studio" or spec.authored~=true then
+        return Enum.Material.Concrete,Enum.Material.Concrete,p.floor,p.ceiling
+    end
+    local role=room.role
+    if role=="live" or role=="stage" then
+        -- Original live tracking spaces use heavier, warm-sounding timber.
+        return Enum.Material.WoodPlanks,Enum.Material.SmoothPlastic,
+            Color3.fromRGB(88,74,62),Color3.fromRGB(43,46,46)
+    elseif role=="control" or role=="master" then
+        -- Quiet anti-static work areas: dark matte resilient flooring.
+        return Enum.Material.Slate,Enum.Material.SmoothPlastic,
+            Color3.fromRGB(46,48,48),Color3.fromRGB(33,35,36)
+    elseif role=="booth" then
+        -- Isolated rooms are carpeted and heavily acoustically damped.
+        return Enum.Material.Fabric,Enum.Material.SmoothPlastic,
+            Color3.fromRGB(43,45,45),Color3.fromRGB(32,34,35)
+    elseif role=="archive" or role=="machine" or role=="generator" or role=="store" then
+        -- Bare maintenance concrete, not decorative repeated oak or blanket rust.
+        return Enum.Material.Concrete,Enum.Material.SmoothPlastic,
+            Color3.fromRGB(62,61,57),Color3.fromRGB(39,42,42)
+    elseif role=="reception" or role=="corridor" or role=="lounge" then
+        -- Institutional stone/slate circulation signals public/staff hierarchy.
+        return Enum.Material.Slate,Enum.Material.SmoothPlastic,
+            Color3.fromRGB(66,65,62),Color3.fromRGB(48,49,50)
+    end
+    return Enum.Material.Concrete,Enum.Material.Concrete,p.floor,p.ceiling
+end
+
 local function rectangle(r: AreaInfo, a: number, y: number, b: number, color: Color3, material: Enum.Material, parent: Instance)
     box(parent,"Equipment",r.center.X+a-2.4,y,r.center.Z+b-1.6,
         r.center.X+a+2.4,y+3.1,r.center.Z+b+1.6,color,material,true)
@@ -185,7 +219,7 @@ local function furnishing(r: AreaInfo, theme: Specification, parent: Instance)
     for i=0,2 do
         local px=r.x1+6+i*math.max(4,(r.x2-r.x1-12)/2)
         -- Recessed linear fixture diffusers look like real hardware. They follow generator power.
-        box(parent,"CableTrunk",px-0.2,theme.height-1.6,r.z1+1.6,px+0.2,theme.height-1.2,r.z2-1.6,
+        box(parent,"CableTrunk",px-0.2,r.height-1.6,r.z1+1.6,px+0.2,r.height-1.2,r.z2-1.6,
             p.steel,Enum.Material.Metal,false)
     end
 end
@@ -484,10 +518,14 @@ function Kit.build(spec: Specification): Model
         table.insert(band.spans,{lo,hi,h})
     end
     for _,room in roomList do
-        box(structure,room.name.."Floor",room.x1,-1,room.z1,room.x2,0,room.z2,
-            theme.floor,Enum.Material.Concrete,true)
-        box(structure,room.name.."Ceiling",room.x1,room.height,room.z1,
-            room.x2,room.height+0.9,room.z2,theme.ceiling,Enum.Material.Concrete,true)
+        local floorMaterial,ceilingMaterial,floorTint,ceilingTint=
+            interiorFinishes(spec,room)
+        local slabFloor=box(structure,room.name.."Floor",room.x1,-1,room.z1,
+            room.x2,0,room.z2,floorTint,floorMaterial,true)
+        slabFloor:SetAttribute("FunctionalSurfaceRole",room.role)
+        local slabCeiling=box(structure,room.name.."Ceiling",room.x1,room.height,
+            room.z1,room.x2,room.height+0.9,room.z2,ceilingTint,ceilingMaterial,true)
+        slabCeiling:SetAttribute("FunctionalSurfaceRole",room.role)
         offerSide("X",room.z1,room.x1,room.x2,room.height)
         offerSide("X",room.z2,room.x1,room.x2,room.height)
         offerSide("Z",room.x1,room.z1,room.z2,room.height)
