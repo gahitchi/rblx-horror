@@ -42,11 +42,12 @@ function SkinnedEngineer.mount(model:Model,root:BasePart,glows:{PointLight}):boo
         local attachment=Instance.new("Attachment")
         attachment.Name=if index==1 then "LeftEarcupEmitter"
             else "RightEarcupEmitter"
-        attachment.Position=Vector3.new(if index==1 then -1.13 else 1.13,0,-0.04)
+        attachment.Position=Vector3.new(if index==1 then -0.47 else 0.47,-0.01,0.05)
         attachment.Parent=head
         light.Parent=attachment
     end
-    model:SetAttribute("CharacterVisualTier","WeightedSkinPrototype")
+    model:SetAttribute("CharacterVisualTier","Q02AnatomicalTechnicianCC0")
+    model:SetAttribute("VisualDesign","BlacklineLastListenerAnatomical")
     model:SetAttribute("RigVersion",2)
     model:SetAttribute("SkinBoneCount",#REQUIRED)
     return true
