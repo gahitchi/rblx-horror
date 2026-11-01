@@ -103,13 +103,13 @@ def console_legend(scene:trimesh.Scene):
     material=PBRMaterial(name="OriginalConsoleLegend",
         baseColorTexture=im,metallicFactor=.0,roughnessFactor=.89,
         doubleSided=True)
-    # Rectangle facing the player along negative Z, mounted on meter bridge.
-    mesh=trimesh.Trimesh(vertices=np.array([
-        [-2.48,4.24,-1.75],[2.48,4.24,-1.75],
-        [2.48,3.59,-1.75],[-2.48,3.59,-1.75]],dtype=np.float64),
-        faces=np.array([[0,1,2],[0,2,3]],dtype=np.int64),process=False)
-    mesh.visual=trimesh.visual.TextureVisuals(
-        uv=np.array([[0,1],[1,1],[1,0],[0,0]],dtype=float),material=material)
+    # Watertight thin printed aluminum nameplate, facing negative Z.
+    mesh=trimesh.creation.box(extents=(4.96,.65,.035))
+    mesh.apply_translation((0,3.915,-1.755))
+    # Map the front face in local centimeters consistently, including corners.
+    points=np.asarray(mesh.vertices)
+    uv=np.column_stack(((points[:,0]+2.48)/4.96,(points[:,1]-3.59)/.65))
+    mesh.visual=trimesh.visual.TextureVisuals(uv=uv,material=material)
     scene.add_geometry(mesh,node_name="ConsoleOriginalSerialLegend",
                        geom_name="ConsoleOriginalSerialLegend")
     return scene
