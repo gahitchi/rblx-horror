@@ -91,6 +91,32 @@ def weights_for(point: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         values.append(0.0)
     return np.array(ids, dtype=np.uint16), np.array(values,dtype=np.float32)
 
+def weights_for_source_part(part_name:str,point:np.ndarray):
+    """Headphone parts must follow Head rigidly, not split into Neck weights.
+
+    Flexible headset-to-jacket cable transitions across head, neck and torso.
+    """
+    if part_name.startswith("StudioKit_HeadphoneHeadLead"):
+        t=smooth(float(point[1]),1.53,1.81)
+        ids=[INDEX["Head"],INDEX["Neck"],0,0]
+        values=[t,1-t,0.,0.]
+    elif part_name.startswith("StudioKit_StudioHeadsetCable"):
+        t=smooth(float(point[1]),.90,1.48)
+        ids=[INDEX["Neck"],INDEX["Spine"],0,0]
+        values=[t,1-t,0.,0.]
+    elif part_name.startswith(("StudioKit_Headphone","StudioKit_Headband",
+                               "StudioKit_Mic")):
+        ids=[INDEX["Head"],0,0,0]
+        values=[1.,0.,0.,0.]
+    elif part_name.startswith(("Anatomical_short01","Anatomical_eyelashes01",
+                               "Anatomical_eyebrow001","Anatomical_high-poly",
+                               "Anatomical_base_1","Anatomical_base_3")):
+        ids=[INDEX["Head"],0,0,0]
+        values=[1.,0.,0.,0.]
+    else:
+        return weights_for(point)
+    return np.array(ids,dtype=np.uint16),np.array(values,dtype=np.float32)
+
 def unpack(blob: bytes) -> tuple[dict, bytearray]:
     assert blob[:4] == b"glTF" and struct.unpack_from("<I",blob,4)[0]==2
     offset=12
@@ -185,8 +211,9 @@ def create(output:Path)->dict:
             xyz=positions(gltf,binary,attrs["POSITION"])
             js=np.zeros((len(xyz),4),dtype="<u2")
             ws=np.zeros((len(xyz),4),dtype="<f4")
+            part_name=mesh_node.get("name","")
             for i,point in enumerate(xyz):
-                ids,vals=weights_for(point)
+                ids,vals=weights_for_source_part(part_name,point)
                 js[i]=ids
                 ws[i]=vals
                 influenced.update(int(v) for v,w in zip(ids,vals) if w>0.001)
