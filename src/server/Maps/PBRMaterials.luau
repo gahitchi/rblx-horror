@@ -25,7 +25,8 @@ function PBRMaterials.apply(map: Instance): number
     end
     local changed=0
     for _,part in map:GetDescendants() do
-        if part:IsA("BasePart") and part:GetAttribute("DisablePBR")~=true then
+        if part:IsA("BasePart") and part:GetAttribute("DisablePBR")~=true
+            and part:FindFirstChildOfClass("SurfaceAppearance")==nil then
             local chosen=installed[part.Material]
             -- Sub-stud bolts, wires and narrow trim are poor receivers for a
             -- tiled 1024px PBR atlas: distance filtering creates noisy glints.
