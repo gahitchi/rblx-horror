@@ -87,34 +87,6 @@ def patch_matrix():
             m.link((x,y,-1.23),(x,y,-1.32),.052,.052,"brass",12)
     return m.finish()
 
-def console_legend(scene:trimesh.Scene):
-    """Original, authored blacklined identification/operation plate with
-    image-space text, not a floating BillboardGui or generic rusty texture."""
-    im=Image.new("RGB",(1024,192),(26,29,30))
-    draw=ImageDraw.Draw(im)
-    font=ImageFont.load_default(size=47)
-    minor=ImageFont.load_default(size=24)
-    draw.rectangle((12,10,1012,182),outline=(122,116,92),width=5)
-    draw.text((42,29),"B L A C K L I N E  /  C O N T R O L  A",
-              fill=(223,209,177),font=font)
-    draw.text((44,118),"SESSION 08  /  MASTER BUS  /  ANALOG SIGNAL PATH",
-              fill=(138,154,148),font=minor)
-    # No material metalness on printed laminate; rough, diffuse lettering.
-    material=PBRMaterial(name="OriginalConsoleLegend",
-        baseColorTexture=im,metallicFactor=.0,roughnessFactor=.89,
-        doubleSided=True)
-    # Watertight thin printed aluminum nameplate, facing negative Z.
-    mesh=trimesh.creation.box(extents=(4.96,.65,.035))
-    mesh.apply_translation((0,3.915,-1.755))
-    # Map the front face in local centimeters consistently, including corners.
-    points=np.asarray(mesh.vertices)
-    uv=np.column_stack(((points[:,0]+2.48)/4.96,(points[:,1]-3.59)/.65))
-    mesh.visual=trimesh.visual.TextureVisuals(uv=uv,material=material)
-    scene.add_geometry(mesh,node_name="ConsoleOriginalSerialLegend",
-                       geom_name="ConsoleOriginalSerialLegend")
-    return scene
-
-
 def blackline_hero_console():
     """Q01 quality benchmark: hand-composed geometry and original UV atlases.
 
