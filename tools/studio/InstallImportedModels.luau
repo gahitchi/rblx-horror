@@ -31,6 +31,10 @@ local CHARACTER = {
     FieldOperatorMask = true,
     FieldOperatorPack = true,
 }
+local SIGNATURE = {
+    BlacklineTransferDeck = true,
+    BlacklinePatchMatrix = true,
+}
 local ROOT_NAME = "ArtLibrary"
 
 local target = ServerStorage:FindFirstChild(ROOT_NAME)
@@ -44,7 +48,7 @@ assert(target:IsA("Folder"), "ServerStorage.ArtLibrary must be a Folder")
 local installed = {}
 local skipped = {}
 for _, candidate in Selection:Get() do
-    if not EXPECTED[candidate.Name] and not OPTIONAL[candidate.Name] and not CHARACTER[candidate.Name] then
+    if not EXPECTED[candidate.Name] and not OPTIONAL[candidate.Name] and not CHARACTER[candidate.Name] and not SIGNATURE[candidate.Name] then
         table.insert(skipped, candidate.Name .. ": name not recognized")
         continue
     end
@@ -124,6 +128,17 @@ if #characterMissing > 0 then
         ..table.concat(characterMissing,", "))
 else
     print("[Dead Air] All four character/monster meshes installed")
+end
+local signatureMissing={}
+for name in SIGNATURE do
+    if not target:FindFirstChild(name) then
+        table.insert(signatureMissing,name)
+    end
+end
+table.sort(signatureMissing)
+if #signatureMissing>0 then
+    print("[Dead Air] Optional Blackline signature equipment awaiting import: "
+        ..table.concat(signatureMissing,", "))
 end
 -- Save the Studio place after successful import. The code-only Rojo build does not
 -- contain creator-owned MeshIds; do not replace the prefab with a plain Part.
