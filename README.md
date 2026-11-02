@@ -9,7 +9,7 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: integrated 0.8.7 — Control A hero console (not playtested)
+## Status: integrated 0.8.8 — coherent readable studio lighting (awaiting playtest)
 
 **Use branch `chatgpt/integrated-v1`.** It includes both the playable-code Wrenmouth
 cliff-top hub and the detailed 23-room recording house in **two distinct Roblox places**.
@@ -56,6 +56,13 @@ MixingDesk puzzle remains authoritative; the session log now rests on a
 readable shelf. Its status LEDs follow the chapter's lighting. Source-derived
 offline previews are *not* Roblox screenshots. See
 [docs/CONTROL_A_HERO_CONSOLE.md](docs/CONTROL_A_HERO_CONSOLE.md).
+
+**0.8.8 playtest-driven lighting:** The studio now starts with partial working
+power and a coherent, ceiling-mounted navigation circuit rather than an
+almost unlit map. Main lighting brightens on shock one; emergency wayfinding
+remains during the blackout. Fallback greybox lighting is also readable.
+See [docs/STUDIO_LIGHTING_READABILITY.md](docs/STUDIO_LIGHTING_READABILITY.md).
+Asset work is paused until lighting is reviewed in Roblox Studio.
 More playtest details: [studio](docs/STUDIO_V2_PLAYTEST.md) and
 [hub](docs/HUB_V1_PLAYTEST.md).
 
