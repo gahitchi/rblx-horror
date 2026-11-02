@@ -332,7 +332,7 @@ def main() -> int:
                   '"SolidEndPanel"', '"SolidShelfDeck"', '"BackPanel"',
                   '"TurnedLeg"', '"SteelCrossSupport"'):
         must_have(furniture_assets, token, "match/StudioFurnitureAsset")
-    for token in ('StudioFurnitureAsset.archiveShelf(', 'Vector3.new(x, 5.3, -130.5)',
+    for token in ('StudioFurnitureAsset.archiveShelf(', 'Vector3.new(x, 5.3, -130.9)',
                   '"ArchiveShelf_"', '"ReceptionCounter"', '"BreakTable"'):
         must_have(studio, token, "match/StudioGroundFloor")
     for token in ('for _, shelfX in { -77, -72, -67, -62 }',
