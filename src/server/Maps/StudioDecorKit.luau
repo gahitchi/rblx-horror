@@ -188,6 +188,15 @@ function Kit.sofa(parent: Instance, x: number, z: number, width: number, yaw: nu
 	return Furniture.sofa(parent, x, z, width, yaw)
 end
 
+function Kit.bench(parent: Instance, name: string, x: number, z: number, width: number, yaw: number)
+	return Furniture.bench(parent, name, x, z, width, yaw)
+end
+
+function Kit.storage(parent: Instance, name: string, x: number, z: number,
+	width: number, height: number, depth: number, metal: boolean)
+	return Furniture.storage(parent, name, x, z, width, height, depth, metal)
+end
+
 function Kit.vent(parent: Instance, x: number, y: number, z: number, width: number)
 	local c = Kit.palette
 	Kit.box(parent, "VentPlate", x, y, z, width, 2.2, 0.2, c.metal, Enum.Material.Metal)
