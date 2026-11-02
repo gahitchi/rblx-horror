@@ -1,7 +1,7 @@
 # Dead Air — unified hub + recording-studio development build
 
 **Branch:** `chatgpt/integrated-v1`  
-**Shared build version:** `0.8.1-integrated-pretest`  
+**Shared build version:** `0.8.3-evidence-pass`  
 **Status:** Both source branches merged into one code branch. Source-level checks,
 not a Roblox Studio or published-server playtest.
 
@@ -159,6 +159,7 @@ places separately. Tool versions/installation differ by machine.
 - Do not merge this to `main` until the two-place Play/teleport
   smoke test succeeds.
 
-**Related documentation:** `docs/HUB_V1_PLAYTEST.md`,
+**Related documentation:** `docs/STUDIO_CH1_EVIDENCE.md`,
+`docs/HUB_V1_PLAYTEST.md`,
 `docs/STUDIO_V2_PLAYTEST.md`, `docs/STUDIO_CH1_OPENING.md`,
 `docs/STUDIO_V2_ASSETS.md`.
