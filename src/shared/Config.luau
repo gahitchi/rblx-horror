@@ -131,6 +131,7 @@ Config.MONSTER = table.freeze({
 		SEARCH_REVISIT_SECONDS = 48,
 		SEARCH_REVISIT_PENALTY = 22,
 		SEARCH_DIRECTION_BONUS = 8, -- a recent moving source guides nearby search routes
+		INSPECT_SECONDS = 1.6, -- deliberate pause at reachable studio workstation
 		SEARCH_CELL = 6,
 		MAX_VISITED = 48,
 		GENERIC_HIDE_CHECK = 0.08, -- occasionally searches a wardrobe without certainty
