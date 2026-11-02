@@ -145,6 +145,8 @@ def main() -> int:
     studio = require_text("src/server/Maps/StudioGroundFloor.luau")
     desk_cover_test = require_text("tools/studio/DeskCoverSelfTest.server.luau")
     studio_production = require_text("src/server/Maps/StudioProductionDetail.luau")
+    critical_fixtures = require_text("src/server/Maps/StudioCriticalFixtures.luau")
+    asset_pass_test = require_text("tools/studio/AssetPassSelfTest.server.luau")
     furniture_kit = require_text("src/server/Maps/StudioDecorKit.luau")
     furniture_assets = require_text("src/server/Maps/StudioFurnitureAsset.luau")
     physical_assets = require_text("src/server/Maps/StudioPhysicalAssets.luau")
@@ -323,7 +325,7 @@ def main() -> int:
     for token in ('assert(#foundCases == 2', 'hinges == 4',
                   'body:GetNetworkOwner() == nil', 'furniture.AnalogueRack'):
         must_have(physical_assets_test, token, "tools/studio/PhysicalAssetsSelfTest")
-    must_have(config, 'Config.VERSION = "0.9.1-grounded-interiors"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.9.2-convincing-assets"', "shared/Config")
 
     # Purposeful placement regression: these coordinates were demonstrably
     # unsupported in the previous build; tables, shelves and instruments must
@@ -355,7 +357,49 @@ def main() -> int:
         fail("Floating reception desk glass should have been removed")
     if '"ArchiveShelf_" .. tostring(i)' not in studio:
         fail("Archive gameplay shelf labels disappeared")
-    must_have(config, 'Config.VERSION = "0.9.1-grounded-interiors"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.9.2-convincing-assets"', "shared/Config")
+
+    # All reusable assets are authored once; room-specific details are
+    # attached to the actual original objective, never duplicate prompts.
+    for token in ('function Furniture.bench(', 'function Furniture.storage(',
+                  'function Furniture.objectiveCabinet(', 'function Furniture.cardIndex(',
+                  'assert(w >= 3.5 and d >= 2', '"SolidBenchLeg"',
+                  '"CabinetDoor"', '"DrawerFace"'):
+        must_have(furniture_assets, token, "match/StudioFurnitureAsset")
+    for token in ("return Furniture.bench(", "return Furniture.storage("):
+        must_have(furniture_kit, token, "match/StudioDecorKit")
+    for token in ("StudioCriticalFixtures.apply(map)",
+                  "StudioFurnitureAsset.cardIndex(props, cardIndex)",
+                  'StudioFurnitureAsset.objectiveCabinet(props, spares'):
+        must_have(studio, token, "match/StudioGroundFloor")
+    for old in ('"JanitorShelf"', '"MopBucket"', '"Staff_Toilet"',
+                '"Visitor_Toilet"', '"ReelGuide"', '"MicrophoneStand"'):
+        if old in studio:
+            fail("Duplicate placeholder still present in base map: "+old)
+    for token in ("function Details.apply(map: Model)",
+                  '"PatchPanelFace"', '"PatchSocket"', '"SafeSteelDoor"',
+                  '"SafeCombinationWheel"', '"PatchCordLeft"',
+                  '"SafeDoorLever"'):
+        must_have(critical_fixtures, token, "match/StudioCriticalFixtures")
+    for token in ('Kit.storage(edit,', '"MasteringWorktable"',
+                  '"GuitarCaseOnShelf"', '"MusicStandStem"', '"GoboFloorFoot"'):
+        must_have(studio_production, token, "match/StudioProductionDetail")
+    for old in ('"PaperFiling"', '"PatchCable"', '"SafeDial"'):
+        if old in studio_production:
+            fail("Unattached old production clutter retained: "+old)
+    for token in ('Kit.bench(', '"ToiletTank"', '"SinkBasin"',
+                  '"ShippingCase"', '"StaffFridge"', '"TapHandle"'):
+        must_have(studio_service, token, "match/StudioServiceDetail")
+    for old in ('"MachineRackFace"', '"TapeStatusMeter"'):
+        if old in studio_service:
+            fail("Double-rendered equipment rack face: "+old)
+    for token in ('"GalleryBench or 0', '"PatchSocket or 0',
+                  '"SafeSteelDoor or 0', '"CardIndex"',
+                  '"AnodizedTapeSpool or 0"'):
+        # Search for straightforward asset names without line-oriented syntax.
+        if token.strip('"') not in asset_pass_test:
+            fail("AssetPassSelfTest missing check: "+token)
+    must_have(config, 'Config.VERSION = "0.9.2-convincing-assets"', "shared/Config")
 
     # High-detail console is authored visual geometry, not a second puzzle.
     for token in ("StudioHeroConsole.build(ctrl, map)", "ProductionDressing",
@@ -382,7 +426,7 @@ def main() -> int:
               "match/StudioGroundFloor")
     must_have(studio, 'objective(objectives, "SessionLog", Vector3.new(-57, 3.68, -75.65)',
               "match/StudioGroundFloor")
-    must_have(config, 'Config.VERSION = "0.9.1-grounded-interiors"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.9.2-convincing-assets"', "shared/Config")
 
     for objective in ("BookingDiary", "SessionLog", "TapeMachine", "Spares",
                       "CardIndex", "RoadCase", "Safe", "MemorialProgramme",
@@ -516,7 +560,7 @@ def main() -> int:
     must_have(studio_production, '"EditCounterBackPanel"', "match/StudioProductionDetail")
     must_have(config, "DESK_MUFFLE = 0.72", "shared/Config")
     must_have(desk_cover_test, "assert(count == 6", "tools/studio/DeskCoverSelfTest")
-    must_have(config, 'Config.VERSION = "0.9.1-grounded-interiors"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.9.2-convincing-assets"', "shared/Config")
 
     must_have(chapter, "StudioTension.start(myRound)", "match/Studio1")
     for guard in ("MAX_CUES_PER_ROUND", "MIN_CUE_GAP", "OPENING_END",
