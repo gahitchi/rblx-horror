@@ -78,7 +78,7 @@ function Furniture.table(
 	x: number, z: number, w: number, d: number,
 	h: number, topColor: Color3
 ): Model
-	assert(w > 3.4 and d > 2.6 and h > 1.1, "Working table dimensions must fit real supports")
+	assert(w >= 3.5 and d >= 2 and h >= 1.3, "Working table dimensions must fit real supports")
 	local m = assembly(parent, name, "WorkingTable")
 	local basis = CFrame.new(x, 0, z)
 	local wood = Enum.Material.Wood
@@ -295,6 +295,109 @@ function Furniture.rack(
 	end
 	piece(m,"RackFoot",basis,Vector3.new(0,0.17,0.2),
 		Vector3.new(width-0.12,0.34,1.65),C.black,metal,true)
+	return m
+end
+
+
+-- Small gallery bench: a real seat and four legs, not a 4.5-stud slab.
+-- A padded back is deliberately omitted: these are corridor waiting benches.
+function Furniture.bench(parent: Instance, name: string, x: number, z: number, width: number, yaw: number): Model
+	local m = assembly(parent, name, "GalleryBench")
+	local basis = CFrame.new(x, 0, z) * CFrame.Angles(0, math.rad(yaw), 0)
+	local wood = Enum.Material.Wood
+	piece(m,"SeatCollider",basis,Vector3.new(0,1.82,0),
+		Vector3.new(width,0.26,2.0),C.wood,wood,true)
+	for _, dz in {-0.78,0.78} do
+		piece(m,"SeatEdge",basis,Vector3.new(0,1.88,dz),
+			Vector3.new(width-0.12,0.08,0.16),C.woodEdge,wood,false)
+	end
+	for _, dx in { -width/2+0.44, width/2-0.44 } do
+		for _, dz in {-0.65,0.65} do
+			piece(m,"SolidBenchLeg",basis,Vector3.new(dx,0.84,dz),
+				Vector3.new(0.29,1.68,0.29),C.metal,Enum.Material.Metal,true)
+		end
+	end
+	piece(m,"UnderSeatCrossRail",basis,Vector3.new(0,1.42,0),
+		Vector3.new(width-0.6,0.22,0.17),C.woodDark,wood,false)
+	return m
+end
+
+-- Workshop cabinet used where a locked objective already provides the actual
+-- collider. This method instead creates physical furniture only when there
+-- is no existing chapter objective: avoid duplicate collision volumes.
+function Furniture.storage(parent: Instance, name: string, x: number, z: number,
+	width: number, height: number, depth: number, metal: boolean): Model
+	local m = assembly(parent, name, "StorageCabinet")
+	local basis = CFrame.new(x, 0, z)
+	local material = if metal then Enum.Material.Metal else Enum.Material.Wood
+	local outer = if metal then C.metal else C.wood
+	local inner = if metal then C.dark else C.woodDark
+	piece(m,"CabinetLeft",basis,Vector3.new(-width/2+0.12,height/2,0),
+		Vector3.new(0.24,height,depth),outer,material,true)
+	piece(m,"CabinetRight",basis,Vector3.new(width/2-0.12,height/2,0),
+		Vector3.new(0.24,height,depth),outer,material,true)
+	piece(m,"CabinetBack",basis,Vector3.new(0,height/2,depth/2-0.12),
+		Vector3.new(width-0.24,height,0.24),inner,material,true)
+	piece(m,"CabinetBase",basis,Vector3.new(0,0.19,0),
+		Vector3.new(width,0.38,depth),inner,material,true)
+	piece(m,"CabinetTop",basis,Vector3.new(0,height-0.15,0),
+		Vector3.new(width,0.30,depth),outer,material,true)
+	for _, y in {height*0.31,height*0.64} do
+		piece(m,"InteriorShelf",basis,Vector3.new(0,y,0),
+			Vector3.new(width-0.31,0.16,depth-0.30),inner,material,true)
+	end
+	-- Two visually separate doors with a meaningful continuous front plane.
+	for _, side in {-1,1} do
+		local dx=side*(width/4)
+		piece(m,"CabinetDoor",basis,Vector3.new(dx,height/2,-depth/2-0.035),
+			Vector3.new(width/2-0.09,height-0.50,0.08),outer,material,true)
+		piece(m,"RecessedDoorPanel",basis,Vector3.new(dx,height/2,-depth/2-0.084),
+			Vector3.new(width/2-0.38,height-0.85,0.035),inner,material,false)
+		piece(m,"MetalHandle",basis,Vector3.new(side*0.22,height*0.52,-depth/2-0.16),
+			Vector3.new(0.11,0.63,0.14),C.steel,Enum.Material.Metal,false)
+	end
+	return m
+end
+
+-- Add a fitted door and hardware to a collidable game-object cabinet
+-- without creating a SECOND body or blocking its ProximityPrompt.
+function Furniture.objectiveCabinet(parent: Instance, body: BasePart, label: string): Model
+	local name="Finish_"..body.Name
+	local old=parent:FindFirstChild(name)
+	if old then old:Destroy() end
+	local m=assembly(parent,name,"ObjectiveCabinetFinish")
+	local basis=body.CFrame
+	local w,h,d=body.Size.X,body.Size.Y,body.Size.Z
+	local front=-d/2-0.045
+	for _, side in {-1,1} do
+		local dx=side*w/4
+		piece(m,"InsetDoor",basis,Vector3.new(dx,0,front),
+			Vector3.new(w/2-0.12,h-0.40,0.07),C.metal,Enum.Material.Metal,false)
+		piece(m,"RecessedDoorInlay",basis,Vector3.new(dx,0,front-0.043),
+			Vector3.new(w/2-0.36,h-0.65,0.025),C.dark,Enum.Material.Metal,false)
+		piece(m,"Latch",basis,Vector3.new(side*0.27,0.1,front-0.11),
+			Vector3.new(0.12,0.62,0.18),C.steel,Enum.Material.Metal,false)
+	end
+	for _, y in {-h/2+0.21,h/2-0.21} do
+		piece(m,"CabinetRail",basis,Vector3.new(0,y,front),
+			Vector3.new(w-0.12,0.13,0.12),C.steel,Enum.Material.Metal,false)
+	end
+	local plaque=piece(m,"CabinetID",basis,Vector3.new(0,h/2-0.48,front-0.13),
+		Vector3.new(math.min(w-0.5,2.8),0.28,0.06),C.brass,Enum.Material.Metal,false)
+	local gui=Instance.new("SurfaceGui")
+	gui.Name="InventoryPlate"
+	gui.Face=Enum.NormalId.Front
+	gui.PixelsPerStud=36
+	gui.Parent=plaque
+	local text=Instance.new("TextLabel")
+	text.Name="Caption"
+	text.Size=UDim2.fromScale(1,1)
+	text.BackgroundTransparency=1
+	text.Font=Enum.Font.Code
+	text.Text=label
+	text.TextScaled=true
+	text.TextColor3=C.black
+	text.Parent=gui
 	return m
 end
 
