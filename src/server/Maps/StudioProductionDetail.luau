@@ -2,6 +2,7 @@
 -- Production wing: visual storytelling around real chapter props, not replacement objectives.
 -- The central paths, objective tops and booth thresholds are left accessible.
 local Kit = require(script.Parent.StudioDecorKit)
+local StudioHeroConsole = require(script.Parent.StudioHeroConsole)
 local C = Kit.palette
 local Detail = {}
 
@@ -144,19 +145,9 @@ function Detail.apply(map: Model)
 	speaker(ctrl, -66, 6, -74)
 	speaker(ctrl, -47, 6, -74)
 	reelMachineDetail(ctrl)
-	-- Original console volume is objective, so add detail rather than a second tabletop.
-	Kit.box(ctrl, "DeskMeterBridge", -56, 4.55, -76.8, 11, 2.1, 0.8, C.wood, Enum.Material.Wood)
-	for i = 1, 7 do
-		Kit.box(ctrl, "ChannelVU", -61.2 + i * 1.4, 4.75, -77.3,
-			1.1, 1.05, 0.12, C.gold)
-		Kit.box(ctrl, "ChannelNeedle", -61.25 + i * 1.4, 4.7, -77.43,
-			0.05, 0.7, 0.09, C.red)
-	end
-	for i = 1, 18 do
-		Kit.box(ctrl, "Potentiometer", -61.7 + (i % 9) * 1.35,
-			3.38, -79.2 + math.floor(i / 9) * 0.85,
-			0.22, 0.12, 0.22, C.cream, Enum.Material.SmoothPlastic)
-	end
+	-- Single authored hero console: 16 channels, meters and masters share the
+	-- original gameplay collision/interaction. No duplicate boxy fader layer.
+	StudioHeroConsole.build(ctrl, map)
 	Kit.chair(ctrl, -56, -71, 180, C.leather)
 	for _, x in { -49, -44, -39.8 } do
 		Kit.rod(ctrl, "PatchCable", Vector3.new(x, 4.5, -95.5),
