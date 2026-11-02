@@ -1,6 +1,6 @@
 # Studio v2 — recording house redesign / first playable
 
-Build: `0.7.2-studio-v2` on `chatgpt/studio-v2`.
+Build: `0.7.3-studio-v2` on `chatgpt/studio-v2`.
 The default match place builds `src/server/Maps/StudioGroundFloor.luau`.
 The older `MapBuilder` greybox is retained only as an error fallback.
 The contract is still **v2**: `docs/MAP_CONTRACT.md` and
@@ -61,7 +61,7 @@ exit exists through the loading bay, basement, flat or service lift.
 ## What to playtest next
 
 1. Run `rojo serve` from the match project (`default.project.json`) and
-   confirm `Config.VERSION = 0.7.2-studio-v2`.
+   confirm `Config.VERSION = 0.7.3-studio-v2`.
 2. Read every `[Map]` Output line. **Any ERROR is a stop**: an invalid generated
    map will be replaced by the fallback greybox. Confirm the `MapName` attribute
    reads Wrenmouth Recording House / Chapter 1.
@@ -83,3 +83,51 @@ The graph and objective names were **source-reviewed**; Studio build, Luau
 language-server, and Roblox gameplay/playfinding tests have **not** run in this
 environment. Report actual geometry or navigation failures before any
 large-scale prop-dressing pass.
+
+
+## 0.7.3 environment-dressing pass
+
+The room graph and contract are unchanged; visuals are additive and source-controlled
+in five small modules, installed by `StudioGroundFloor.build()`:
+
+- `Maps/StudioDecorKit.luau`: native part helpers for timber furniture,
+  printed signs, tape reels, analogue racks, doorside pieces and upholstered seating.
+- `Maps/StudioProductionDetail.luau`: multitrack transport, VU bridge, console
+  faders, monitor speakers, archive cassette rows, mastering desk, electric keyboard,
+  amplifiers, live-room drum kit and vocal booths.
+- `Maps/StudioServiceDetail.luau`: reception desk contents and seating, period
+  notices, staff lounge and kitchen, ceramic/tiled restrooms, janitor's closet,
+  navy conduits, freight cases and loading-bay hardware.
+- `Maps/StudioArchitectureDetail.luau`: timber skirting and ceiling ribs,
+  glazing mullions, door frames, quarantine frame and front porch signage.
+- `Maps/StudioStoryDetail.luau`: choir/family photographs, a memorial arrangement,
+  session notices, maintenance records, plants and sealed stairwell clues.
+
+The original **twelve chapter objective parts** are not replaced, moved or renamed;
+the extra visuals sit in `Map.Props`. The original `Map.Doors`, `Map.HidingSpots`,
+`Map.Booths`, `Map.Shutters` and `Map.Areas` remain authoritative. Added accent
+lamps are grouped in `Map.Lamps`, so dead/woken/red are controlled by the existing
+script. Most decorative parts have `CanCollide = false` and `CanQuery = false`;
+some original large objective cabinets remain solid.
+
+### Priority smoke test (before deciding the next art pass)
+
+1. Verify `0.7.3-studio-v2` in the server Output and that `Workspace.Map`
+   says `Wrenmouth Recording House / Chapter 1` (not the fallback greybox).
+2. At the start, the room must be dark. Load a reel to wake dim warm lamps and
+   confirm red emergency lighting after the second shock. Inspect in phone view.
+3. Check **front-door entry/exit** and that the new porch/signs do not obstruct
+   the Exit Zone. Test the welded mail slot when the door swings open.
+4. Walk to all twelve objective prompts, try retrieving a reel from each labelled
+   shelf, and complete a whole round, including the final cassette escape.
+5. Check each of the three isolation booths, restrooms, janitor closet,
+   loading bay and stairwell: no snags, no invisible collision and no
+   distracting secondary prompts.
+6. With `Config.DEBUG_AI = true`, watch the monster enter every room and
+   reach hiding spots. In Last Call, the short shutter must drop while the
+   live-hall and sound-lock route stays viable.
+7. Watch FPS, memory and part/render cost on a phone-size view. If the new art
+   is too heavy, optimize repeated decor parts before adding any new rooms.
+
+**Not run here:** Roblox Studio simulation, Rojo build, Luau language-server
+analysis and device profiling. These must be done on Gabriel's machine.
