@@ -64,7 +64,9 @@ end
 local function plaque(parent: Instance, caption: string, at: Vector3, size: Vector3)
 	local backing = part(parent, "Sign_" .. caption, at, size, C.dark, nil, false)
 	local gui = Instance.new("SurfaceGui")
-	gui.Face = Enum.NormalId.Front
+	-- Shelf numbers and reception lettering face the aisle; security seals face the entry.
+	gui.Face = if string.find(caption, "SHELF", 1, true) or string.find(caption, "WRENMOUTH", 1, true)
+		then Enum.NormalId.Back else Enum.NormalId.Front
 	gui.PixelsPerStud = 28
 	gui.LightInfluence = 0.2
 	gui.Parent = backing
