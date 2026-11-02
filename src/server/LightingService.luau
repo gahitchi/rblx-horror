@@ -217,6 +217,11 @@ local function show()
 		if led.Parent then
 			local kind = led:GetAttribute("ConsoleIndicator")
 			local on = not suppressed and state ~= "dead"
+			-- PBR SurfaceAppearance can override Color/Material. For imported
+			-- MeshPart lenses, use opacity as the robust on/off control.
+			if led:GetAttribute("UseOpacityForPower") == true then
+				led.Transparency = if on then 0 else 1
+			end
 			led.Material = if on then Enum.Material.Neon else Enum.Material.SmoothPlastic
 			if not on then
 				led.Color = Color3.fromRGB(29, 32, 30)
