@@ -137,20 +137,24 @@ local function lighthouse(parent: Folder)
 	p(parent, "HeadlandUnderLighthouse", 159, -30, -107, 45, 18, 42,
 		stone, Enum.Material.Rock)
 	local tower = p(parent, "LighthouseTower", 160, -12, -108,
-		11, 38, 11, Color3.fromRGB(209, 210, 197), Enum.Material.Concrete)
+		38, 11, 11, Color3.fromRGB(209, 210, 197), Enum.Material.Concrete)
 	tower.Shape = Enum.PartType.Cylinder
+	tower.CFrame *= CFrame.Angles(0, 0, math.rad(90))
 	for _, y in { -21, -8 } do
 		local stripe = p(parent, "LighthouseRedBand", 160, y, -108,
-			11.4, 3.1, 11.4, Color3.fromRGB(145, 66, 55),
+			3.1, 11.4, 11.4, Color3.fromRGB(145, 66, 55),
 			Enum.Material.Concrete)
 		stripe.Shape = Enum.PartType.Cylinder
+		stripe.CFrame *= CFrame.Angles(0, 0, math.rad(90))
 	end
 	local gallery = p(parent, "LighthouseGallery", 160, 8, -108,
-		16.5, 1.1, 16.5, roof, Enum.Material.Metal)
+		1.1, 16.5, 16.5, roof, Enum.Material.Metal)
 	gallery.Shape = Enum.PartType.Cylinder
+	gallery.CFrame *= CFrame.Angles(0, 0, math.rad(90))
 	local lantern = p(parent, "LighthouseLampHouse", 160, 11.2, -108,
-		9.8, 6.2, 9.8, window, Enum.Material.Glass, 0.6)
+		6.2, 9.8, 9.8, window, Enum.Material.Glass, 0.6)
 	lantern.Shape = Enum.PartType.Cylinder
+	lantern.CFrame *= CFrame.Angles(0, 0, math.rad(90))
 	local beacon = p(parent, "SweepingLighthouseBeacon", 160, 11.3, -108,
 		2.3, 2.3, 2.3, pale, Enum.Material.Neon)
 	beacon.Shape = Enum.PartType.Ball
@@ -163,8 +167,10 @@ local function lighthouse(parent: Folder)
 	beam.Shadows = false
 	beam.Color = pale
 	beam.Parent = beacon
-	p(parent, "BeaconCap", 160, 15.3, -108,
-		13, 2.0, 13, roof, Enum.Material.Metal).Shape = Enum.PartType.Cylinder
+	local cap = p(parent, "BeaconCap", 160, 15.3, -108,
+		2.0, 13, 13, roof, Enum.Material.Metal)
+	cap.Shape = Enum.PartType.Cylinder
+	cap.CFrame *= CFrame.Angles(0, 0, math.rad(90))
 end
 
 function Vista.build(hub: Model)
