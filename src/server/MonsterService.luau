@@ -33,6 +33,7 @@ local NoiseService = require(script.Parent.NoiseService)
 local Director = require(script.Parent.Monster.Director)
 local EvidenceMemory = require(script.Parent.Monster.EvidenceMemory)
 local EngineerModel = require(script.Parent.Monster.EngineerModel)
+local Environment = require(script.Parent.Monster.Environment)
 local Mimicry = require(script.Parent.Monster.Mimicry)
 local Motion = require(script.Parent.Monster.Motion)
 local Navigator = require(script.Parent.Monster.Navigator)
@@ -75,6 +76,7 @@ local listenUntil = 0
 local listenToward: Vector3? = nil
 local investigateTarget: Vector3? = nil
 local investigateUrgent = false
+local investigateKind = ""
 local searchUntil = 0
 local searchCenter: Vector3? = nil
 
@@ -104,7 +106,8 @@ local hidingSpots: { BasePart } = {}
 local checkSpot: (BasePart) -> Player? = function()
 	return nil
 end
-local spotFronts: { [Vector3]: BasePart } = {} -- route points that are a hiding spot's door
+local spotFronts: { [Vector3]: BasePart } = {}
+local inspectionPoints: { [Vector3]: string } = {} -- route points that are a hiding spot's door
 
 -- Debug overlay (Config.DEBUG_AI)
 local debugLabel: TextLabel? = nil
@@ -192,6 +195,9 @@ local function setState(newState: State)
 	state = newState
 	if model then
 		model:SetAttribute("State", newState)
+		if newState ~= "Search" then
+			model:SetAttribute("Inspecting", "")
+		end
 	end
 	log("->", newState, string.format("(awareness %d)", Perception.awareness()))
 end
@@ -255,6 +261,8 @@ end
 local function startRoam()
 	route = {}
 	spotFronts = {}
+	inspectionPoints = {}
+	investigateKind = ""
 	searchCenter = nil
 	pauseUntil = 0
 	setState("Roam")
@@ -318,6 +326,14 @@ local function startSearch(center: Vector3)
 	local ordered = memory.sortSearch(center, nearby, os.clock())
 	for i = 1, math.min(M.SEARCH_POINTS - 1, #ordered) do
 		table.insert(spots, ordered[i])
+	end
+	inspectionPoints = {}
+	-- Studio-specific sound interpretation: the former engineer inspects a
+	-- nearby machine when an audible transport or console error led him here.
+	local inspectPoint, inspectName = Environment.select(areas, center, investigateKind)
+	if inspectPoint and inspectName then
+		inspectionPoints[inspectPoint] = inspectName
+		table.insert(spots, math.min(2, #spots + 1), inspectPoint)
 	end
 	-- Search hiding spots based on *heard evidence*, not actual occupancy.
 	spotFronts = {}
@@ -448,6 +464,7 @@ local function react(stimulus: Perception.Stimulus)
 		local goal = if source and isTarget(source)
 			then memory.predicted(source, now) or stimulus.estimate
 			else stimulus.estimate
+		investigateKind = stimulus.kind
 		startInvestigate(goal, stimulus.loud or awareness >= M.HURRY_AT)
 	elseif awareness >= M.LISTEN_AT
 		and (state == "Roam" or state == "Search" or state == "Listen") then
@@ -616,7 +633,15 @@ local function followRoute(
 			memory.visited(spot, now)
 		end
 		table.remove(route, 1)
-		if status == "Arrived" and rng:NextNumber() < pauseChance then
+		local inspection = inspectionPoints[spot]
+		inspectionPoints[spot] = nil
+		if status == "Arrived" and inspection then
+			pauseUntil = now + C.INSPECT_SECONDS
+			if model then
+				model:SetAttribute("Inspecting", inspection)
+			end
+			n.stop()
+		elseif status == "Arrived" and rng:NextNumber() < pauseChance then
 			pauseUntil = now + rng:NextNumber(pauseMin, pauseMax)
 			n.stop()
 		end
@@ -629,6 +654,9 @@ local function think(now: number)
 	local r = root :: BasePart
 	local n = nav :: Navigator.Navigator
 
+	if model and model:GetAttribute("Inspecting") ~= "" and now >= pauseUntil then
+		model:SetAttribute("Inspecting", "")
+	end
 	if state == "Roam" then
 		if #route == 0 then
 			local area = Director.pickArea(areas, now, r.Position, targetPositions(), currentArea)
@@ -872,6 +900,8 @@ function MonsterService.despawn()
 	model, humanoid, root, nav = nil, nil, nil, nil
 	searchCenter = nil
 	spotFronts = {}
+	inspectionPoints = {}
+	investigateKind = ""
 	investigateTarget = nil
 	pauseUntil, listenUntil, searchUntil = 0, 0, 0
 	heading = Vector3.zero
@@ -977,6 +1007,7 @@ function MonsterService.callTo(position: Vector3)
 		return
 	end
 	Perception.set(math.max(Perception.awareness(), M.HURRY_AT))
+	investigateKind = "recording"
 	startInvestigate(position, true)
 end
 
