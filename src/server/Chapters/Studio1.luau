@@ -272,7 +272,8 @@ local function cardIndexText(): string
 		local title = table.remove(titles, rng:NextInteger(1, #titles)) :: string
 		table.insert(cards, {
 			number = number,
-			text = Text.cardOrdinary(number, title, tostring(rng:NextInteger(1, 8))),
+			text = Text.cardOrdinary(number, title,
+				tostring(rng:NextInteger(1, math.max(1, #Kit.layout().reelSpots)))),
 		})
 	end
 
