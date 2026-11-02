@@ -133,7 +133,9 @@ end
 -- Each is attached to a named, non-colliding physical note in StudioEvidenceDetail.
 Text.EVIDENCE = table.freeze({
 	table.freeze({
-		id = "MachineServiceCard", label = "Service card", title = "Tape transport / service card",
+		id = "MachineServiceCard",
+		label = "Service card",
+		title = "Tape transport / service card",
 		body = [[WORKSHOP SERVICE CARD / CONTROL A
 2 November, afternoon. Transport taken out of service.
 
@@ -144,7 +146,9 @@ R. refused to have anyone else thread the tape.
 He left the full guide sequence in his session log.]],
 	}),
 	table.freeze({
-		id = "ArchiveFilingSlip", label = "Filing instructions", title = "Archive / drawer W filing instructions",
+		id = "ArchiveFilingSlip",
+		label = "Filing instructions",
+		title = "Archive / drawer W filing instructions",
 		body = [[RECORDS ROOM / DRAWER W
 File by catalogue number, not session title.
 
@@ -156,7 +160,9 @@ Returned reels belong on their numbered shelves.
 The index is the authority; don't trust old pencil stickers.]],
 	}),
 	table.freeze({
-		id = "LiveCaseTag", label = "Borrowing slip", title = "Live room / borrowing slip",
+		id = "LiveCaseTag",
+		label = "Borrowing slip",
+		title = "Live room / borrowing slip",
 		body = [[EQUIPMENT LOAN / 2 NOVEMBER
 R. borrowed one multitrack reel for the live room.
 
@@ -168,7 +174,9 @@ A pencilled warning:
 "Moving that stack is going to wake the whole building."]],
 	}),
 	table.freeze({
-		id = "RoutingNotice", label = "Routing sheet", title = "Control A / patch-bay notice",
+		id = "RoutingNotice",
+		label = "Routing sheet",
+		title = "Control A / patch-bay notice",
 		body = [[CONTROL ROOM A / PATCH BAY
 The normalled routing carries a session until the desk loses signal.
 
@@ -179,7 +187,9 @@ Never patch by guessing. A misrouted line feeds back through
 the live-room monitors.]],
 	}),
 	table.freeze({
-		id = "QuarantineIntake", label = "Incident record", title = "Navy / intake record 27",
+		id = "QuarantineIntake",
+		label = "Incident record",
+		title = "Navy / intake record 27",
 		body = [[WRENMOUTH / NAVY QUARANTINE ORDER 27
 3 November 1987
 

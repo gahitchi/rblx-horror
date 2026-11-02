@@ -35,8 +35,12 @@ end
 
 local function cellKey(point: Vector3): string
 	local scale = C.SEARCH_CELL
-	return string.format("%d:%d:%d",
-		math.floor(point.X / scale), math.floor(point.Y / scale), math.floor(point.Z / scale))
+	return string.format(
+		"%d:%d:%d",
+		math.floor(point.X / scale),
+		math.floor(point.Y / scale),
+		math.floor(point.Z / scale)
+	)
 end
 
 function EvidenceMemory.new(): Memory
@@ -67,8 +71,13 @@ function EvidenceMemory.new(): Memory
 		if player then
 			local old = tracks[player]
 			local velocity = Vector3.zero
-			if old and now > old.time + 0.18 and now - old.time <= C.TRACK_SECONDS
-				and stimulus.clarity >= C.TRACK_CLARITY and old.clarity >= C.TRACK_CLARITY then
+			if
+				old
+				and now > old.time + 0.18
+				and now - old.time <= C.TRACK_SECONDS
+				and stimulus.clarity >= C.TRACK_CLARITY
+				and old.clarity >= C.TRACK_CLARITY
+			then
 				local measured = flat(stimulus.estimate - old.position) / (now - old.time)
 				if measured.Magnitude > Config.SPRINT_SPEED then
 					measured = measured.Unit * Config.SPRINT_SPEED
@@ -94,9 +103,12 @@ function EvidenceMemory.new(): Memory
 			}
 			staticRepeats = 0
 		elseif not stimulus.loud then
-			if staticAt and staticKind == stimulus.kind
+			if
+				staticAt
+				and staticKind == stimulus.kind
 				and now - staticTime < C.STATIC_WINDOW
-				and flat(staticAt - stimulus.estimate).Magnitude <= C.STATIC_RADIUS then
+				and flat(staticAt - stimulus.estimate).Magnitude <= C.STATIC_RADIUS
+			then
 				staticRepeats += 1
 			else
 				staticRepeats = 1
@@ -115,7 +127,8 @@ function EvidenceMemory.new(): Memory
 			lastScore = 100
 			return true
 		end
-		local score = 12 + stimulus.clarity * 48
+		local score = 12
+			+ stimulus.clarity * 48
 			+ (if stimulus.source then 24 else 0)
 			+ math.max(0, 14 - stimulus.distance / 4)
 		-- Repeated sounds from one unmoving, anonymous spot can be a lure.
@@ -148,15 +161,21 @@ function EvidenceMemory.new(): Memory
 
 	function brain.confidentNear(point: Vector3, now: number): boolean
 		for player, track in tracks do
-			if player.Parent ~= nil and now - track.time <= C.HIDE_EVIDENCE_SECONDS
+			if
+				player.Parent ~= nil
+				and now - track.time <= C.HIDE_EVIDENCE_SECONDS
 				and track.clarity >= C.HIDE_EVIDENCE_CLARITY
-				and flat(track.position - point).Magnitude <= C.HIDE_EVIDENCE_RADIUS then
+				and flat(track.position - point).Magnitude <= C.HIDE_EVIDENCE_RADIUS
+			then
 				return true
 			end
 		end
-		if anonymousBreath and now - anonymousBreath.time <= C.HIDE_EVIDENCE_SECONDS
+		if
+			anonymousBreath
+			and now - anonymousBreath.time <= C.HIDE_EVIDENCE_SECONDS
 			and anonymousBreath.clarity >= C.HIDE_EVIDENCE_CLARITY
-			and flat(anonymousBreath.position - point).Magnitude <= C.HIDE_EVIDENCE_RADIUS then
+			and flat(anonymousBreath.position - point).Magnitude <= C.HIDE_EVIDENCE_RADIUS
+		then
 			return true
 		end
 		return false
@@ -168,9 +187,13 @@ function EvidenceMemory.new(): Memory
 		local direction = Vector3.zero
 		local freshest = -math.huge
 		for player, track in tracks do
-			if player.Parent ~= nil and now - track.time < C.TRACK_SECONDS
+			if
+				player.Parent ~= nil
+				and now - track.time < C.TRACK_SECONDS
 				and flat(track.position - center).Magnitude < M.SEARCH_RADIUS * 2
-				and track.velocity.Magnitude > 3 and track.time > freshest then
+				and track.velocity.Magnitude > 3
+				and track.time > freshest
+			then
 				freshest = track.time
 				direction = track.velocity.Unit
 			end

@@ -36,8 +36,13 @@ local radio: { RadioEntry } = {}
 local selectedTab = "papers"
 local openPanel = false
 
-local function frame(parent: Instance, name: string, size: UDim2,
-	position: UDim2, color: Color3): Frame
+local function frame(
+	parent: Instance,
+	name: string,
+	size: UDim2,
+	position: UDim2,
+	color: Color3
+): Frame
 	local f = Instance.new("Frame")
 	f.Name = name
 	f.Size = size
@@ -48,8 +53,14 @@ local function frame(parent: Instance, name: string, size: UDim2,
 	return f
 end
 
-local function text(parent: Instance, value: string, size: UDim2,
-	position: UDim2, fontSize: number, color: Color3): TextLabel
+local function text(
+	parent: Instance,
+	value: string,
+	size: UDim2,
+	position: UDim2,
+	fontSize: number,
+	color: Color3
+): TextLabel
 	local l = Instance.new("TextLabel")
 	l.Size = size
 	l.Position = position
@@ -65,8 +76,7 @@ local function text(parent: Instance, value: string, size: UDim2,
 	return l
 end
 
-local function button(parent: Instance, value: string, size: UDim2,
-	position: UDim2): TextButton
+local function button(parent: Instance, value: string, size: UDim2, position: UDim2): TextButton
 	local b = Instance.new("TextButton")
 	b.Size = size
 	b.Position = position
@@ -84,7 +94,8 @@ end
 local function isActive(state: Instance): boolean
 	local character = player.Character
 	return state:GetAttribute("Phase") == "Playing"
-		and character ~= nil and character:GetAttribute("InRound") == true
+		and character ~= nil
+		and character:GetAttribute("InRound") == true
 end
 
 function NotebookUi.start()
@@ -97,15 +108,19 @@ function NotebookUi.start()
 	gui.Parent = player:WaitForChild("PlayerGui")
 
 	-- A small always-available notebook affordance while exploring.
-	local toggle = button(gui, "NOTES [J]", UDim2.fromOffset(122, 34),
-		UDim2.new(1, -136, 0, 112))
+	local toggle = button(gui, "NOTES [J]", UDim2.fromOffset(122, 34), UDim2.new(1, -136, 0, 112))
 	toggle.Name = "NotebookToggle"
 	toggle.Visible = false
 	toggle.BackgroundColor3 = COLOR.panel
 	toggle.TextColor3 = COLOR.amber
 
-	local panel = frame(gui, "NotebookPanel", UDim2.new(1, -24, 1, -100),
-		UDim2.fromScale(0.5, 0.5), COLOR.panel)
+	local panel = frame(
+		gui,
+		"NotebookPanel",
+		UDim2.new(1, -24, 1, -100),
+		UDim2.fromScale(0.5, 0.5),
+		COLOR.panel
+	)
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)
 	panel.Visible = false
 	local cap = Instance.new("UISizeConstraint")
@@ -116,20 +131,25 @@ function NotebookUi.start()
 	stroke.Thickness = 2
 	stroke.Parent = panel
 
-	local header = text(panel, "FIELD NOTEBOOK", UDim2.new(1, -124, 0, 32),
-		UDim2.fromOffset(16, 12), 18, COLOR.amber)
+	local header = text(
+		panel,
+		"FIELD NOTEBOOK",
+		UDim2.new(1, -124, 0, 32),
+		UDim2.fromOffset(16, 12),
+		18,
+		COLOR.amber
+	)
 	header.TextWrapped = false
-	local close = button(panel, "Close", UDim2.fromOffset(90, 32),
-		UDim2.new(1, -106, 0, 12))
+	local close = button(panel, "Close", UDim2.fromOffset(90, 32), UDim2.new(1, -106, 0, 12))
 
-	local mission = text(panel, "", UDim2.new(1, -32, 0, 58),
-		UDim2.fromOffset(16, 52), 14, COLOR.paper)
+	local mission =
+		text(panel, "", UDim2.new(1, -32, 0, 58), UDim2.fromOffset(16, 52), 14, COLOR.paper)
 	mission.TextYAlignment = Enum.TextYAlignment.Top
 
-	local papersTab = button(panel, "FOUND PAPERS", UDim2.new(0.5, -20, 0, 35),
-		UDim2.fromOffset(16, 122))
-	local radioTab = button(panel, "RADIO LOG", UDim2.new(0.5, -20, 0, 35),
-		UDim2.new(0.5, 4, 0, 122))
+	local papersTab =
+		button(panel, "FOUND PAPERS", UDim2.new(0.5, -20, 0, 35), UDim2.fromOffset(16, 122))
+	local radioTab =
+		button(panel, "RADIO LOG", UDim2.new(0.5, -20, 0, 35), UDim2.new(0.5, 4, 0, 122))
 	local list = Instance.new("ScrollingFrame")
 	list.Name = "DiscoveredEntries"
 	list.Size = UDim2.new(1, -32, 1, -226)
@@ -145,9 +165,14 @@ function NotebookUi.start()
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Padding = UDim.new(0, 12)
 	layout.Parent = list
-	local footer = text(panel,
+	local footer = text(
+		panel,
 		"Only clues you've encountered this round. No location tracking or puzzle solutions added.",
-		UDim2.new(1, -32, 0, 44), UDim2.new(0, 16, 1, -53), 11, COLOR.muted)
+		UDim2.new(1, -32, 0, 44),
+		UDim2.new(0, 16, 1, -53),
+		11,
+		COLOR.muted
+	)
 	footer.TextYAlignment = Enum.TextYAlignment.Bottom
 
 	local function clearEntries()
@@ -159,8 +184,8 @@ function NotebookUi.start()
 	end
 
 	local function appendEntry(title: string, body: string, order: number)
-		local entry = text(list, title .. "\n\n" .. body, UDim2.new(1, -12, 0, 0),
-			UDim2.new(), 14, COLOR.ink)
+		local entry =
+			text(list, title .. "\n\n" .. body, UDim2.new(1, -12, 0, 0), UDim2.new(), 14, COLOR.ink)
 		entry.Name = "Entry"
 		entry.TextYAlignment = Enum.TextYAlignment.Top
 		entry.AutomaticSize = Enum.AutomaticSize.Y
@@ -171,23 +196,32 @@ function NotebookUi.start()
 		papersTab.BackgroundColor3 = if selectedTab == "papers" then COLOR.rule else COLOR.tab
 		radioTab.BackgroundColor3 = if selectedTab == "radio" then COLOR.rule else COLOR.tab
 		local objective = state:GetAttribute("ObjectiveText")
-		mission.Text = "CURRENT TASK\n" ..
-			(if type(objective) == "string" and objective ~= ""
-				then objective else "Follow the handler's instructions.")
+		mission.Text = "CURRENT TASK\n"
+			.. (
+				if type(objective) == "string" and objective ~= ""
+					then objective
+					else "Follow the handler's instructions."
+			)
 		clearEntries()
 		list.CanvasPosition = Vector2.zero
 		if selectedTab == "papers" then
 			if #papers == 0 then
-				appendEntry("NO PAPERS FOUND",
-					"Read the booking diary, session log, card index or memorial programme. Their text will be filed here after you examine them.", 1)
+				appendEntry(
+					"NO PAPERS FOUND",
+					"Read the booking diary, session log, card index or memorial programme. Their text will be filed here after you examine them.",
+					1
+				)
 			else
 				for index, paper in papers do
 					appendEntry(string.upper(paper.title), paper.body, index)
 				end
 			end
 		elseif #radio == 0 then
-			appendEntry("NO MESSAGES RECEIVED",
-				"Written radio messages appear here after they reach you. Mechanical noises and footsteps are not transcribed.", 1)
+			appendEntry(
+				"NO MESSAGES RECEIVED",
+				"Written radio messages appear here after they reach you. Mechanical noises and footsteps are not transcribed.",
+				1
+			)
 		else
 			for index, message in radio do
 				appendEntry(message.sender, message.body, index)
@@ -255,7 +289,8 @@ function NotebookUi.start()
 		if not isActive(state) or type(sender) ~= "string" or type(body) ~= "string" then
 			return
 		end
-		local heading = if sender == "1987 broadcast" then "1987 BROADCAST"
+		local heading = if sender == "1987 broadcast"
+			then "1987 BROADCAST"
 			elseif type(room) == "string" and room ~= "" then sender .. " / " .. room
 			else sender
 		table.insert(radio, { sender = heading, body = body })

@@ -14,8 +14,15 @@ local StudioStoreAssets = require(script.Parent.StudioStoreAssets)
 
 type Room = StudioLayout.Room
 type Portal = {
-	a: string, b: string, axis: string, at: number, along: number,
-	width: number, height: number, kind: string, name: string,
+	a: string,
+	b: string,
+	axis: string,
+	at: number,
+	along: number,
+	width: number,
+	height: number,
+	kind: string,
+	name: string,
 }
 
 local StudioGroundFloor = {}
@@ -41,8 +48,13 @@ local function folder(parent: Instance, name: string): Folder
 end
 
 local function part(
-	parent: Instance, name: string, at: Vector3, size: Vector3,
-	color: Color3, material: Enum.Material?, solid: boolean?
+	parent: Instance,
+	name: string,
+	at: Vector3,
+	size: Vector3,
+	color: Color3,
+	material: Enum.Material?,
+	solid: boolean?
 ): Part
 	local p = Instance.new("Part")
 	p.Name = name
@@ -72,8 +84,10 @@ local function plaque(parent: Instance, caption: string, at: Vector3, size: Vect
 	local backing = part(parent, "Sign_" .. caption, at, size, C.dark, nil, false)
 	local gui = Instance.new("SurfaceGui")
 	-- Shelf numbers and reception lettering face the aisle; security seals face the entry.
-	gui.Face = if string.find(caption, "SHELF", 1, true) or string.find(caption, "WRENMOUTH", 1, true)
-		then Enum.NormalId.Back else Enum.NormalId.Front
+	gui.Face = if string.find(caption, "SHELF", 1, true)
+			or string.find(caption, "WRENMOUTH", 1, true)
+		then Enum.NormalId.Back
+		else Enum.NormalId.Front
 	gui.PixelsPerStud = 28
 	gui.LightInfluence = 0.2
 	gui.Parent = backing
@@ -99,8 +113,10 @@ local function locatePortal(a: Room, b: Room, kind: string): Portal
 		overlap = hi - lo
 		along = (lo + hi) / 2
 	else
-		assert(math.abs(a.z2 - b.z1) < 0.01 or math.abs(b.z2 - a.z1) < 0.01,
-			a.name .. " / " .. b.name .. " are not adjacent")
+		assert(
+			math.abs(a.z2 - b.z1) < 0.01 or math.abs(b.z2 - a.z1) < 0.01,
+			a.name .. " / " .. b.name .. " are not adjacent"
+		)
 		axis = "z"
 		at = if math.abs(a.z2 - b.z1) < 0.01 then a.z2 else b.z2
 		local lo, hi = math.max(a.x1, b.x1), math.min(a.x2, b.x2)
@@ -109,38 +125,73 @@ local function locatePortal(a: Room, b: Room, kind: string): Portal
 	end
 	assert(overlap >= 12, "portal too narrow: " .. a.name .. " / " .. b.name)
 	return {
-		a = a.name, b = b.name, axis = axis, at = at, along = along,
+		a = a.name,
+		b = b.name,
+		axis = axis,
+		at = at,
+		along = along,
 		width = if kind == "open" then 15 else 9,
 		height = if kind == "open" then 12 else 10.5,
-		kind = kind, name = "Door_" .. a.name .. "_" .. b.name,
+		kind = kind,
+		name = "Door_" .. a.name .. "_" .. b.name,
 	}
 end
 
 local function wallPiece(
-	parent: Instance, axis: string, at: number, lo: number, hi: number,
-	bottom: number, top: number, color: Color3
+	parent: Instance,
+	axis: string,
+	at: number,
+	lo: number,
+	hi: number,
+	bottom: number,
+	top: number,
+	color: Color3
 )
 	if hi - lo < 0.04 or top - bottom < 0.04 then
 		return
 	end
 	if axis == "x" then
-		part(parent, "Wall", Vector3.new(at, (bottom + top) / 2, (lo + hi) / 2),
-			Vector3.new(0.8, top - bottom, hi - lo), color, Enum.Material.Concrete, true)
+		part(
+			parent,
+			"Wall",
+			Vector3.new(at, (bottom + top) / 2, (lo + hi) / 2),
+			Vector3.new(0.8, top - bottom, hi - lo),
+			color,
+			Enum.Material.Concrete,
+			true
+		)
 	else
-		part(parent, "Wall", Vector3.new((lo + hi) / 2, (bottom + top) / 2, at),
-			Vector3.new(hi - lo, top - bottom, 0.8), color, Enum.Material.Concrete, true)
+		part(
+			parent,
+			"Wall",
+			Vector3.new((lo + hi) / 2, (bottom + top) / 2, at),
+			Vector3.new(hi - lo, top - bottom, 0.8),
+			color,
+			Enum.Material.Concrete,
+			true
+		)
 	end
 end
 
 local function side(
-	parent: Instance, room: Room, portals: { Portal }, axis: string,
-	at: number, lo: number, hi: number, color: Color3
+	parent: Instance,
+	room: Room,
+	portals: { Portal },
+	axis: string,
+	at: number,
+	lo: number,
+	hi: number,
+	color: Color3
 )
 	local gaps: { Portal } = {}
 	for _, p in portals do
-		if (p.a == room.name or p.b == room.name) and p.axis == axis
+		if
+			(p.a == room.name or p.b == room.name)
+			and p.axis == axis
 			and math.abs(p.at - at) < 0.01
-			and p.along + p.width / 2 > lo and p.along - p.width / 2 < hi then
+			and p.along + p.width / 2 > lo
+			and p.along - p.width / 2 < hi
+		then
 			table.insert(gaps, p)
 		end
 	end
@@ -149,7 +200,8 @@ local function side(
 	end)
 	local cursor = lo
 	for _, gap in gaps do
-		local left, right = math.max(lo, gap.along - gap.width / 2), math.min(hi, gap.along + gap.width / 2)
+		local left, right =
+			math.max(lo, gap.along - gap.width / 2), math.min(hi, gap.along + gap.width / 2)
 		assert(left >= cursor - 0.01, "overlapping door openings in " .. room.name)
 		wallPiece(parent, axis, at, cursor, left, 0, room.height, color)
 		if gap.kind == "window" then
@@ -165,16 +217,29 @@ local function door(parent: Instance, decor: Instance, p: Portal, kind: string):
 	local center = if p.axis == "x"
 		then Vector3.new(p.at, 5.08, p.along)
 		else Vector3.new(p.along, 5.08, p.at)
-	local leaf = part(parent, p.name, center, Vector3.new(p.width - 0.3, 9.9, 0.36),
-		if kind == "booth" then C.foam else C.teal, Enum.Material.Wood, true)
+	local leaf = part(
+		parent,
+		p.name,
+		center,
+		Vector3.new(p.width - 0.3, 9.9, 0.36),
+		if kind == "booth" then C.foam else C.teal,
+		Enum.Material.Wood,
+		true
+	)
 	if p.axis == "x" then
 		leaf.CFrame *= CFrame.Angles(0, math.rad(90), 0)
 	end
 	leaf:SetAttribute("Kind", kind)
 	leaf:SetAttribute("Open", false)
-	local handle = part(decor, "DoorGrip_" .. p.name,
-		center + Vector3.new(0, 0, 0), Vector3.new(0.35, 0.8, 0.14), C.mustard,
-		Enum.Material.Metal, false)
+	local handle = part(
+		decor,
+		"DoorGrip_" .. p.name,
+		center + Vector3.new(0, 0, 0),
+		Vector3.new(0.35, 0.8, 0.14),
+		C.mustard,
+		Enum.Material.Metal,
+		false
+	)
 	handle.Anchored = false
 	handle.CFrame = leaf.CFrame * CFrame.new(p.width / 2 - 1.1, -0.6, -0.27)
 	local weld = Instance.new("WeldConstraint")
@@ -185,8 +250,12 @@ local function door(parent: Instance, decor: Instance, p: Portal, kind: string):
 end
 
 local function objective(
-	parent: Instance, name: string, at: Vector3, size: Vector3,
-	color: Color3, solid: boolean?
+	parent: Instance,
+	name: string,
+	at: Vector3,
+	size: Vector3,
+	color: Color3,
+	solid: boolean?
 ): Part
 	return part(parent, name, at, size, color, Enum.Material.SmoothPlastic, solid)
 end
@@ -229,16 +298,37 @@ function StudioGroundFloor.build(): Model
 	end
 	-- Acoustic sightlines: windows are not doorways. The solid glass keeps sound occlusion.
 	table.insert(portals, {
-		a = "ControlA", b = "LiveHall", axis = "x", at = -34, along = -97,
-		width = 10, height = 12.5, kind = "window", name = "TrackingWindow",
+		a = "ControlA",
+		b = "LiveHall",
+		axis = "x",
+		at = -34,
+		along = -97,
+		width = 10,
+		height = 12.5,
+		kind = "window",
+		name = "TrackingWindow",
 	})
 	table.insert(portals, {
-		a = "LiveHall", b = "ViewingGallery", axis = "z", at = -58, along = 29,
-		width = 15, height = 12.5, kind = "window", name = "ViewingWindow",
+		a = "LiveHall",
+		b = "ViewingGallery",
+		axis = "z",
+		at = -58,
+		along = 29,
+		width = 15,
+		height = 12.5,
+		kind = "window",
+		name = "ViewingWindow",
 	})
 	local entrance: Portal = {
-		a = "Reception", b = "Outside", axis = "z", at = 24, along = -43,
-		width = 11, height = 11, kind = "front", name = "FrontDoors",
+		a = "Reception",
+		b = "Outside",
+		axis = "z",
+		at = 24,
+		along = -43,
+		width = 11,
+		height = 11,
+		kind = "front",
+		name = "FrontDoors",
 	}
 	table.insert(portals, entrance)
 
@@ -284,18 +374,33 @@ function StudioGroundFloor.build(): Model
 	for _, room in rooms do
 		local center = Vector3.new((room.x1 + room.x2) / 2, 0, (room.z1 + room.z2) / 2)
 		local width, depth = room.x2 - room.x1, room.z2 - room.z1
-		local floorColor = if room.role == "live" then C.floor
+		local floorColor = if room.role == "live"
+			then C.floor
 			elseif room.role == "booth" then C.foam
 			elseif room.role == "service" or room.role == "stair" then C.navy
 			elseif room.role == "washroom" then C.pale
 			elseif room.role == "control" then C.teal
 			else C.wall
-		part(structure, room.name .. "_Floor", Vector3.new(center.X, -0.6, center.Z),
-			Vector3.new(width, 1.2, depth), floorColor,
-			if room.role == "live" or room.role == "break" then Enum.Material.WoodPlanks
-				else Enum.Material.Concrete, true)
-		part(structure, room.name .. "_Ceiling", Vector3.new(center.X, room.height + 0.55, center.Z),
-			Vector3.new(width, 1.1, depth), C.ceiling, nil, true)
+		part(
+			structure,
+			room.name .. "_Floor",
+			Vector3.new(center.X, -0.6, center.Z),
+			Vector3.new(width, 1.2, depth),
+			floorColor,
+			if room.role == "live" or room.role == "break"
+				then Enum.Material.WoodPlanks
+				else Enum.Material.Concrete,
+			true
+		)
+		part(
+			structure,
+			room.name .. "_Ceiling",
+			Vector3.new(center.X, room.height + 0.55, center.Z),
+			Vector3.new(width, 1.1, depth),
+			C.ceiling,
+			nil,
+			true
+		)
 		-- West and north walls are owned by this room; shared east/south
 		-- faces are owned by their neighbors. Prevents doubled acoustic walls.
 		side(structure, room, portals, "x", room.x1, room.z1, room.z2, C.wall)
@@ -304,50 +409,75 @@ function StudioGroundFloor.build(): Model
 		uncovered(room, "z", room.z2, room.x1, room.x2)
 
 		local roomArea = folder(areas, room.name)
-		helper(roomArea, "Bounds", Vector3.new(center.X, room.height / 2, center.Z),
-			Vector3.new(width - 0.6, room.height, depth - 0.6))
+		helper(
+			roomArea,
+			"Bounds",
+			Vector3.new(center.X, room.height / 2, center.Z),
+			Vector3.new(width - 0.6, room.height, depth - 0.6)
+		)
 		-- Default unobstructed center spot plus service/large-room patrol points.
 		local authoredSpots: { [string]: { Vector3 } } = {
 			TapeArchive = { Vector3.new(-71, 2.5, -119), Vector3.new(-76, 2.5, -118) },
 			ControlA = {
-				Vector3.new(-59, 2.5, -84), Vector3.new(-74, 2.5, -73),
-				Vector3.new(-45, 2.5, -85), Vector3.new(-66, 2.5, -67),
+				Vector3.new(-59, 2.5, -84),
+				Vector3.new(-74, 2.5, -73),
+				Vector3.new(-45, 2.5, -85),
+				Vector3.new(-66, 2.5, -67),
 			},
 			ControlB = { Vector3.new(-59, 2.5, -44), Vector3.new(-75, 2.5, -37) },
 			BreakRoom = {
-				Vector3.new(-67, 2.5, -23), Vector3.new(-44, 2.5, -11),
+				Vector3.new(-67, 2.5, -23),
+				Vector3.new(-44, 2.5, -11),
 				Vector3.new(-74, 2.5, -15),
 			},
 			Reception = {
-				Vector3.new(-38, 2.5, 8), Vector3.new(-20, 2.5, 18),
-				Vector3.new(-69, 2.5, -2), Vector3.new(-74, 2.5, 13),
+				Vector3.new(-38, 2.5, 8),
+				Vector3.new(-20, 2.5, 18),
+				Vector3.new(-69, 2.5, -2),
+				Vector3.new(-74, 2.5, 13),
 			},
 			ServicePass = { Vector3.new(61, 2.5, -82), Vector3.new(70, 2.5, -76) },
 			LiveHall = {
-				Vector3.new(5, 2.5, -82), Vector3.new(-25, 2.5, -86),
-				Vector3.new(-6, 2.5, -69), Vector3.new(24, 2.5, -99),
+				Vector3.new(5, 2.5, -82),
+				Vector3.new(-25, 2.5, -86),
+				Vector3.new(-6, 2.5, -69),
+				Vector3.new(24, 2.5, -99),
 				Vector3.new(35, 2.5, -70),
 			},
 		}
-		local points: { Vector3 } = authoredSpots[room.name] or { Vector3.new(center.X, 2.5, center.Z) }
-		if authoredSpots[room.name] == nil and width >= 40 and depth >= 24
-			and room.role ~= "washroom" then
+		local points: { Vector3 } = authoredSpots[room.name]
+			or { Vector3.new(center.X, 2.5, center.Z) }
+		if
+			authoredSpots[room.name] == nil
+			and width >= 40
+			and depth >= 24
+			and room.role ~= "washroom"
+		then
 			table.insert(points, Vector3.new(center.X - width / 4, 2.5, center.Z - depth / 5))
 			table.insert(points, Vector3.new(center.X + width / 4, 2.5, center.Z + depth / 5))
 		end
 		for _, at in points do
 			helper(roomArea, "Spot", at)
 		end
-		ceilingLamp(lamps, Vector3.new(center.X, room.height - 0.6, center.Z),
-			room.name == "LiveHall" or room.name == "Reception")
+		ceilingLamp(
+			lamps,
+			Vector3.new(center.X, room.height - 0.6, center.Z),
+			room.name == "LiveHall" or room.name == "Reception"
+		)
 		if room.name == "LiveHall" then
 			ceilingLamp(lamps, Vector3.new(center.X - 20, room.height - 0.6, center.Z + 12))
 			ceilingLamp(lamps, Vector3.new(center.X + 20, room.height - 0.6, center.Z - 12))
 		end
 		if room.role == "booth" then
-			part(props, "AcousticDamping_" .. room.name,
+			part(
+				props,
+				"AcousticDamping_" .. room.name,
 				Vector3.new(center.X, 7, room.z1 + 0.8),
-				Vector3.new(width - 4, 8, 0.24), C.foam, Enum.Material.Fabric, false)
+				Vector3.new(width - 4, 8, 0.24),
+				C.foam,
+				Enum.Material.Fabric,
+				false
+			)
 		end
 		if room.role == "corridor" or room.name == "LiveHall" or room.name == "Reception" then
 			helper(markers, "Speaker", Vector3.new(center.X, room.height - 1.5, center.Z))
@@ -360,199 +490,448 @@ function StudioGroundFloor.build(): Model
 				local centre = if p.axis == "x"
 					then Vector3.new(p.at, 9, p.along)
 					else Vector3.new(p.along, 9, p.at)
-				local size = if p.axis == "x" then Vector3.new(0.4, 7, p.width)
+				local size = if p.axis == "x"
+					then Vector3.new(0.4, 7, p.width)
 					else Vector3.new(p.width, 7, 0.4)
-				local glass = part(structure, p.name, centre, size,
-					Color3.fromRGB(96, 153, 156), Enum.Material.Glass, true)
+				local glass = part(
+					structure,
+					p.name,
+					centre,
+					size,
+					Color3.fromRGB(96, 153, 156),
+					Enum.Material.Glass,
+					true
+				)
 				glass.Transparency = 0.45
 			end
 			continue
 		end
 		if p.kind == "short" then
-			local center = if p.axis == "x" then Vector3.new(p.at, 5.1, p.along)
+			local center = if p.axis == "x"
+				then Vector3.new(p.at, 5.1, p.along)
 				else Vector3.new(p.along, 5.1, p.at)
 			local size = if p.axis == "x"
 				then Vector3.new(0.5, 10.2, p.width - 0.2)
 				else Vector3.new(p.width - 0.2, 10.2, 0.5)
-			local shutter = part(shutters, "ShortRouteQuarantine", center, size,
-				C.navy, Enum.Material.Metal, true)
+			local shutter = part(
+				shutters,
+				"ShortRouteQuarantine",
+				center,
+				size,
+				C.navy,
+				Enum.Material.Metal,
+				true
+			)
 			shutter:SetAttribute("Route", "short")
 			shutter:SetAttribute("StartsOpen", true)
 			continue
 		end
-		local kind = if p.kind == "front" then "front"
-			elseif p.kind == "booth" then "booth" else "normal"
+		local kind = if p.kind == "front"
+			then "front"
+			elseif p.kind == "booth" then "booth"
+			else "normal"
 		door(doors, props, p, kind)
 		if kind == "booth" then
 			local room = if byName[p.a].role == "booth" then byName[p.a] else byName[p.b]
-			local zone = helper(booths, room.name,
+			local zone = helper(
+				booths,
+				room.name,
 				Vector3.new((room.x1 + room.x2) / 2, room.height / 2, (room.z1 + room.z2) / 2),
-				Vector3.new(room.x2 - room.x1 - 1.2, room.height, room.z2 - room.z1 - 1.2))
+				Vector3.new(room.x2 - room.x1 - 1.2, room.height, room.z2 - room.z1 - 1.2)
+			)
 			zone:SetAttribute("Door", p.name)
 		end
 		if p.a == "ServicePass" and p.b == "LoadingBay" then
-			local g = part(shutters, "LoadingQuarantine", Vector3.new(80, 5.1, p.along),
-				Vector3.new(0.5, 10.2, p.width - 0.2), C.navy, Enum.Material.Metal, true)
+			local g = part(
+				shutters,
+				"LoadingQuarantine",
+				Vector3.new(80, 5.1, p.along),
+				Vector3.new(0.5, 10.2, p.width - 0.2),
+				C.navy,
+				Enum.Material.Metal,
+				true
+			)
 			g:SetAttribute("Route", "loading")
 			g:SetAttribute("StartsOpen", true)
 		end
 	end
 
 	-- Reception: front-of-house desk, dated records and the only round exit.
-	part(props, "ReceptionCounter", Vector3.new(-52, 1.55, 11),
-		Vector3.new(11, 3.1, 3), C.floor, Enum.Material.Wood, true)
-	objective(objectives, "BookingDiary", Vector3.new(-52, 3.25, 11),
-		Vector3.new(2.2, 0.3, 1.5), C.mustard, false)
-	plaque(props, "WRENMOUTH RECORDING / EST. 1974",
-		Vector3.new(-43, 13, -6.5), Vector3.new(27, 1.9, 0.2))
+	part(
+		props,
+		"ReceptionCounter",
+		Vector3.new(-52, 1.55, 11),
+		Vector3.new(11, 3.1, 3),
+		C.floor,
+		Enum.Material.Wood,
+		true
+	)
+	objective(
+		objectives,
+		"BookingDiary",
+		Vector3.new(-52, 3.25, 11),
+		Vector3.new(2.2, 0.3, 1.5),
+		C.mustard,
+		false
+	)
+	plaque(
+		props,
+		"WRENMOUTH RECORDING / EST. 1974",
+		Vector3.new(-43, 13, -6.5),
+		Vector3.new(27, 1.9, 0.2)
+	)
 	local front = doors:FindFirstChild("FrontDoors") :: BasePart
-	local slot = objective(objectives, "MailSlot", Vector3.new(-43, 3.7, 23.67),
-		Vector3.new(2, 0.3, 0.16), C.mustard, false)
+	local slot = objective(
+		objectives,
+		"MailSlot",
+		Vector3.new(-43, 3.7, 23.67),
+		Vector3.new(2, 0.3, 0.16),
+		C.mustard,
+		false
+	)
 	slot.Anchored = false
 	local slotWeld = Instance.new("WeldConstraint")
 	slotWeld.Part0 = front
 	slotWeld.Part1 = slot
 	slotWeld.Parent = slot
-	part(structure, "FrontStoop", Vector3.new(-43, -0.6, 29),
-		Vector3.new(24, 1.2, 12), C.navy, Enum.Material.Concrete, true)
+	part(
+		structure,
+		"FrontStoop",
+		Vector3.new(-43, -0.6, 29),
+		Vector3.new(24, 1.2, 12),
+		C.navy,
+		Enum.Material.Concrete,
+		true
+	)
 	helper(objectives, "ExitZone", Vector3.new(-43, 3.5, 30), Vector3.new(14, 7, 9))
-	plaque(props, "1987 / MAGNETIC QUARANTINE", Vector3.new(-43, 12.1, 23.5),
-		Vector3.new(18, 1.4, 0.2))
+	plaque(
+		props,
+		"1987 / MAGNETIC QUARANTINE",
+		Vector3.new(-43, 12.1, 23.5),
+		Vector3.new(18, 1.4, 0.2)
+	)
 
 	-- Tape/control cluster: the engineer can directly see the live performance.
-	objective(objectives, "TapeMachine", Vector3.new(-73, 3.3, -94),
-		Vector3.new(7, 6.6, 3), C.dark, true)
+	objective(
+		objectives,
+		"TapeMachine",
+		Vector3.new(-73, 3.3, -94),
+		Vector3.new(7, 6.6, 3),
+		C.dark,
+		true
+	)
 	for i = 1, 3 do
-		local reel = part(props, "ReelGuide", Vector3.new(-75.8 + i * 1.8, 5.4, -92.3),
-			Vector3.new(1.5, 1.5, 0.2), C.mustard, Enum.Material.Metal, false)
+		local reel = part(
+			props,
+			"ReelGuide",
+			Vector3.new(-75.8 + i * 1.8, 5.4, -92.3),
+			Vector3.new(1.5, 1.5, 0.2),
+			C.mustard,
+			Enum.Material.Metal,
+			false
+		)
 		reel.Shape = Enum.PartType.Cylinder
 	end
-	objective(objectives, "MixingDesk", Vector3.new(-56, 1.6, -78),
-		Vector3.new(11, 3.2, 4), C.teal, true)
+	objective(
+		objectives,
+		"MixingDesk",
+		Vector3.new(-56, 1.6, -78),
+		Vector3.new(11, 3.2, 4),
+		C.teal,
+		true
+	)
 	-- The original gameplay volume is preserved. The actual 16-channel
 	-- hero visual is built by StudioHeroConsole in the production dressing.
 	-- Move the same SessionLog objective to a visible reader shelf in front
 	-- of the desk instead of covering the EQ/faders with the paper prompt.
-	objective(objectives, "SessionLog", Vector3.new(-57, 3.68, -75.65),
-		Vector3.new(2, 0.2, 1.2), C.pale, false)
-	objective(objectives, "PatchBay", Vector3.new(-39, 3.6, -96),
-		Vector3.new(4, 4.8, 0.7), C.navy, true)
-	objective(objectives, "Safe", Vector3.new(-75, 2.5, -48),
-		Vector3.new(4, 5, 3), C.navy, true)
+	objective(
+		objectives,
+		"SessionLog",
+		Vector3.new(-57, 3.68, -75.65),
+		Vector3.new(2, 0.2, 1.2),
+		C.pale,
+		false
+	)
+	objective(
+		objectives,
+		"PatchBay",
+		Vector3.new(-39, 3.6, -96),
+		Vector3.new(4, 4.8, 0.7),
+		C.navy,
+		true
+	)
+	objective(objectives, "Safe", Vector3.new(-75, 2.5, -48), Vector3.new(4, 5, 3), C.navy, true)
 
 	-- Archive: index at the door, shelving on rear and side walls.
-	objective(objectives, "CardIndex", Vector3.new(-79, 2.6, -113),
-		Vector3.new(3.2, 5.2, 2.3), C.teal, true)
+	objective(
+		objectives,
+		"CardIndex",
+		Vector3.new(-79, 2.6, -113),
+		Vector3.new(3.2, 5.2, 2.3),
+		C.teal,
+		true
+	)
 	for i, x in { -77, -72, -67, -62 } do
-		part(props, "ArchiveShelf_" .. tostring(i), Vector3.new(x, 3.1, -129.2),
-			Vector3.new(4.1, 6.2, 1.4), C.floor, Enum.Material.Wood, true)
+		part(
+			props,
+			"ArchiveShelf_" .. tostring(i),
+			Vector3.new(x, 3.1, -129.2),
+			Vector3.new(4.1, 6.2, 1.4),
+			C.floor,
+			Enum.Material.Wood,
+			true
+		)
 		local mark = helper(markers, "ReelSpot", Vector3.new(x, 5.3, -128.3))
 		mark:SetAttribute("Shelf", tostring(i))
-		plaque(props, "SHELF " .. tostring(i), Vector3.new(x, 7, -128.25),
-			Vector3.new(3.8, 0.9, 0.12))
+		plaque(
+			props,
+			"SHELF " .. tostring(i),
+			Vector3.new(x, 7, -128.25),
+			Vector3.new(3.8, 0.9, 0.12)
+		)
 	end
 	-- Studio live hall: central playable tracking space, not an obstacle field.
-	objective(objectives, "RoadCase", Vector3.new(19, 1.6, -81),
-		Vector3.new(6, 3.2, 4), C.dark, true)
-	part(props, "InstrumentRiser", Vector3.new(-18, 0.35, -96),
-		Vector3.new(10, 0.7, 7), C.floor, Enum.Material.WoodPlanks, true)
+	objective(
+		objectives,
+		"RoadCase",
+		Vector3.new(19, 1.6, -81),
+		Vector3.new(6, 3.2, 4),
+		C.dark,
+		true
+	)
+	part(
+		props,
+		"InstrumentRiser",
+		Vector3.new(-18, 0.35, -96),
+		Vector3.new(10, 0.7, 7),
+		C.floor,
+		Enum.Material.WoodPlanks,
+		true
+	)
 	for _, x in { -16, -12, -8 } do
-		part(props, "MicrophoneStand", Vector3.new(x, 3, -94),
-			Vector3.new(0.25, 6, 0.25), C.navy, Enum.Material.Metal, false)
+		part(
+			props,
+			"MicrophoneStand",
+			Vector3.new(x, 3, -94),
+			Vector3.new(0.25, 6, 0.25),
+			C.navy,
+			Enum.Material.Metal,
+			false
+		)
 	end
-	plaque(props, "LIVE RECORDING / QUIET", Vector3.new(5, 9, -57.7),
-		Vector3.new(16, 1.4, 0.2))
+	plaque(props, "LIVE RECORDING / QUIET", Vector3.new(5, 9, -57.7), Vector3.new(16, 1.4, 0.2))
 
 	-- Staff and visitor needs: two toilets in the correct zones and a janitor store.
-	part(props, "BreakTable", Vector3.new(-55, 1.5, -17.5),
-		Vector3.new(7, 3, 3.5), C.floor, Enum.Material.Wood, true)
-	objective(objectives, "MemorialProgramme", Vector3.new(-55, 3.2, -17.5),
-		Vector3.new(2.3, 0.2, 1.5), C.pale, false)
-	objective(objectives, "Spares", Vector3.new(-78, 3.5, -23),
-		Vector3.new(4, 7, 2.7), C.navy, true)
-	for _, spec in {
-		{ name = "Staff", x = 70, z = -45 },
-		{ name = "Visitor", x = 71, z = 0 },
-	} do
-		part(props, spec.name .. "_Toilet", Vector3.new(spec.x + 4, 1.1, spec.z - 4),
-			Vector3.new(2.2, 2.2, 3), C.pale, Enum.Material.SmoothPlastic, false)
-		part(props, spec.name .. "_Sink", Vector3.new(spec.x - 5, 2.3, spec.z + 3),
-			Vector3.new(3.2, 1.1, 1.8), C.teal, Enum.Material.SmoothPlastic, false)
+	part(
+		props,
+		"BreakTable",
+		Vector3.new(-55, 1.5, -17.5),
+		Vector3.new(7, 3, 3.5),
+		C.floor,
+		Enum.Material.Wood,
+		true
+	)
+	objective(
+		objectives,
+		"MemorialProgramme",
+		Vector3.new(-55, 3.2, -17.5),
+		Vector3.new(2.3, 0.2, 1.5),
+		C.pale,
+		false
+	)
+	objective(
+		objectives,
+		"Spares",
+		Vector3.new(-78, 3.5, -23),
+		Vector3.new(4, 7, 2.7),
+		C.navy,
+		true
+	)
+	for _, spec in
+		{
+			{ name = "Staff", x = 70, z = -45 },
+			{ name = "Visitor", x = 71, z = 0 },
+		}
+	do
+		part(
+			props,
+			spec.name .. "_Toilet",
+			Vector3.new(spec.x + 4, 1.1, spec.z - 4),
+			Vector3.new(2.2, 2.2, 3),
+			C.pale,
+			Enum.Material.SmoothPlastic,
+			false
+		)
+		part(
+			props,
+			spec.name .. "_Sink",
+			Vector3.new(spec.x - 5, 2.3, spec.z + 3),
+			Vector3.new(3.2, 1.1, 1.8),
+			C.teal,
+			Enum.Material.SmoothPlastic,
+			false
+		)
 	end
-	part(props, "JanitorShelf", Vector3.new(74, 3.8, -28),
-		Vector3.new(7, 7.6, 1.5), C.navy, Enum.Material.Metal, false)
-	part(props, "MopBucket", Vector3.new(76, 0.8, -21),
-		Vector3.new(2, 1.6, 2), C.mustard, nil, false)
-	plaque(props, "CLEANING / STAFF ONLY", Vector3.new(65, 9, -18),
-		Vector3.new(9, 1.1, 0.2))
+	part(
+		props,
+		"JanitorShelf",
+		Vector3.new(74, 3.8, -28),
+		Vector3.new(7, 7.6, 1.5),
+		C.navy,
+		Enum.Material.Metal,
+		false
+	)
+	part(
+		props,
+		"MopBucket",
+		Vector3.new(76, 0.8, -21),
+		Vector3.new(2, 1.6, 2),
+		C.mustard,
+		nil,
+		false
+	)
+	plaque(props, "CLEANING / STAFF ONLY", Vector3.new(65, 9, -18), Vector3.new(9, 1.1, 0.2))
 
 	-- Load-in for instruments (no extra exterior escape) and dedicated machine racks.
 	for _, x in { 51, 61, 71 } do
-		part(props, "MachineRack", Vector3.new(x, 4, -127),
-			Vector3.new(4, 8, 2), C.dark, Enum.Material.Metal, true)
+		part(
+			props,
+			"MachineRack",
+			Vector3.new(x, 4, -127),
+			Vector3.new(4, 8, 2),
+			C.dark,
+			Enum.Material.Metal,
+			true
+		)
 	end
-	part(props, "LoadingFlightCase", Vector3.new(97, 1.8, -96),
-		Vector3.new(5, 3.6, 4), C.dark, Enum.Material.Metal, true)
+	part(
+		props,
+		"LoadingFlightCase",
+		Vector3.new(97, 1.8, -96),
+		Vector3.new(5, 3.6, 4),
+		C.dark,
+		Enum.Material.Metal,
+		true
+	)
 
 	-- Functional hiding containers: every placement is close to a patrol Spot.
-	for _, data in {
-		{ name = "ArchiveLocker", x = -80, z = -119, dx = 1, dz = 0, kind = "locker" },
-		{ name = "ControlAWardrobe", x = -80, z = -73, dx = 1, dz = 0, kind = "wardrobe" },
-		{ name = "ControlBLocker", x = -80, z = -37, dx = 1, dz = 0, kind = "locker" },
-		{ name = "BreakWardrobe", x = -80, z = -15, dx = 1, dz = 0, kind = "wardrobe" },
-		{ name = "ReceptionLocker", x = -80, z = 13, dx = 1, dz = 0, kind = "locker" },
-		{ name = "ServiceLocker", x = 75, z = -76, dx = -1, dz = 0, kind = "locker" },
-		{ name = "LiveWardrobe", x = 39, z = -72, dx = -1, dz = 0, kind = "wardrobe" },
-	} do
-		local p = part(hiding, data.name, Vector3.new(data.x, 3.85, data.z),
+	for _, data in
+		{
+			{ name = "ArchiveLocker", x = -80, z = -119, dx = 1, dz = 0, kind = "locker" },
+			{ name = "ControlAWardrobe", x = -80, z = -73, dx = 1, dz = 0, kind = "wardrobe" },
+			{ name = "ControlBLocker", x = -80, z = -37, dx = 1, dz = 0, kind = "locker" },
+			{ name = "BreakWardrobe", x = -80, z = -15, dx = 1, dz = 0, kind = "wardrobe" },
+			{ name = "ReceptionLocker", x = -80, z = 13, dx = 1, dz = 0, kind = "locker" },
+			{ name = "ServiceLocker", x = 75, z = -76, dx = -1, dz = 0, kind = "locker" },
+			{ name = "LiveWardrobe", x = 39, z = -72, dx = -1, dz = 0, kind = "wardrobe" },
+		}
+	do
+		local p = part(
+			hiding,
+			data.name,
+			Vector3.new(data.x, 3.85, data.z),
 			Vector3.new(3.7, 7.7, 3.4),
-			if data.kind == "locker" then C.navy else C.floor, Enum.Material.Wood, true)
+			if data.kind == "locker" then C.navy else C.floor,
+			Enum.Material.Wood,
+			true
+		)
 		p.CFrame = CFrame.lookAt(p.Position, p.Position + Vector3.new(data.dx, 0, data.dz))
 		p:SetAttribute("Kind", data.kind)
 	end
 
-	for _, pos in {
-		Vector3.new(-55, 1.4, -42), Vector3.new(1, 1.4, -42),
-		Vector3.new(78, 1.4, -67), Vector3.new(-43, 3.3, -16),
-		Vector3.new(91, 1.4, -81), Vector3.new(-63, 3.1, -118),
-	} do
+	for _, pos in
+		{
+			Vector3.new(-55, 1.4, -42),
+			Vector3.new(1, 1.4, -42),
+			Vector3.new(78, 1.4, -67),
+			Vector3.new(-43, 3.3, -16),
+			Vector3.new(91, 1.4, -81),
+			Vector3.new(-63, 3.1, -118),
+		}
+	do
 		helper(markers, "OptionalTapeSpot", pos)
 	end
-	for _, spec in {
-		{ at = Vector3.new(-63, 1.1, 15), item = "bottle" },
-		{ at = Vector3.new(-13, 1.1, -75), item = "can" },
-		{ at = Vector3.new(67, 1.1, -91), item = "pipe" },
-		{ at = Vector3.new(-50, 1.1, -23), item = "can" },
-		{ at = Vector3.new(95, 1.1, -73), item = "pipe" },
-	} do
+	for _, spec in
+		{
+			{ at = Vector3.new(-63, 1.1, 15), item = "bottle" },
+			{ at = Vector3.new(-13, 1.1, -75), item = "can" },
+			{ at = Vector3.new(67, 1.1, -91), item = "pipe" },
+			{ at = Vector3.new(-50, 1.1, -23), item = "can" },
+			{ at = Vector3.new(95, 1.1, -73), item = "pipe" },
+		}
+	do
 		helper(markers, "Throwable", spec.at):SetAttribute("Item", spec.item)
 	end
 
 	-- Stairwell is visible from front-of-house, but the two later chapters remain shut.
-	local ramp = part(structure, "StairCollisionRamp", Vector3.new(71, 3.9, 14.7),
-		Vector3.new(9, 0.9, 15), C.navy, Enum.Material.Concrete, true)
+	local ramp = part(
+		structure,
+		"StairCollisionRamp",
+		Vector3.new(71, 3.9, 14.7),
+		Vector3.new(9, 0.9, 15),
+		C.navy,
+		Enum.Material.Concrete,
+		true
+	)
 	ramp.CFrame = CFrame.new(71, 3.9, 14.7) * CFrame.Angles(math.rad(-26), 0, 0)
-	part(structure, "StairLanding", Vector3.new(71, 7.3, 21),
-		Vector3.new(11, 0.9, 5), C.navy, Enum.Material.Concrete, true)
+	part(
+		structure,
+		"StairLanding",
+		Vector3.new(71, 7.3, 21),
+		Vector3.new(11, 0.9, 5),
+		C.navy,
+		Enum.Material.Concrete,
+		true
+	)
 	for i = 0, 6 do
-		part(props, "Step", Vector3.new(71, i + 0.15, 8.8 + i * 1.8),
-			Vector3.new(9, 0.2, 1.8), C.mustard, Enum.Material.Concrete, false)
+		part(
+			props,
+			"Step",
+			Vector3.new(71, i + 0.15, 8.8 + i * 1.8),
+			Vector3.new(9, 0.2, 1.8),
+			C.mustard,
+			Enum.Material.Concrete,
+			false
+		)
 	end
-	local sealed = part(doors, "BasementQuarantine", Vector3.new(71, 5.1, 7.1),
-		Vector3.new(8.4, 10, 0.4), C.navy, Enum.Material.Metal, true)
+	local sealed = part(
+		doors,
+		"BasementQuarantine",
+		Vector3.new(71, 5.1, 7.1),
+		Vector3.new(8.4, 10, 0.4),
+		C.navy,
+		Enum.Material.Metal,
+		true
+	)
 	sealed:SetAttribute("Kind", "sealed")
-	plaque(props, "NAVY / BASEMENT SEALED 1987", Vector3.new(71, 10.2, 6.8),
-		Vector3.new(11, 1.1, 0.2))
-	local flat = part(doors, "FlatBarricade", Vector3.new(71, 12.3, 23.2),
-		Vector3.new(8.4, 9.9, 0.4), C.floor, Enum.Material.Wood, true)
+	plaque(
+		props,
+		"NAVY / BASEMENT SEALED 1987",
+		Vector3.new(71, 10.2, 6.8),
+		Vector3.new(11, 1.1, 0.2)
+	)
+	local flat = part(
+		doors,
+		"FlatBarricade",
+		Vector3.new(71, 12.3, 23.2),
+		Vector3.new(8.4, 9.9, 0.4),
+		C.floor,
+		Enum.Material.Wood,
+		true
+	)
 	flat:SetAttribute("Kind", "barricaded")
-	plaque(props, "FLAT / BARRICADED", Vector3.new(71, 17.9, 23.5),
-		Vector3.new(11, 1.1, 0.2))
+	plaque(props, "FLAT / BARRICADED", Vector3.new(71, 17.9, 23.5), Vector3.new(11, 1.1, 0.2))
 	-- Future lift shaft from basement to flat, reached through the rear load-in.
-	part(props, "NavyLiftShaftSeal", Vector3.new(103, 5.5, -101),
-		Vector3.new(11, 11, 0.8), C.navy, Enum.Material.Metal, true)
-	plaque(props, "NAVY SERVICE LIFT", Vector3.new(103, 11.5, -100.45),
-		Vector3.new(11, 1.1, 0.2))
+	part(
+		props,
+		"NavyLiftShaftSeal",
+		Vector3.new(103, 5.5, -101),
+		Vector3.new(11, 11, 0.8),
+		C.navy,
+		Enum.Material.Metal,
+		true
+	)
+	plaque(props, "NAVY SERVICE LIFT", Vector3.new(103, 11.5, -100.45), Vector3.new(11, 1.1, 0.2))
 
 	local spawn = helper(markers, "PlayerSpawn", Vector3.new(-43, 2.5, 17))
 	spawn.CFrame = CFrame.lookAt(spawn.Position, spawn.Position + Vector3.new(0, 0, -1))

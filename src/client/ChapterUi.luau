@@ -154,8 +154,12 @@ local function showRethread(data: any)
 	local function refresh()
 		progress.Text = if #chosen == 0
 			then "Guides: 0/" .. tostring(#order) .. "  /  Start at the supply reel"
-			else "Guides: " .. tostring(#chosen) .. "/" .. tostring(#order)
-				.. "  /  " .. table.concat(chosen, " > ")
+			else "Guides: "
+				.. tostring(#chosen)
+				.. "/"
+				.. tostring(#order)
+				.. "  /  "
+				.. table.concat(chosen, " > ")
 	end
 	refresh()
 

@@ -41,18 +41,28 @@ local bloom: BloomEffect? = nil
 local consoleIndicators: { BasePart } = {}
 
 local WARM_ROOMS: { [string]: boolean } = {
-	ControlA = true, ControlB = true, MasteringSuite = true,
-	Reception = true, BreakRoom = true,
+	ControlA = true,
+	ControlB = true,
+	MasteringSuite = true,
+	Reception = true,
+	BreakRoom = true,
 }
 local MUSIC_ROOMS: { [string]: boolean } = {
 	LiveHall = true,
-	IsolationWest = true, IsolationVocal = true, IsolationDrums = true,
+	IsolationWest = true,
+	IsolationVocal = true,
+	IsolationDrums = true,
 	TapeArchive = true,
 }
 local COLD_ROOMS: { [string]: boolean } = {
-	ServicePass = true, ServiceHall = true, MachineRoom = true,
-	LoadingBay = true, JanitorCloset = true, Stairwell = true,
-	StaffWC = true, PublicWC = true,
+	ServicePass = true,
+	ServiceHall = true,
+	MachineRoom = true,
+	LoadingBay = true,
+	JanitorCloset = true,
+	Stairwell = true,
+	StaffWC = true,
+	PublicWC = true,
 }
 
 local function colorFor(room: string, role: string): Color3
@@ -195,10 +205,12 @@ local function show()
 			if not on then
 				led.Color = Color3.fromRGB(29, 32, 30)
 			elseif kind == "record" then
-				led.Color = if state == "red" then Color3.fromRGB(222, 68, 52)
+				led.Color = if state == "red"
+					then Color3.fromRGB(222, 68, 52)
 					else Color3.fromRGB(159, 86, 52)
 			else
-				led.Color = if state == "red" then Color3.fromRGB(83, 112, 93)
+				led.Color = if state == "red"
+					then Color3.fromRGB(83, 112, 93)
 					else Color3.fromRGB(120, 151, 102)
 			end
 		end
@@ -209,9 +221,12 @@ local function grade()
 	if not authored or ownsLighting then
 		return
 	end
-	Lighting.ExposureCompensation = if state == "dead" then 0.04
-		elseif state == "woken" then -0.02 else -0.09
-	Lighting.Ambient = if state == "dead" then Color3.fromRGB(9, 13, 18)
+	Lighting.ExposureCompensation = if state == "dead"
+		then 0.04
+		elseif state == "woken" then -0.02
+		else -0.09
+	Lighting.Ambient = if state == "dead"
+		then Color3.fromRGB(9, 13, 18)
 		elseif state == "woken" then Color3.fromRGB(15, 17, 20)
 		else Color3.fromRGB(11, 17, 21)
 	Lighting.OutdoorAmbient = Color3.fromRGB(21, 28, 35)
@@ -220,7 +235,8 @@ local function grade()
 		correction.Contrast = if state == "red" then 0.16 else 0.11
 		correction.Saturation = if state == "red" then -0.18 else -0.11
 		correction.TintColor = if state == "red"
-			then Color3.fromRGB(232, 239, 245) else Color3.fromRGB(251, 246, 237)
+			then Color3.fromRGB(232, 239, 245)
+			else Color3.fromRGB(251, 246, 237)
 	end
 	if bloom then
 		-- A controlled hint of glow around lamps and indicator lenses only.
@@ -253,8 +269,13 @@ local function startFlicker(myGeneration: number)
 			for _, lamp in lamps do
 				local p = lamp.part
 				local role = if p then p:GetAttribute("LightRole") else nil
-				if role ~= "Guide" and role ~= "Task" and role ~= "Emergency"
-					and #lamp.lights > 0 and lamp.lights[1].Enabled then
+				if
+					role ~= "Guide"
+					and role ~= "Task"
+					and role ~= "Emergency"
+					and #lamp.lights > 0
+					and lamp.lights[1].Enabled
+				then
 					table.insert(candidates, lamp)
 				end
 			end
@@ -367,7 +388,10 @@ function LightingService.init(layout: MapContract.Layout)
 	local console = layout.map:FindFirstChild("HeroMixConsole", true)
 	if console then
 		for _, descendant in console:GetDescendants() do
-			if descendant:IsA("BasePart") and descendant:GetAttribute("ConsoleIndicator") ~= nil then
+			if
+				descendant:IsA("BasePart")
+				and descendant:GetAttribute("ConsoleIndicator") ~= nil
+			then
 				table.insert(consoleIndicators, descendant)
 			end
 		end

@@ -283,8 +283,11 @@ local function cardIndexText(): string
 		local title = table.remove(titles, rng:NextInteger(1, #titles)) :: string
 		table.insert(cards, {
 			number = number,
-			text = Text.cardOrdinary(number, title,
-				tostring(rng:NextInteger(1, math.max(1, #Kit.layout().reelSpots)))),
+			text = Text.cardOrdinary(
+				number,
+				title,
+				tostring(rng:NextInteger(1, math.max(1, #Kit.layout().reelSpots)))
+			),
 		})
 	end
 
@@ -363,7 +366,8 @@ local function setUpArchiveReel()
 			used[otherNumber] = true
 			local shelfId = other:GetAttribute("Shelf")
 			local shelfName = if type(shelfId) == "string"
-				then shelfId else tostring(table.find(layout.reelSpots, other))
+				then shelfId
+				else tostring(table.find(layout.reelSpots, other))
 			state.shelfLabels[shelfName] = otherNumber
 			Kit.prompt(decoy, "Read the label", otherNumber, 0, function(player)
 				Kit.notify(player, "Reel " .. otherNumber .. ". Not one of the three.")
@@ -461,7 +465,9 @@ local function setUpSafe()
 			return
 		end
 		if answer == S.SAFE_COMBO then
-			if not giveReel(player, "C", safe.Position + Vector3.new(0, safe.Size.Y / 2 + 0.3, 0)) then
+			if
+				not giveReel(player, "C", safe.Position + Vector3.new(0, safe.Size.Y / 2 + 0.3, 0))
+			then
 				return
 			end
 			state.safeOpened = true

@@ -349,9 +349,9 @@ local function startSearch(center: Vector3)
 	end
 	for _, spot in hidingSpots do
 		local d = (spot.Position - center).Magnitude
-		local chance = if hasEvidence then Config.HIDE.CHECK_CHANCE
-			else C.GENERIC_HIDE_CHECK
-		if d < M.SEARCH_RADIUS
+		local chance = if hasEvidence then Config.HIDE.CHECK_CHANCE else C.GENERIC_HIDE_CHECK
+		if
+			d < M.SEARCH_RADIUS
 			and ((hasEvidence and spot == closestSpot) or rng:NextNumber() < chance)
 		then
 			local front = spot.CFrame * CFrame.new(0, 0, -(spot.Size.Z / 2 + 2.2))
@@ -431,9 +431,13 @@ local function react(stimulus: Perception.Stimulus)
 	if state == "Hunt" then
 		if source and source == huntTarget then
 			updateTrack(stimulus.estimate, now)
-		elseif source and isTarget(source) and now - lastHeard > C.SWITCH_HUNT_AFTER
+		elseif
+			source
+			and isTarget(source)
+			and now - lastHeard > C.SWITCH_HUNT_AFTER
 			and stimulus.clarity >= C.SWITCH_HUNT_CLARITY
-			and stimulus.distance <= M.CHASE_LOCK_DISTANCE then
+			and stimulus.distance <= M.CHASE_LOCK_DISTANCE
+		then
 			-- A nearby new voice can draw it off a quarry that went silent.
 			-- Chase the source's sound estimate, not their current RootPart.
 			endLunge(now)
@@ -456,10 +460,13 @@ local function react(stimulus: Perception.Stimulus)
 		Perception.set(math.max(awareness, M.HURRY_AT))
 		awareness = Perception.awareness()
 	end
-	if source and isTarget(source)
+	if
+		source
+		and isTarget(source)
 		and awareness >= M.HUNT_AT
 		and stimulus.clarity >= 0.3
-		and stimulus.distance <= M.CHASE_LOCK_DISTANCE then
+		and stimulus.distance <= M.CHASE_LOCK_DISTANCE
+	then
 		startHunt(source, stimulus.estimate)
 	elseif awareness >= M.INVESTIGATE_AT or stimulus.loud then
 		local goal = if source and isTarget(source)
@@ -467,8 +474,9 @@ local function react(stimulus: Perception.Stimulus)
 			else stimulus.estimate
 		investigateKind = stimulus.kind
 		startInvestigate(goal, stimulus.loud or awareness >= M.HURRY_AT)
-	elseif awareness >= M.LISTEN_AT
-		and (state == "Roam" or state == "Search" or state == "Listen") then
+	elseif
+		awareness >= M.LISTEN_AT and (state == "Roam" or state == "Search" or state == "Listen")
+	then
 		startListen(stimulus.estimate)
 	end
 end
@@ -548,8 +556,11 @@ local function updateLunge(now: number, h: Humanoid, r: BasePart): boolean
 	end
 	local heardAt = lastKnown
 	-- Blind lunges require recent audio close to the current target position.
-	if not heardAt or flat(targetRoot.Position - heardAt).Magnitude
-		> C.LUNGE_EVIDENCE_RADIUS + math.min(now - lastHeard, 1) * Config.SPRINT_SPEED then
+	if
+		not heardAt
+		or flat(targetRoot.Position - heardAt).Magnitude
+			> C.LUNGE_EVIDENCE_RADIUS + math.min(now - lastHeard, 1) * Config.SPRINT_SPEED
+	then
 		return false
 	end
 	local ignore: { Instance } = { model :: Model }
@@ -754,8 +765,7 @@ local function think(now: number)
 		local lunging = updateLunge(now, h, r)
 		if not lunging then
 			-- Right after hearing them it knows roughly where they are; after that, it predicts.
-			local goal = memory.predicted(target, now)
-				or (known + heading * math.min(silence, 1.5))
+			local goal = memory.predicted(target, now) or (known + heading * math.min(silence, 1.5))
 			n.moveTo(goal, true)
 			if n.status() == "Failed" then
 				n.moveTo(known, false)

@@ -80,8 +80,9 @@ local function attachPlayer(player: Player)
 	player.CharacterAdded:Connect(function(character)
 		task.defer(function()
 			if character.Parent then
-				character:PivotTo(spawnPart.CFrame
-					+ Vector3.new(math.random(-2, 2), 2.6, math.random(-2, 2)))
+				character:PivotTo(
+					spawnPart.CFrame + Vector3.new(math.random(-2, 2), 2.6, math.random(-2, 2))
+				)
 			end
 		end)
 	end)

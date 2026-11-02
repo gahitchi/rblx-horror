@@ -167,8 +167,14 @@ function HubUi.start()
 	kitPanel.Parent = gui
 	rounded(kitPanel, 6)
 	local kitClose = button(kitPanel, "Close", UDim2.fromOffset(88, 28), UDim2.new(1, -104, 0, 12))
-	label(kitPanel, "THE HANDLER / CREW KIT", UDim2.fromOffset(300, 28),
-		UDim2.fromOffset(18, 12), 18).TextColor3 = ACCENT
+	label(
+		kitPanel,
+		"THE HANDLER / CREW KIT",
+		UDim2.fromOffset(300, 28),
+		UDim2.fromOffset(18, 12),
+		18
+	).TextColor3 =
+		ACCENT
 	local kitStatus = label(kitPanel, "", UDim2.fromOffset(408, 44), UDim2.fromOffset(18, 48), 13)
 	kitStatus.TextWrapped = true
 	local skinList = Instance.new("ScrollingFrame")
@@ -187,7 +193,8 @@ function HubUi.start()
 		local level = player:GetAttribute("Level")
 		local lv = if type(level) == "number" then level else 1
 		local current = player:GetAttribute("FlashlightSkin")
-		kitStatus.Text = "LEVEL " .. tostring(lv)
+		kitStatus.Text = "LEVEL "
+			.. tostring(lv)
 			.. "  ·  Flashlight colour only. All styles are earned for free."
 		for _, child in skinList:GetChildren() do
 			if child:IsA("TextButton") then
@@ -206,9 +213,12 @@ function HubUi.start()
 				end
 			end
 			local unlocked = lv >= required
-			local suffix = if not unlocked then "  /  LEVEL " .. tostring(required)
-				elseif current == id then "  /  EQUIPPED" else "  /  EQUIP"
-			local entry = button(skinList, info.name .. suffix, UDim2.new(1, -8, 0, 34), UDim2.new())
+			local suffix = if not unlocked
+				then "  /  LEVEL " .. tostring(required)
+				elseif current == id then "  /  EQUIPPED"
+				else "  /  EQUIP"
+			local entry =
+				button(skinList, info.name .. suffix, UDim2.new(1, -8, 0, 34), UDim2.new())
 			entry.TextXAlignment = Enum.TextXAlignment.Left
 			entry.TextSize = 13
 			entry.TextColor3 = if unlocked then TEXT else DIM
@@ -236,12 +246,18 @@ function HubUi.start()
 	lookoutPanel.Visible = false
 	lookoutPanel.Parent = gui
 	rounded(lookoutPanel, 6)
-	label(lookoutPanel, "LOOKOUT / WRENMOUTH", UDim2.fromOffset(310, 30),
-		UDim2.fromOffset(18, 12), 18).TextColor3 = ACCENT
-	local lookoutClose = button(lookoutPanel, "Close", UDim2.fromOffset(88, 28),
-		UDim2.new(1, -104, 0, 12))
-	local townText = label(lookoutPanel, "", UDim2.fromOffset(402, 240),
-		UDim2.fromOffset(18, 56), 15)
+	label(
+		lookoutPanel,
+		"LOOKOUT / WRENMOUTH",
+		UDim2.fromOffset(310, 30),
+		UDim2.fromOffset(18, 12),
+		18
+	).TextColor3 =
+		ACCENT
+	local lookoutClose =
+		button(lookoutPanel, "Close", UDim2.fromOffset(88, 28), UDim2.new(1, -104, 0, 12))
+	local townText =
+		label(lookoutPanel, "", UDim2.fromOffset(402, 240), UDim2.fromOffset(18, 56), 15)
 	townText.TextWrapped = true
 	townText.TextYAlignment = Enum.TextYAlignment.Top
 	local function refreshLookout()
@@ -250,11 +266,21 @@ function HubUi.start()
 			return if table.find(cleared, id) then "a warm window" else "dark"
 		end
 		townText.Text = "The town lies beneath the fog. The lighthouse never stops.\n\n"
-			.. "RECORDING HOUSE   " .. yes("studio1") .. "\n"
-			.. "LOWER FLOORS     " .. yes("studio2") .. "\n"
-			.. "ENGINEER'S FLAT  " .. yes("studio3") .. "\n"
-			.. "RADIO STATION    " .. yes("radio1") .. "\n"
-			.. "LISTENING POST   " .. yes("sonar1") .. "\n\n"
+			.. "RECORDING HOUSE   "
+			.. yes("studio1")
+			.. "\n"
+			.. "LOWER FLOORS     "
+			.. yes("studio2")
+			.. "\n"
+			.. "ENGINEER'S FLAT  "
+			.. yes("studio3")
+			.. "\n"
+			.. "RADIO STATION    "
+			.. yes("radio1")
+			.. "\n"
+			.. "LISTENING POST   "
+			.. yes("sonar1")
+			.. "\n\n"
 			.. "The mast will blink only when the third chapter is cleared."
 	end
 	player:GetAttributeChangedSignal("ChaptersCleared"):Connect(refreshLookout)
@@ -292,8 +318,8 @@ function HubUi.start()
 			refreshLookout()
 		end
 	end
-	local crewButton = button(gui, "CREWS  [B]", UDim2.fromOffset(150, 38),
-		UDim2.new(1, -164, 0, 12))
+	local crewButton =
+		button(gui, "CREWS  [B]", UDim2.fromOffset(150, 38), UDim2.new(1, -164, 0, 12))
 	crewButton.BackgroundColor3 = Color3.fromRGB(65, 55, 42)
 	crewButton.Activated:Connect(function()
 		open(if panel.Visible then "" else "crew")
@@ -315,12 +341,14 @@ function HubUi.start()
 		if not markers then
 			return
 		end
-		for _, action in {
-			{ key = "CrewBoard", verb = "View crews", panel = "crew" },
-			{ key = "VanDoors", verb = "Play recovered tapes", panel = "deck" },
-			{ key = "KitCrate", verb = "Choose equipment", panel = "kit" },
-			{ key = "Telescope", verb = "Look over Wrenmouth", panel = "lookout" },
-		} do
+		for _, action in
+			{
+				{ key = "CrewBoard", verb = "View crews", panel = "crew" },
+				{ key = "VanDoors", verb = "Play recovered tapes", panel = "deck" },
+				{ key = "KitCrate", verb = "Choose equipment", panel = "kit" },
+				{ key = "Telescope", verb = "Look over Wrenmouth", panel = "lookout" },
+			}
+		do
 			local marker = markers:FindFirstChild(action.key)
 			if marker and marker:IsA("BasePart") then
 				local prompt = Instance.new("ProximityPrompt")

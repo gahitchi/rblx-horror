@@ -20,83 +20,142 @@ type Slot = {
 -- an instruction to distort the source mesh (uniform scale only).
 local SLOTS: { Slot } = {
 	{
-		key = "AnalogConsole", pos = Vector3.new(-56, 0, -78),
-		size = Vector3.new(11, 5.7, 4.2), yaw = 0,
+		key = "AnalogConsole",
+		pos = Vector3.new(-56, 0, -78),
+		size = Vector3.new(11, 5.7, 4.2),
+		yaw = 0,
 		fallback = { "MixFader", "DeskMeterBridge", "ChannelVU", "ChannelNeedle", "Potentiometer" },
-		radius = 9, objective = "MixingDesk",
+		radius = 9,
+		objective = "MixingDesk",
 	},
 	{
-		key = "ReelToReel", pos = Vector3.new(-73, 0, -94),
-		size = Vector3.new(6.9, 6.8, 3.0), yaw = 0,
-		fallback = { "ReelGuide", "AnodizedTapeSpool", "SpoolHub", "TransportButton",
-			"TapeCounter", "MagneticTapePath", "Sign_TASCAM / 1987 MULTITRACK" },
-		radius = 6, objective = "TapeMachine",
+		key = "ReelToReel",
+		pos = Vector3.new(-73, 0, -94),
+		size = Vector3.new(6.9, 6.8, 3.0),
+		yaw = 0,
+		fallback = {
+			"ReelGuide",
+			"AnodizedTapeSpool",
+			"SpoolHub",
+			"TransportButton",
+			"TapeCounter",
+			"MagneticTapePath",
+			"Sign_TASCAM / 1987 MULTITRACK",
+		},
+		radius = 6,
+		objective = "TapeMachine",
 	},
 	{
-		key = "DrumKit", pos = Vector3.new(-18, 0, -96),
-		size = Vector3.new(10, 6.5, 9), yaw = 0,
-		fallback = { "DrumKitRug", "BassDrumSkin", "BassFront", "RackTom",
-			"CymbalPost", "Cymbal", "StudioChairSeat", "StudioChairBack", "ChairStem", "ChairFoot" },
+		key = "DrumKit",
+		pos = Vector3.new(-18, 0, -96),
+		size = Vector3.new(10, 6.5, 9),
+		yaw = 0,
+		fallback = {
+			"DrumKitRug",
+			"BassDrumSkin",
+			"BassFront",
+			"RackTom",
+			"CymbalPost",
+			"Cymbal",
+			"StudioChairSeat",
+			"StudioChairBack",
+			"ChairStem",
+			"ChairFoot",
+		},
 		radius = 7,
 	},
 	{
-		key = "DrumKit", pos = Vector3.new(31, 0, -127),
-		size = Vector3.new(9, 6, 8.5), yaw = 0,
-		fallback = { "DrumKitRug", "BassDrumSkin", "BassFront", "RackTom",
-			"CymbalPost", "Cymbal", "StudioChairSeat", "StudioChairBack", "ChairStem", "ChairFoot" },
+		key = "DrumKit",
+		pos = Vector3.new(31, 0, -127),
+		size = Vector3.new(9, 6, 8.5),
+		yaw = 0,
+		fallback = {
+			"DrumKitRug",
+			"BassDrumSkin",
+			"BassFront",
+			"RackTom",
+			"CymbalPost",
+			"Cymbal",
+			"StudioChairSeat",
+			"StudioChairBack",
+			"ChairStem",
+			"ChairFoot",
+		},
 		radius = 7,
 	},
 	{
-		key = "VintageMicrophone", pos = Vector3.new(5, 0, -127),
-		size = Vector3.new(2.4, 6.8, 2.4), yaw = 0,
+		key = "VintageMicrophone",
+		pos = Vector3.new(5, 0, -127),
+		size = Vector3.new(2.4, 6.8, 2.4),
+		yaw = 0,
 		fallback = { "MicStand", "MicCapsule", "MicGrille", "MicFoot", "PopFilter" },
 		radius = 2.7,
 	},
 	{
-		key = "VintageMicrophone", pos = Vector3.new(-8, 0, -83),
-		size = Vector3.new(2.4, 6.8, 2.4), yaw = 0,
+		key = "VintageMicrophone",
+		pos = Vector3.new(-8, 0, -83),
+		size = Vector3.new(2.4, 6.8, 2.4),
+		yaw = 0,
 		fallback = { "MicStand", "MicCapsule", "MicGrille", "MicFoot", "MicrophoneBoom" },
 		radius = 2.7,
 	},
 	{
-		key = "VintageMicrophone", pos = Vector3.new(12, 0, -75),
-		size = Vector3.new(2.4, 6.8, 2.4), yaw = 0,
+		key = "VintageMicrophone",
+		pos = Vector3.new(12, 0, -75),
+		size = Vector3.new(2.4, 6.8, 2.4),
+		yaw = 0,
 		fallback = { "MicStand", "MicCapsule", "MicGrille", "MicFoot", "MicrophoneBoom" },
 		radius = 2.7,
 	},
 	{
-		key = "ElectricKeyboard", pos = Vector3.new(28, 0, -98),
-		size = Vector3.new(8, 5, 4), yaw = 0,
+		key = "ElectricKeyboard",
+		pos = Vector3.new(28, 0, -98),
+		size = Vector3.new(8, 5, 4),
+		yaw = 0,
 		fallback = { "ElectricPianoCase", "PianoKeys", "PianoBlackKey", "PianoLeg" },
 		radius = 6.5,
 	},
 	{
-		key = "Guitar", pos = Vector3.new(36, 0, -101),
-		size = Vector3.new(2.4, 5.8, 1.8), yaw = 0,
+		key = "Guitar",
+		pos = Vector3.new(36, 0, -101),
+		size = Vector3.new(2.4, 5.8, 1.8),
+		yaw = 0,
 		fallback = { "GuitarBody", "GuitarNeck" },
 		radius = 4,
 	},
 	{
-		key = "VintageRecordPlayer", pos = Vector3.new(-9, 1.95, 12),
-		size = Vector3.new(2.7, 2.0, 2.0), yaw = 180,
+		key = "VintageRecordPlayer",
+		pos = Vector3.new(-9, 1.95, 12),
+		size = Vector3.new(2.7, 2.0, 2.0),
+		yaw = 180,
 		fallback = { "VisitorMagazine", "OldMusicMagazineStack" },
 		radius = 3,
 	},
 	{
-		key = "AnalogRack", pos = Vector3.new(61, 0, -127),
-		size = Vector3.new(4, 8.4, 2.5), yaw = 0,
+		key = "AnalogRack",
+		pos = Vector3.new(61, 0, -127),
+		size = Vector3.new(4, 8.4, 2.5),
+		yaw = 0,
 		fallback = { "MachineRack", "MachineRackFace", "TapeStatusMeter" },
 		radius = 4.5,
 	},
 }
 
 local ALLOWED = {
-	Model = true, Folder = true,
-	Part = true, MeshPart = true, WedgePart = true,
-	CornerWedgePart = true, UnionOperation = true,
-	TrussPart = true, Seat = true, VehicleSeat = true,
-	SpecialMesh = true, SurfaceAppearance = true,
-	Decal = true, Texture = true,
+	Model = true,
+	Folder = true,
+	Part = true,
+	MeshPart = true,
+	WedgePart = true,
+	CornerWedgePart = true,
+	UnionOperation = true,
+	TrussPart = true,
+	Seat = true,
+	VehicleSeat = true,
+	SpecialMesh = true,
+	SurfaceAppearance = true,
+	Decal = true,
+	Texture = true,
 }
 
 local function clean(model: Model): boolean
@@ -153,24 +212,25 @@ local function match(model: Model, slot: Slot): boolean
 	return true
 end
 
-local function hideFallback(
-	map: Model, folder: Folder, slot: Slot
-)
+local function hideFallback(map: Model, folder: Folder, slot: Slot)
 	local props = map:FindFirstChild("Props")
 	if not props then
 		return
 	end
 	local candidates: { [string]: boolean } = {}
-	for _, name in slot.fallback or {} do
+	local fallbackNames: { string } = slot.fallback or {}
+	for _, name in fallbackNames do
 		candidates[name] = true
 	end
 	-- Disable only native visual parts matching the exact expected name AND
 	-- coordinate. Do not touch doors, zones, chapter targets, or imported assets.
 	for _, descendant in props:GetDescendants() do
-		if descendant:IsA("BasePart")
+		if
+			descendant:IsA("BasePart")
 			and not descendant:IsDescendantOf(folder)
 			and candidates[descendant.Name]
-			and (descendant.Position - slot.pos).Magnitude < (slot.radius or 7) + 4 then
+			and (descendant.Position - slot.pos).Magnitude < (slot.radius or 7) + 4
+		then
 			descendant.Transparency = 1
 			descendant.CanCollide = false
 			descendant.CanQuery = false

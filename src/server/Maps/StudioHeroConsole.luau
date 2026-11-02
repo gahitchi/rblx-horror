@@ -40,8 +40,13 @@ local CHANNEL_FIRST = -4.8
 local MODULE_NAME = "HeroMixConsole"
 
 local function part(
-	parent: Instance, name: string, cf: CFrame, size: Vector3,
-	color: Color3, material: Enum.Material, shadow: boolean?
+	parent: Instance,
+	name: string,
+	cf: CFrame,
+	size: Vector3,
+	color: Color3,
+	material: Enum.Material,
+	shadow: boolean?
 ): Part
 	local p = Instance.new("Part")
 	p.Name = name
@@ -61,29 +66,62 @@ local function part(
 end
 
 local function block(
-	parent: Instance, name: string, basis: CFrame, x: number, y: number, z: number,
-	w: number, h: number, d: number, color: Color3, material: Enum.Material,
+	parent: Instance,
+	name: string,
+	basis: CFrame,
+	x: number,
+	y: number,
+	z: number,
+	w: number,
+	h: number,
+	d: number,
+	color: Color3,
+	material: Enum.Material,
 	shadow: boolean?
 ): Part
-	return part(parent, name, basis * CFrame.new(x, y, z),
-		Vector3.new(w, h, d), color, material, shadow)
+	return part(
+		parent,
+		name,
+		basis * CFrame.new(x, y, z),
+		Vector3.new(w, h, d),
+		color,
+		material,
+		shadow
+	)
 end
 
 local function cyl(
-	parent: Instance, name: string, basis: CFrame,
-	x: number, y: number, z: number,
-	diameter: number, height: number, color: Color3
+	parent: Instance,
+	name: string,
+	basis: CFrame,
+	x: number,
+	y: number,
+	z: number,
+	diameter: number,
+	height: number,
+	color: Color3
 ): Part
 	-- Cylinder axis is X; turn it upward to align with the tilted control deck.
-	local p = part(parent, name,
+	local p = part(
+		parent,
+		name,
 		basis * CFrame.new(x, y, z) * CFrame.Angles(0, 0, math.rad(90)),
-		Vector3.new(height, diameter, diameter), color, Enum.Material.Metal)
+		Vector3.new(height, diameter, diameter),
+		color,
+		Enum.Material.Metal
+	)
 	p.Shape = Enum.PartType.Cylinder
 	return p
 end
 
-local function surfaceLabel(part_: BasePart, text_: string, face: Enum.NormalId,
-	textColor: Color3, bg: Color3?, fontSize: number?)
+local function surfaceLabel(
+	part_: BasePart,
+	text_: string,
+	face: Enum.NormalId,
+	textColor: Color3,
+	bg: Color3?,
+	fontSize: number?
+)
 	local gui = Instance.new("SurfaceGui")
 	gui.Name = "Print"
 	gui.Face = face
@@ -108,19 +146,68 @@ end
 local function meter(parent: Instance, x: number, id: number)
 	local basis = CFrame.new(-56 + x, 4.64, -79.15)
 	-- Front face points toward operator, positive Z.
-	local case = block(parent, "VUHousing_" .. id, basis, 0, 0, 0,
-		1.00, 1.04, 0.20, PALETTE.shadow, Enum.Material.Metal)
-	local glass = block(parent, "VULens_" .. id, basis, 0, 0.06, 0.118,
-		0.86, 0.76, 0.05, PALETTE.glass, Enum.Material.Glass)
+	local case = block(
+		parent,
+		"VUHousing_" .. id,
+		basis,
+		0,
+		0,
+		0,
+		1.00,
+		1.04,
+		0.20,
+		PALETTE.shadow,
+		Enum.Material.Metal
+	)
+	local glass = block(
+		parent,
+		"VULens_" .. id,
+		basis,
+		0,
+		0.06,
+		0.118,
+		0.86,
+		0.76,
+		0.05,
+		PALETTE.glass,
+		Enum.Material.Glass
+	)
 	glass.Transparency = 0.17
-	surfaceLabel(glass, "VU   " .. string.format("%02d", id) .. "\n−20  −7   0  +3",
-		Enum.NormalId.Front, PALETTE.matte, nil)
+	surfaceLabel(
+		glass,
+		"VU   " .. string.format("%02d", id) .. "\n−20  −7   0  +3",
+		Enum.NormalId.Front,
+		PALETTE.matte,
+		nil
+	)
 	-- A physical needle is easier to see at oblique angles than a printed line.
-	local needle = block(parent, "VUNeedle_" .. id, basis, 0.08, -0.12, 0.153,
-		0.025, 0.56, 0.023, PALETTE.needle, Enum.Material.Metal)
+	local needle = block(
+		parent,
+		"VUNeedle_" .. id,
+		basis,
+		0.08,
+		-0.12,
+		0.153,
+		0.025,
+		0.56,
+		0.023,
+		PALETTE.needle,
+		Enum.Material.Metal
+	)
 	needle.CFrame *= CFrame.Angles(0, 0, math.rad(10 + (id * 7) % 31))
-	block(parent, "VUFrameLip_" .. id, basis, 0, 0.46, 0.14,
-		0.96, 0.06, 0.12, PALETTE.champagne, Enum.Material.Metal)
+	block(
+		parent,
+		"VUFrameLip_" .. id,
+		basis,
+		0,
+		0.46,
+		0.14,
+		0.96,
+		0.06,
+		0.12,
+		PALETTE.champagne,
+		Enum.Material.Metal
+	)
 	return case
 end
 
@@ -128,64 +215,211 @@ local function channel(parent: Instance, i: number)
 	local x = CHANNEL_FIRST + (i - 1) * CHANNEL_PITCH
 	local id = string.format("%02d", i)
 	-- Sloped but individually inset channel strips; no full-coverage neon.
-	block(parent, "ChannelPlate_" .. id, DESK, x, 0.075, 0.03,
-		0.463, 0.10, 3.29, if i % 4 == 0 then PALETTE.panel else PALETTE.strip,
-		Enum.Material.Metal)
-	block(parent, "ChannelDivider_" .. id, DESK, x + 0.241, 0.135, 0.03,
-		0.018, 0.055, 3.25, PALETTE.shadow, Enum.Material.Metal)
+	block(
+		parent,
+		"ChannelPlate_" .. id,
+		DESK,
+		x,
+		0.075,
+		0.03,
+		0.463,
+		0.10,
+		3.29,
+		if i % 4 == 0 then PALETTE.panel else PALETTE.strip,
+		Enum.Material.Metal
+	)
+	block(
+		parent,
+		"ChannelDivider_" .. id,
+		DESK,
+		x + 0.241,
+		0.135,
+		0.03,
+		0.018,
+		0.055,
+		3.25,
+		PALETTE.shadow,
+		Enum.Material.Metal
+	)
 	-- Three grouped EQ / gain trims, slightly varied knobs and aligned centers.
 	for j = 1, 3 do
 		local z = -1.20 + (j - 1) * 0.38
-		local knob = cyl(parent, "EQKnob_" .. id .. "_" .. j, DESK,
-			x, 0.205, z, 0.24, 0.16,
-			if j == 1 then PALETTE.champagne else PALETTE.matte)
+		local knob = cyl(
+			parent,
+			"EQKnob_" .. id .. "_" .. j,
+			DESK,
+			x,
+			0.205,
+			z,
+			0.24,
+			0.16,
+			if j == 1 then PALETTE.champagne else PALETTE.matte
+		)
 		knob:SetAttribute("EQGroup", j)
-		block(parent, "EQNotch_" .. id .. "_" .. j, DESK,
-			x, 0.298, z - 0.055, 0.025, 0.018, 0.075,
-			PALETTE.cream, Enum.Material.SmoothPlastic)
+		block(
+			parent,
+			"EQNotch_" .. id .. "_" .. j,
+			DESK,
+			x,
+			0.298,
+			z - 0.055,
+			0.025,
+			0.018,
+			0.075,
+			PALETTE.cream,
+			Enum.Material.SmoothPlastic
+		)
 	end
 	-- Tiny power/track-arm button is matte until the lighting state wakes.
-	local arm = block(parent, "ArmButton_" .. id, DESK,
-		x, 0.16, 0.115, 0.18, 0.11, 0.23,
-		PALETTE.shadow, Enum.Material.SmoothPlastic)
+	local arm = block(
+		parent,
+		"ArmButton_" .. id,
+		DESK,
+		x,
+		0.16,
+		0.115,
+		0.18,
+		0.11,
+		0.23,
+		PALETTE.shadow,
+		Enum.Material.SmoothPlastic
+	)
 	arm:SetAttribute("ConsoleIndicator", if i == 1 or i == 2 then "record" else "signal")
 	-- Long, readable mechanical fader throw.
-	block(parent, "FaderSlot_" .. id, DESK, x, 0.146, 0.82,
-		0.095, 0.03, 1.13, PALETTE.shadow, Enum.Material.Metal)
+	block(
+		parent,
+		"FaderSlot_" .. id,
+		DESK,
+		x,
+		0.146,
+		0.82,
+		0.095,
+		0.03,
+		1.13,
+		PALETTE.shadow,
+		Enum.Material.Metal
+	)
 	local z = 0.45 + ((i * 7) % 13) / 13 * 0.64
-	local fader = block(parent, "FaderCap_" .. id, DESK, x, 0.24, z,
-		0.36, 0.18, 0.26, PALETTE.fader, Enum.Material.Metal)
-	block(parent, "FaderGrip_" .. id, DESK, x, 0.343, z,
-		0.28, 0.012, 0.038, PALETTE.shadow, Enum.Material.Metal)
+	local fader = block(
+		parent,
+		"FaderCap_" .. id,
+		DESK,
+		x,
+		0.24,
+		z,
+		0.36,
+		0.18,
+		0.26,
+		PALETTE.fader,
+		Enum.Material.Metal
+	)
+	block(
+		parent,
+		"FaderGrip_" .. id,
+		DESK,
+		x,
+		0.343,
+		z,
+		0.28,
+		0.012,
+		0.038,
+		PALETTE.shadow,
+		Enum.Material.Metal
+	)
 	fader:SetAttribute("ConsoleFader", i)
 	-- Channel numbers are screen-space typography mounted to actual geometry.
-	local tag = block(parent, "ChannelNumber_" .. id, DESK, x, 0.155, 1.56,
-		0.35, 0.018, 0.20, PALETTE.matte, Enum.Material.SmoothPlastic)
+	local tag = block(
+		parent,
+		"ChannelNumber_" .. id,
+		DESK,
+		x,
+		0.155,
+		1.56,
+		0.35,
+		0.018,
+		0.20,
+		PALETTE.matte,
+		Enum.Material.SmoothPlastic
+	)
 	surfaceLabel(tag, id, Enum.NormalId.Top, PALETTE.cream)
 end
 
 local function buildMaster(parent: Instance)
 	-- 2-channel group/master section at the right of the sixteen input strips.
 	local x = 3.92
-	block(parent, "MasterPanel", DESK, x, 0.075, 0.02,
-		2.30, 0.095, 3.30, PALETTE.matte, Enum.Material.Metal)
+	block(
+		parent,
+		"MasterPanel",
+		DESK,
+		x,
+		0.075,
+		0.02,
+		2.30,
+		0.095,
+		3.30,
+		PALETTE.matte,
+		Enum.Material.Metal
+	)
 	for j, label in { "L", "R" } do
 		local shift = x - 0.43 + (j - 1) * 0.88
-		block(parent, "MasterThrow_" .. label, DESK, shift, 0.17, 0.59,
-			0.13, 0.035, 1.75, PALETTE.shadow, Enum.Material.Metal)
-		block(parent, "MasterCap_" .. label, DESK, shift, 0.255, 0.50 + (j - 1) * 0.12,
-			0.44, 0.17, 0.30, PALETTE.cream, Enum.Material.Metal)
-		cyl(parent, "PanKnob_" .. label, DESK, shift, 0.22, -0.83,
-			0.36, 0.18, PALETTE.champagne)
-		local plate = block(parent, "MasterLabel_" .. label, DESK, shift, 0.16, 1.48,
-			0.63, 0.023, 0.24, PALETTE.shadow, Enum.Material.SmoothPlastic)
+		block(
+			parent,
+			"MasterThrow_" .. label,
+			DESK,
+			shift,
+			0.17,
+			0.59,
+			0.13,
+			0.035,
+			1.75,
+			PALETTE.shadow,
+			Enum.Material.Metal
+		)
+		block(
+			parent,
+			"MasterCap_" .. label,
+			DESK,
+			shift,
+			0.255,
+			0.50 + (j - 1) * 0.12,
+			0.44,
+			0.17,
+			0.30,
+			PALETTE.cream,
+			Enum.Material.Metal
+		)
+		cyl(parent, "PanKnob_" .. label, DESK, shift, 0.22, -0.83, 0.36, 0.18, PALETTE.champagne)
+		local plate = block(
+			parent,
+			"MasterLabel_" .. label,
+			DESK,
+			shift,
+			0.16,
+			1.48,
+			0.63,
+			0.023,
+			0.24,
+			PALETTE.shadow,
+			Enum.Material.SmoothPlastic
+		)
 		surfaceLabel(plate, "MASTER " .. label, Enum.NormalId.Top, PALETTE.cream)
 	end
 	for j = 1, 6 do
 		local dx = x - 0.79 + ((j - 1) % 3) * 0.76
 		local dz = -1.43 + math.floor((j - 1) / 3) * 0.42
-		local led = block(parent, "BusLamp_" .. j, DESK, dx, 0.15, dz,
-			0.22, 0.06, 0.12, PALETTE.shadow, Enum.Material.SmoothPlastic)
+		local led = block(
+			parent,
+			"BusLamp_" .. j,
+			DESK,
+			dx,
+			0.15,
+			dz,
+			0.22,
+			0.06,
+			0.12,
+			PALETTE.shadow,
+			Enum.Material.SmoothPlastic
+		)
 		led:SetAttribute("ConsoleIndicator", if j == 6 then "record" else "signal")
 	end
 end
@@ -210,25 +444,115 @@ function HeroConsole.build(parent: Instance, map: Model): Model
 
 	-- Solid visual shell follows the old objective envelope, but casts no
 	-- new collision rays and keeps the mixing desk puzzle unchanged.
-	local stand = block(model, "HardwoodConsoleBody", CFrame.new(-56, 1.58, -78),
-		0, 0, 0, WIDTH + 0.25, 2.92, 3.94, PALETTE.woodDark,
-		Enum.Material.Wood, true)
-	block(model, "FrontKneePanel", stand.CFrame, 0, -0.4, 1.998,
-		WIDTH - 0.33, 1.62, 0.13, PALETTE.wood, Enum.Material.Wood)
-	block(model, "DeskTopShell", DESK, 0, -0.12, 0,
-		WIDTH, 0.30, 3.86, PALETTE.chassis, Enum.Material.Metal, true)
+	local stand = block(
+		model,
+		"HardwoodConsoleBody",
+		CFrame.new(-56, 1.58, -78),
+		0,
+		0,
+		0,
+		WIDTH + 0.25,
+		2.92,
+		3.94,
+		PALETTE.woodDark,
+		Enum.Material.Wood,
+		true
+	)
+	block(
+		model,
+		"FrontKneePanel",
+		stand.CFrame,
+		0,
+		-0.4,
+		1.998,
+		WIDTH - 0.33,
+		1.62,
+		0.13,
+		PALETTE.wood,
+		Enum.Material.Wood
+	)
+	block(
+		model,
+		"DeskTopShell",
+		DESK,
+		0,
+		-0.12,
+		0,
+		WIDTH,
+		0.30,
+		3.86,
+		PALETTE.chassis,
+		Enum.Material.Metal,
+		true
+	)
 	for _, side in { -1, 1 } do
-		block(model, "WoodSideCheek", DESK, side * (WIDTH / 2 - 0.05), 0.08, 0,
-			0.32, 0.52, 4.02, PALETTE.wood, Enum.Material.Wood, true)
-		block(model, "SideCheekInlay", DESK, side * (WIDTH / 2 - 0.05), 0.36, -0.12,
-			0.08, 0.035, 3.55, PALETTE.woodEdge, Enum.Material.Wood)
+		block(
+			model,
+			"WoodSideCheek",
+			DESK,
+			side * (WIDTH / 2 - 0.05),
+			0.08,
+			0,
+			0.32,
+			0.52,
+			4.02,
+			PALETTE.wood,
+			Enum.Material.Wood,
+			true
+		)
+		block(
+			model,
+			"SideCheekInlay",
+			DESK,
+			side * (WIDTH / 2 - 0.05),
+			0.36,
+			-0.12,
+			0.08,
+			0.035,
+			3.55,
+			PALETTE.woodEdge,
+			Enum.Material.Wood
+		)
 	end
-	block(model, "FrontHandRest", DESK, 0, 0.10, 1.85,
-		WIDTH - 0.35, 0.38, 0.55, PALETTE.woodEdge, Enum.Material.Wood)
-	block(model, "FrontTrimLine", DESK, 0, 0.32, 1.53,
-		WIDTH - 0.40, 0.038, 0.085, PALETTE.champagne, Enum.Material.Metal)
-	block(model, "RearPanelRail", DESK, 0, 0.13, -1.82,
-		WIDTH - 0.4, 0.20, 0.21, PALETTE.wood, Enum.Material.Wood)
+	block(
+		model,
+		"FrontHandRest",
+		DESK,
+		0,
+		0.10,
+		1.85,
+		WIDTH - 0.35,
+		0.38,
+		0.55,
+		PALETTE.woodEdge,
+		Enum.Material.Wood
+	)
+	block(
+		model,
+		"FrontTrimLine",
+		DESK,
+		0,
+		0.32,
+		1.53,
+		WIDTH - 0.40,
+		0.038,
+		0.085,
+		PALETTE.champagne,
+		Enum.Material.Metal
+	)
+	block(
+		model,
+		"RearPanelRail",
+		DESK,
+		0,
+		0.13,
+		-1.82,
+		WIDTH - 0.4,
+		0.20,
+		0.21,
+		PALETTE.wood,
+		Enum.Material.Wood
+	)
 
 	for i = 1, CHANNELS do
 		channel(model, i)
@@ -237,30 +561,98 @@ function HeroConsole.build(parent: Instance, map: Model): Model
 
 	-- This is a coherent meter bridge, not seven extra floating glowing boxes.
 	local frame = CFrame.new(-56, 4.52, -79.62)
-	block(model, "MeterBridgeCabinet", frame, 0, 0, -0.10,
-		WIDTH + 0.18, 2.14, 0.78, PALETTE.wood,
-		Enum.Material.Wood, true)
-	block(model, "MeterBridgeBlackFace", frame, 0, 0, 0.30,
-		WIDTH - 0.18, 1.71, 0.085, PALETTE.shadow, Enum.Material.Metal)
+	block(
+		model,
+		"MeterBridgeCabinet",
+		frame,
+		0,
+		0,
+		-0.10,
+		WIDTH + 0.18,
+		2.14,
+		0.78,
+		PALETTE.wood,
+		Enum.Material.Wood,
+		true
+	)
+	block(
+		model,
+		"MeterBridgeBlackFace",
+		frame,
+		0,
+		0,
+		0.30,
+		WIDTH - 0.18,
+		1.71,
+		0.085,
+		PALETTE.shadow,
+		Enum.Material.Metal
+	)
 	for i = 1, 8 do
 		meter(model, -4.30 + (i - 1) * 1.22, i)
 	end
-	block(model, "MeterBridgeUpperLip", frame, 0, 1.01, 0.36,
-		WIDTH - 0.12, 0.09, 0.24, PALETTE.woodEdge, Enum.Material.Wood)
-	local crest = block(model, "ManufacturerPlate", frame, 0, -0.94, 0.47,
-		4.6, 0.26, 0.05, PALETTE.matte, Enum.Material.Metal)
-	surfaceLabel(crest, "WRENMOUTH  •  DA-16  /  ANALOGUE", Enum.NormalId.Front,
-		PALETTE.champagne)
+	block(
+		model,
+		"MeterBridgeUpperLip",
+		frame,
+		0,
+		1.01,
+		0.36,
+		WIDTH - 0.12,
+		0.09,
+		0.24,
+		PALETTE.woodEdge,
+		Enum.Material.Wood
+	)
+	local crest = block(
+		model,
+		"ManufacturerPlate",
+		frame,
+		0,
+		-0.94,
+		0.47,
+		4.6,
+		0.26,
+		0.05,
+		PALETTE.matte,
+		Enum.Material.Metal
+	)
+	surfaceLabel(
+		crest,
+		"WRENMOUTH  •  DA-16  /  ANALOGUE",
+		Enum.NormalId.Front,
+		PALETTE.champagne
+	)
 
 	-- A safe paper-reading shelf immediately in front of the existing console.
 	-- The original SessionLog objective is moved here by StudioGroundFloor,
 	-- maintaining the same read prompt and authority.
-	block(model, "SessionLogReadingShelf", CFrame.new(-57, 3.48, -75.68),
-		0, 0, 0, 2.52, 0.13, 1.32, PALETTE.wood,
-		Enum.Material.Wood)
-	block(model, "SessionLogTrayLip", CFrame.new(-57, 3.54, -75.03),
-		0, 0, 0, 2.47, 0.11, 0.13, PALETTE.woodEdge,
-		Enum.Material.Wood)
+	block(
+		model,
+		"SessionLogReadingShelf",
+		CFrame.new(-57, 3.48, -75.68),
+		0,
+		0,
+		0,
+		2.52,
+		0.13,
+		1.32,
+		PALETTE.wood,
+		Enum.Material.Wood
+	)
+	block(
+		model,
+		"SessionLogTrayLip",
+		CFrame.new(-57, 3.54, -75.03),
+		0,
+		0,
+		0,
+		2.47,
+		0.11,
+		0.13,
+		PALETTE.woodEdge,
+		Enum.Material.Wood
+	)
 
 	return model
 end

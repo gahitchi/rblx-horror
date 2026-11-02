@@ -127,8 +127,10 @@ local function loadProgress(player: Player)
 		end
 		player:SetAttribute("Level", level)
 		local skin = saved.skin
-		player:SetAttribute("FlashlightSkin", if type(skin) == "string"
-			and Config.FLASHLIGHT_SKINS[skin] then skin else "warm")
+		player:SetAttribute(
+			"FlashlightSkin",
+			if type(skin) == "string" and Config.FLASHLIGHT_SKINS[skin] then skin else "warm"
+		)
 		player:SetAttribute("ProgressSaved", ok)
 	end
 end
@@ -296,7 +298,8 @@ local function onStart(player: Player)
 	end
 	-- Require a valid round trip before sending anyone into a reserved server.
 	-- The match's ReplayService requires *both* IDs for the return-to-hub vote.
-	if RunService:IsStudio()
+	if
+		RunService:IsStudio()
 		or Config.PLACES.HUB == 0
 		or Config.PLACES.MATCH == 0
 		or Config.PLACES.HUB == Config.PLACES.MATCH
@@ -313,8 +316,12 @@ local function onStart(player: Player)
 	for _, member in members do
 		notify(member, "Starting " .. Chapters.name(lobby.chapter) .. "...")
 	end
-	if onDeparture then
-		local ok, message = pcall(onDeparture)
+	local departure = onDeparture
+	if departure then
+		local ok, message = pcall(function(): string?
+			departure()
+			return nil
+		end)
 		if not ok then
 			warn("[Hub gate] departure effect failed: " .. tostring(message))
 		end

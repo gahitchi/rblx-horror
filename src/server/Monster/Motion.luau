@@ -29,7 +29,13 @@ function Motion.new(model: Model, root: BasePart): Controller
 
 	local visual = {} :: Controller
 
-	function visual.update(state: string, focus: Vector3?, inspecting: boolean, now: number, dt: number)
+	function visual.update(
+		state: string,
+		focus: Vector3?,
+		inspecting: boolean,
+		now: number,
+		dt: number
+	)
 		if destroyed or not model.Parent or not root.Parent then
 			return
 		end
@@ -40,7 +46,8 @@ function Motion.new(model: Model, root: BasePart): Controller
 		local urgent = state == "Hunt" or state == "Investigate"
 		local listen = state == "Listen"
 		local inspect = state == "Search" and inspecting
-		local intent = if state == "Hunt" then "Pursuit"
+		local intent = if state == "Hunt"
+			then "Pursuit"
 			elseif state == "Retreat" then "Withdraw"
 			elseif inspect then "Inspect"
 			elseif listen then "Listening"
@@ -59,14 +66,14 @@ function Motion.new(model: Model, root: BasePart): Controller
 				headYaw = math.clamp(math.atan2(-localDir.X, -localDir.Z), -0.8, 0.8)
 			end
 		end
-		local roll = if listen then math.rad(12)
-			elseif inspect then math.rad(-9) else 0
-		local pitch = if listen then math.rad(-9)
+		local roll = if listen then math.rad(12) elseif inspect then math.rad(-9) else 0
+		local pitch = if listen
+			then math.rad(-9)
 			elseif inspect then math.rad(17)
-			elseif urgent then math.rad(-6) else math.rad(1.6) * math.sin(time * 0.9)
+			elseif urgent then math.rad(-6)
+			else math.rad(1.6) * math.sin(time * 0.9)
 		local head = CFrame.Angles(pitch, headYaw * (if listen or inspect then 1 else 0.25), roll)
-		local reach = if inspect then math.rad(-28)
-			elseif listen then math.rad(-9) else 0
+		local reach = if inspect then math.rad(-28) elseif listen then math.rad(-9) else 0
 		local left = CFrame.Angles(reach + swing * 0.18, 0, math.rad(-4))
 		local right = CFrame.Angles(reach - swing * 0.18, 0, math.rad(4))
 		if state == "Hunt" then

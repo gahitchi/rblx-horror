@@ -23,12 +23,28 @@ def fail(message: str) -> None:
     failures.append(message)
 
 
+def canonical_luau(text: str) -> str:
+    """One layout for Luau source, so these checks don't depend on line breaks.
+
+    StyLua (the project's formatter) wraps long calls and tables over several lines and adds
+    trailing commas. Collapse that back to the single-line shape the checks were written for:
+    single spaces, no trailing comma before a closer, no space just inside parentheses.
+    """
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r",\s*([)}\]])", r" \1", text)
+    text = re.sub(r"\(\s+", "(", text)
+    text = re.sub(r"\s+\)", ")", text)
+    text = re.sub(r"\s+\]", "]", text)
+    return text
+
+
 def require_text(path: str) -> str:
     file = ROOT / path
     if not file.is_file():
         fail(f"Missing file: {path}")
         return ""
-    return file.read_text(encoding="utf-8")
+    text = file.read_text(encoding="utf-8")
+    return canonical_luau(text) if path.endswith(".luau") else text
 
 
 def must_have(code: str, fragment: str, path: str) -> None:
@@ -354,7 +370,7 @@ def main() -> int:
     if engineer.count('player:GetAttribute("Hiding") ~= true') < 2:
         fail("Both contact detection and catch validation must exclude hidden players")
     for token in ("Motor6D", "joint.C0 = CFrame.new(offset +",
-                  "joint.C1 = CFrame.new(0, pivotY, 0)", "head\n",
+                  "joint.C1 = CFrame.new(0, pivotY, 0)", "head",
                   "left", "head:SetAttribute"):
         # Case insensitive on the joint names; don't demand a specific skin.
         if token not in ("left",) and token not in engineer_model:
@@ -393,7 +409,7 @@ def main() -> int:
         must_have(tension, guard, "match/StudioTension")
 
     match_ids = re.search(
-        r"Config.PLACES = table.freeze\(\{\s*HUB = (\d+),[^\n]*\n\s*MATCH = (\d+),",
+        r"Config.PLACES = table.freeze\(\{\s*HUB = (\d+),.*?MATCH = (\d+)",
         config,
     )
     if not match_ids:

@@ -28,34 +28,58 @@ local Tension = {}
 -- These are environmental noises only, not counterfeit pickups or voiced instructions.
 local SCENES: { Scene } = {
 	{
-		room = "Reception", earliest = 25,
-		sourceArea = "Reception", sound = Sounds.DOOR,
-		volume = 0.22, range = 46, speed = 0.68,
+		room = "Reception",
+		earliest = 25,
+		sourceArea = "Reception",
+		sound = Sounds.DOOR,
+		volume = 0.22,
+		range = 46,
+		speed = 0.68,
 	},
 	{
-		room = "ControlA", earliest = 45,
-		sourceArea = "MasteringSuite", sound = Sounds.TAPE_THREAD,
-		volume = 0.29, range = 46, speed = 0.7,
+		room = "ControlA",
+		earliest = 45,
+		sourceArea = "MasteringSuite",
+		sound = Sounds.TAPE_THREAD,
+		volume = 0.29,
+		range = 46,
+		speed = 0.7,
 	},
 	{
-		room = "TapeArchive", earliest = 75,
-		sourceArea = "MasteringSuite", sound = Sounds.TAPE_SLIP,
-		volume = 0.24, range = 42, speed = 0.64,
+		room = "TapeArchive",
+		earliest = 75,
+		sourceArea = "MasteringSuite",
+		sound = Sounds.TAPE_SLIP,
+		volume = 0.24,
+		range = 42,
+		speed = 0.64,
 	},
 	{
-		room = "SoundLock", earliest = 110,
-		sourceArea = "ViewingGallery", sound = Sounds.WALKIE_CRACKLE,
-		volume = 0.2, range = 48, speed = 0.53,
+		room = "SoundLock",
+		earliest = 110,
+		sourceArea = "ViewingGallery",
+		sound = Sounds.WALKIE_CRACKLE,
+		volume = 0.2,
+		range = 48,
+		speed = 0.53,
 	},
 	{
-		room = "LiveHall", earliest = 155,
-		sourceArea = "IsolationVocal", sound = Sounds.HUM,
-		volume = 0.18, range = 45, speed = 0.72,
+		room = "LiveHall",
+		earliest = 155,
+		sourceArea = "IsolationVocal",
+		sound = Sounds.HUM,
+		volume = 0.18,
+		range = 45,
+		speed = 0.72,
 	},
 	{
-		room = "ServiceHall", earliest = 190,
-		sourceArea = "ServiceHall", sound = Sounds.BUZZ,
-		volume = 0.2, range = 55, speed = 0.55,
+		room = "ServiceHall",
+		earliest = 190,
+		sourceArea = "ServiceHall",
+		sound = Sounds.BUZZ,
+		volume = 0.2,
+		range = 55,
+		speed = 0.55,
 	},
 }
 
@@ -113,9 +137,11 @@ function Tension.start(myRound: number)
 			local present = occupiedRooms(map.areas)
 			-- Evaluate in time order: a visiting player triggers at most one quiet cue.
 			for _, scene in SCENES do
-				if not played[scene.room]
+				if
+					not played[scene.room]
 					and present[scene.room] == true
-					and elapsed >= scene.earliest then
+					and elapsed >= scene.earliest
+				then
 					local at = sources[scene.sourceArea]
 					if at then
 						Sounds.playAt(scene.sound, at, scene.volume, scene.range, scene.speed)

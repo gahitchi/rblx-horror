@@ -44,9 +44,9 @@ function HubDynamics.departure(hub: Model)
 	local gate = hub:FindFirstChild("Gate")
 	local hinge = gate and gate:FindFirstChild("Hinge")
 	local bar = gate and gate:FindFirstChild("BarrierArm")
-	local blocker = gate and gate:FindFirstChild("GateBlocker")
-	if not gate or not hinge or not bar
-		or not hinge:IsA("BasePart") or not bar:IsA("BasePart") then
+	local found = gate and gate:FindFirstChild("GateBlocker")
+	local blocker: BasePart? = if found and found:IsA("BasePart") then found else nil
+	if not gate or not hinge or not bar or not hinge:IsA("BasePart") or not bar:IsA("BasePart") then
 		return
 	end
 	local now = os.clock()
