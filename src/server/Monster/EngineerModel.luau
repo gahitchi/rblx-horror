@@ -64,8 +64,11 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 			joint.Name = name .. "Joint"
 			joint.Part0 = hrp
 			joint.Part1 = p
-			joint.C0 = CFrame.new(offset)
-			joint.C1 = CFrame.identity
+			-- Rotate around the neck, shoulder or hip rather than spinning
+			-- each part around its midpoint. Neutral pose remains unchanged.
+			local pivotY = if name == "Head" then -size.Y * 0.42 else size.Y * 0.45
+			joint.C0 = CFrame.new(offset + Vector3.new(0, pivotY, 0))
+			joint.C1 = CFrame.new(0, pivotY, 0)
 			joint.Parent = hrp
 		else
 			weld(p, attachedTo or hrp)
