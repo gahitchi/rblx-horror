@@ -127,6 +127,9 @@ def main() -> int:
     match = require_text("src/server/Main.server.luau")
     replay = require_text("src/server/ReplayService.luau")
     studio = require_text("src/server/Maps/StudioGroundFloor.luau")
+    studio_lighting = require_text("src/server/Maps/StudioLightingRig.luau")
+    studio_lighting_service = require_text("src/server/LightingService.luau")
+    studio_rooms = require_text("src/server/Maps/StudioLayout.luau")
     world_evidence = require_text("src/server/Maps/StudioEvidenceDetail.luau")
     chapter_text = require_text("src/server/Chapters/Studio1Text.luau")
     chapter_ui = require_text("src/client/ChapterUi.luau")
@@ -182,6 +185,71 @@ def main() -> int:
                   "StudioArchitectureDetail.apply", "StudioStoryDetail.apply",
                   "StudioStoreAssets.apply"):
         must_have(studio, token, "match/StudioGroundFloor")
+    # Lighting "ray/path tracing" look: authored indirect fill, not a claimed
+    # realtime hardware tracer. All new sources are physically placed inside
+    # rooms; total lights and shadow caster count are hard-capped.
+    match_project = json.loads(require_text("default.project.json"))
+    lighting_preset = match_project["tree"]["Lighting"]["$properties"]
+    if lighting_preset.get("LightingStyle") != "Realistic":
+        fail("Match place does not request Realistic lighting")
+    if lighting_preset.get("PrioritizeLightingQuality") is not True:
+        fail("Match place does not prioritize lighting detail")
+    if "Technology" in lighting_preset:
+        fail("Match still uses deprecated Technology setting")
+    for setting in ("LightingStyle", "PrioritizeLightingQuality"):
+        if re.search(r"Lighting\\." + setting + r"\\s*=", studio_lighting_service):
+            fail(f"LightingService tries to write a Studio-authored property: {setting}")
+
+    for token in ("StudioLightingRig.apply(map)", "StudioEvidenceDetail.apply(map)"):
+        must_have(studio, token, "match/StudioGroundFloor")
+    for token in ("LightingService.set", "LightingService.blackout",
+                  "LightingService.fogIn", "LightingService.reset",
+                  "role == \"Guide\"", "role == \"Emergency\"",
+                  "role == \"Task\"", "role == \"Fault\"",
+                  "FrostedDiffuser", "DeadAirStudioGrade", "DeadAirStudioBloom"):
+        must_have(studio_lighting_service, token, "match/LightingService")
+    for token in ("Instance.new(\"SurfaceLight\")", "Instance.new(\"SpotLight\")",
+                  "Instance.new(\"PointLight\")", "role = \"Bounce\"",
+                  "LightShadow", "LightBase", "assert(shadows <= 1"):
+        must_have(studio_lighting, token, "match/StudioLightingRig")
+
+    positions = {}
+    for room in re.finditer(
+        r'\\{ name = "(\\w+)", role = "(\\w+)", x1 = (-?\\d+), x2 = (-?\\d+), '
+        r'z1 = (-?\\d+), z2 = (-?\\d+), height = (\\d+) \\}', studio_rooms
+    ):
+        name, _role, x1, x2, z1, z2, h = room.groups()
+        positions[name] = tuple(map(int, (x1, x2, z1, z2, h)))
+    fixture_pattern = re.compile(
+        r'\\{ name = "([^"]+)", room = "([^"]+)", at = Vector3\\.new\\('
+        r'(-?\\d+(?:\\.\\d+)?), (-?\\d+(?:\\.\\d+)?), '
+        r'(-?\\d+(?:\\.\\d+)?)\\),\\s*role = "([^"]+)", '
+        r'range = (\\d+(?:\\.\\d+)?), intensity = (\\d+(?:\\.\\d+)?)'
+    )
+    fixtures = fixture_pattern.findall(studio_lighting)
+    names = {f[0] for f in fixtures}
+    if len(fixtures) != 40 or len(names) != len(fixtures):
+        fail(f"Lighting rig expected 40 unique authored fixtures, found {len(fixtures)}")
+    bounce_count = 0
+    for name, room, x, y, z, role, range_, intensity in fixtures:
+        bounds = positions.get(room)
+        if not bounds:
+            fail(f"Unknown lighting room: {name}: {room}")
+            continue
+        x, y, z = float(x), float(y), float(z)
+        x1, x2, z1, z2, height = bounds
+        if not (x1 + .5 < x < x2 - .5 and z1 + .5 < z < z2 - .5
+                and 2 < y < height - .5):
+            fail(f"Fixture is outside its room: {name}")
+        if float(range_) > 25 or float(intensity) > 0.9:
+            fail(f"Over-budget light range or brightness: {name}")
+        if role == "Bounce":
+            bounce_count += 1
+    if bounce_count != 8:
+        fail(f"Expected eight localized indirect-light proxies, found {bounce_count}")
+    if "StudioLightingRig" not in studio:
+        fail("Studio geometry isn't wired to the lighting pass")
+
     for objective in ("BookingDiary", "SessionLog", "TapeMachine", "Spares",
                       "CardIndex", "RoadCase", "Safe", "MemorialProgramme",
                       "PatchBay", "MixingDesk", "MailSlot", "ExitZone"):
