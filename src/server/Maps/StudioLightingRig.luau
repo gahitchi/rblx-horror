@@ -388,6 +388,43 @@ local FIXTURES: { Fixture } = {
 	},
 }
 
+-- Route lighting is a distinct, always-powered emergency/maintenance circuit.
+-- Positions are floor-plan anchors; the housings mount to each room's actual
+-- ceiling, never suspend midair. Keep these near real room transitions rather
+-- than distributing little lights randomly across every empty floor.
+local ROUTE_FIXTURES: { Fixture } = {
+	{ name = "ReceptionNorthRoute", room = "Reception", at = Vector3.new(-41, 5, -2),
+		role = "Route", range = 22, intensity = 0.56, kind = "Surface", angle = 115 },
+	{ name = "ReceptionPublicRoute", room = "Reception", at = Vector3.new(-1, 5, 9),
+		role = "Route", range = 23, intensity = 0.54, kind = "Surface", angle = 115 },
+	{ name = "EntryWestRoute", room = "EntryHall", at = Vector3.new(21, 5, 8),
+		role = "Route", range = 21, intensity = 0.55, kind = "Surface", angle = 115 },
+	{ name = "EntryEastRoute", room = "EntryHall", at = Vector3.new(51, 5, 9),
+		role = "Route", range = 20, intensity = 0.52, kind = "Surface", angle = 115 },
+	{ name = "StaffPassageRoute", room = "StaffPassage", at = Vector3.new(-12, 5, -17),
+		role = "Route", range = 19, intensity = 0.54, kind = "Surface", angle = 110 },
+	{ name = "BreakRoomRoute", room = "BreakRoom", at = Vector3.new(-43, 5, -20),
+		role = "Route", range = 20, intensity = 0.53, kind = "Surface", angle = 110 },
+	{ name = "SoundLockRoute", room = "SoundLock", at = Vector3.new(-22, 5, -46),
+		role = "Route", range = 17, intensity = 0.54, kind = "Surface", angle = 110 },
+	{ name = "GalleryRoute", room = "ViewingGallery", at = Vector3.new(9, 5, -43),
+		role = "Route", range = 22, intensity = 0.55, kind = "Surface", angle = 112 },
+	{ name = "InnerHallRoute", room = "InnerHall", at = Vector3.new(25, 5, -19),
+		role = "Route", range = 20, intensity = 0.51, kind = "Surface", angle = 110 },
+	{ name = "ServiceHallRoute", room = "ServiceHall", at = Vector3.new(51, 5, -25),
+		role = "Route", range = 23, intensity = 0.53, kind = "Surface", angle = 110 },
+	{ name = "ControlACentreRoute", room = "ControlA", at = Vector3.new(-61, 5, -94),
+		role = "Route", range = 23, intensity = 0.54, kind = "Surface", angle = 115 },
+	{ name = "ArchiveAisleRoute", room = "TapeArchive", at = Vector3.new(-70, 5, -120),
+		role = "Route", range = 18, intensity = 0.50, kind = "Surface", angle = 115 },
+	{ name = "ControlBRoute", room = "ControlB", at = Vector3.new(-56, 5, -43),
+		role = "Route", range = 20, intensity = 0.52, kind = "Surface", angle = 110 },
+	{ name = "LiveHallRoute", room = "LiveHall", at = Vector3.new(5, 5, -94),
+		role = "Route", range = 24, intensity = 0.54, kind = "Surface", angle = 115 },
+	{ name = "ServicePassRoute", room = "ServicePass", at = Vector3.new(59, 5, -96),
+		role = "Route", range = 20, intensity = 0.51, kind = "Surface", angle = 110 },
+}
+
 local function colorFor(role: string): Color3
 	if role == "Emergency" or role == "Fault" then
 		return RED
@@ -415,12 +452,28 @@ local function decorate(holders: Instance, spec: Fixture)
 	anchor.CanQuery = false
 	anchor.CanTouch = false
 	anchor.CastShadow = false
-	anchor.Size = if spec.kind == "Spot"
-		then Vector3.new(2.4, 0.36, 1.5)
+	anchor.Size = if spec.role == "Route"
+		then Vector3.new(4.5, 0.28, 1.7)
+		elseif spec.kind == "Spot" then Vector3.new(2.4, 0.36, 1.5)
 		else Vector3.new(1.15, 0.3, 0.9)
 	anchor.Color = if spec.role == "Emergency" then RED else METAL
 	anchor.Material = Enum.Material.Metal
-	anchor.CFrame = CFrame.new(spec.at)
+	-- Route fixtures are actual ceiling fluorescents. Other existing
+	-- illumination remains exactly where it was authored.
+	local installedAt = spec.at
+	if spec.role == "Route" then
+		local room: Room? = nil
+		for _, candidate in StudioLayout.make() do
+			if candidate.name == spec.room then
+				room = candidate
+				break
+			end
+		end
+		if room then
+			installedAt = Vector3.new(spec.at.X, room.height - 0.36, spec.at.Z)
+		end
+	end
+	anchor.CFrame = CFrame.new(installedAt)
 	anchor:SetAttribute("LightRole", spec.role)
 	anchor:SetAttribute("LightRoom", spec.room)
 	anchor:SetAttribute("LightBase", spec.intensity)
@@ -490,6 +543,22 @@ function StudioLightingRig.apply(map: Model)
 	end
 
 	local shadows = 0
+	-- These emergency/route lights use actual ceiling-mounted housings.
+	for _, route in ROUTE_FIXTURES do
+		local bounds: Room? = nil
+		for _, candidate in rooms do
+			if candidate.name == route.room then
+				bounds = candidate
+				break
+			end
+		end
+		assert(bounds ~= nil, "Missing route-light room " .. route.room)
+		local room = bounds :: Room
+		assert(route.at.X > room.x1 + 0.5 and route.at.X < room.x2 - 0.5
+			and route.at.Z > room.z1 + 0.5 and route.at.Z < room.z2 - 0.5,
+			"Route light outside plan: " .. route.name)
+		decorate(holders, route)
+	end
 	for _, fixture in FIXTURES do
 		local room: Room? = nil
 		for _, candidate in rooms do
@@ -516,7 +585,8 @@ function StudioLightingRig.apply(map: Model)
 	end
 	assert(shadows <= 1, "Lighting art budget: only the Control A desk casts an added shadow")
 	map:SetAttribute("StudioLightingRig", 1)
-	map:SetAttribute("StudioAddedFixtures", #FIXTURES)
+	map:SetAttribute("StudioAddedFixtures", #FIXTURES + #ROUTE_FIXTURES)
+	map:SetAttribute("StudioRouteFixtures", #ROUTE_FIXTURES)
 end
 
 return StudioLightingRig
