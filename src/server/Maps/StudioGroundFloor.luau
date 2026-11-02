@@ -4,6 +4,7 @@
 -- The old art-pass meshes, realism and asset-validation code are not dependencies.
 
 local StudioLayout = require(script.Parent.StudioLayout)
+local StudioProductionDetail = require(script.Parent.StudioProductionDetail)
 
 type Room = StudioLayout.Room
 type Portal = {
@@ -548,6 +549,9 @@ function StudioGroundFloor.build(): Model
 	local spawn = helper(markers, "PlayerSpawn", Vector3.new(-43, 2.5, 17))
 	spawn.CFrame = CFrame.lookAt(spawn.Position, spawn.Position + Vector3.new(0, 0, -1))
 	helper(markers, "MonsterSpawn", Vector3.new(0, 2.5, -82))
+
+	-- Phase 1 dressing is additive: the map contract and objective parts remain authoritative.
+	StudioProductionDetail.apply(map)
 
 	map.Parent = game:GetService("Workspace")
 	return map
