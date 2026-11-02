@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.8.8-readable-lighting"
+Config.VERSION = "0.8.9-desk-cover"
 Config.DEBUG = true -- extra Output logging while in development
 Config.DEBUG_AI = false -- shows the monster's state, awareness and path in the world
 
@@ -149,7 +149,7 @@ Config.MONSTER = table.freeze({
 		INSPECT_SECONDS = 1.6, -- deliberate pause at reachable studio workstation
 		SEARCH_CELL = 6,
 		MAX_VISITED = 48,
-		GENERIC_HIDE_CHECK = 0.08, -- occasionally searches a wardrobe without certainty
+		GENERIC_HIDE_CHECK = 0.08, -- occasionally inspects plausible cover without certainty
 		LUNGE_EVIDENCE_RADIUS = 8, -- no leap after a sound whose bearing is far off
 	}),
 })
@@ -212,7 +212,7 @@ Config.STUDIO1 = table.freeze({
 	OPTIONAL_TAPES = 3,
 })
 
--- Hiding in wardrobes and lockers. Inside, your noise is muffled. With the monster close your
+-- Hiding under worktables (legacy lockers supported). Sound is partially muffled. When he is close your
 -- breathing grows loud: hold it (Space) for a few seconds, or it hears you. Run out and you gasp.
 Config.HIDE = table.freeze({
 	MUFFLE = 0.35, -- legacy enclosed lockers
