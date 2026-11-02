@@ -275,8 +275,8 @@ function StudioGroundFloor.build(): Model
 				Vector3.new(-81, 2.5, -20),
 			},
 			TapeArchive = {
-				Vector3.new(3, 2.5, -176), Vector3.new(-9, 2.5, -169),
-				Vector3.new(15, 2.5, -173),
+				Vector3.new(3, 2.5, -176), Vector3.new(-19, 2.5, -165),
+				Vector3.new(22, 2.5, -164),
 			},
 			LiveHall = {
 				Vector3.new(-21, 2.5, -94), Vector3.new(-33, 2.5, -86),
@@ -417,6 +417,12 @@ function StudioGroundFloor.build(): Model
 		plaque(props, "SHELF " .. tostring(i), Vector3.new(x, 7.4, -183.6),
 			Vector3.new(6, 1.1, 0.2))
 	end
+	-- Two staggered shelf islands create a readable archive search loop, not a bottleneck.
+	-- Leave seven-plus studs around their ends for the Engineer's path.
+	part(props, "ArchiveIsland_A", Vector3.new(-10, 3.5, -170.5),
+		Vector3.new(9, 7, 2), C.floor, Enum.Material.Wood, true)
+	part(props, "ArchiveIsland_B", Vector3.new(12, 3.5, -176),
+		Vector3.new(9, 7, 2), C.floor, Enum.Material.Wood, true)
 	objective(objectives, "CardIndex", Vector3.new(23, 2.75, -169),
 		Vector3.new(3.5, 5.5, 2.5), C.teal, true)
 
