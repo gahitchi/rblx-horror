@@ -149,9 +149,9 @@ local function toilet(parent: Instance, x: number, z: number)
 		true
 	)
 	bowl.Shape = Enum.PartType.Ball
-	local seat = Kit.box(parent, "ToiletSeat", x, 1.5, z - 0.35, 2, 0.17, 2.3, C.paper)
-	seat.Shape = Enum.PartType.Cylinder
-	seat.CFrame = CFrame.new(x, 1.5, z - 0.35) * CFrame.Angles(0, 0, math.rad(90))
+	local seat = Kit.box(parent, "ToiletSeat", x, 1.5, z - 0.35,
+		2, 0.17, 2.3, C.paper, Enum.Material.SmoothPlastic)
+	seat.Shape = Enum.PartType.Ball
 	Kit.box(
 		parent,
 		"FlushLever",
@@ -400,8 +400,18 @@ function Detail.apply(map: Model)
 	Kit.sofa(breakRoom, -44, -12, 7.5, 180)
 	Kit.box(breakRoom, "CoffeeMachine", -43, 4.0, -28.4, 2.6, 2, 2, C.metal, Enum.Material.Metal)
 	Kit.box(breakRoom, "BreakCounter", -45, 1.5, -28.5, 8, 3, 2.1, C.wood, Enum.Material.Wood, true)
-	Kit.box(breakRoom, "StaffFridge", -36.9, 3.7, -27.7, 3, 7.4, 4, C.cream, Enum.Material.Metal)
-	Kit.box(breakRoom, "FridgeHandle", -38.55, 4.2, -25.65, 0.3, 2.5, 0.1, C.metal)
+	Kit.box(breakRoom, "StaffFridge", -36.9, 3.7, -27.7,
+		3, 7.4, 4, C.cream, Enum.Material.Metal, true)
+	-- One believable refrigerator, with rear-mounted hinges and a visible
+	-- seam between freezer and fridge; not two overlapping fridge meshes.
+	Kit.box(breakRoom,"FridgeDoor",-36.9,3.72,-25.64,
+		2.78,7.0,0.12,C.paper,Enum.Material.Metal)
+	Kit.box(breakRoom,"FreezerSeam",-36.9,5.45,-25.55,
+		2.6,0.045,0.04,C.metal,Enum.Material.Metal)
+	Kit.box(breakRoom,"FridgeHandle",-38.16,4.20,-25.48,
+		0.17,2.1,0.17,C.metal,Enum.Material.Metal)
+	Kit.box(breakRoom,"FridgeToeGrille",-36.9,0.23,-25.63,
+		2.68,0.27,0.09,C.dark,Enum.Material.Metal)
 	Kit.box(breakRoom, "SmallTeaTin", -46.6, 3.4, -28.4, 1, 0.8, 0.8, C.teal)
 	Kit.chair(breakRoom, -63, -18, 45, C.fabric)
 	Kit.chair(breakRoom, -53, -23, -45, C.fabric)
@@ -497,7 +507,14 @@ function Detail.apply(map: Model)
 			if i % 2 == 0 then C.cream else C.teal
 		)
 	end
-	Kit.box(janitor, "YellowBucket", 76, 0.8, -21, 2.4, 1.6, 2.4, C.gold, Enum.Material.Plastic)
+	local bucket=Kit.box(janitor, "YellowBucket", 76, 0.8, -21,
+		2.4, 1.6, 2.4, C.gold, Enum.Material.Plastic, true)
+	bucket.Shape=Enum.PartType.Cylinder
+	bucket.CFrame = CFrame.new(76,0.8,-21)*CFrame.Angles(0,0,math.rad(90))
+	Kit.rod(janitor,"BucketHandle",Vector3.new(75.05,1.60,-21),
+		Vector3.new(76,2.15,-21),0.11,C.steel)
+	Kit.rod(janitor,"BucketHandle",Vector3.new(76,2.15,-21),
+		Vector3.new(76.95,1.60,-21),0.11,C.steel)
 	Kit.sign(
 		janitor,
 		"WET FLOOR / STAFF",
