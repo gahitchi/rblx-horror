@@ -61,7 +61,11 @@ function HubDynamics.departure(hub: Model)
 	local root = hinge.CFrame
 	local info = TweenInfo.new(1.05, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 	local originals: { [BasePart]: CFrame } = {}
-	for _, part in { bar, table.unpack(stripes) } do
+	local pieces: { BasePart } = { bar }
+	for _, stripe in stripes do
+		table.insert(pieces, stripe)
+	end
+	for _, part in pieces do
 		originals[part] = part.CFrame
 		TweenService:Create(part, info, {
 			CFrame = root * rot * root:ToObjectSpace(part.CFrame),
