@@ -9,7 +9,7 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: integrated 0.8.4 — hub, studio and Engineer AI (not playtested)
+## Status: integrated 0.8.5 — hub, studio and scripted Engineer (not playtested)
 
 **Use branch `chatgpt/integrated-v1`.** It includes both the playable-code Wrenmouth
 cliff-top hub and the detailed 23-room recording house in **two distinct Roblox places**.
@@ -36,6 +36,12 @@ in a more natural sequence. See [docs/STUDIO_CH1_EVIDENCE.md](docs/STUDIO_CH1_EV
 sound memory, resists repetitive distractions, infers likely search
 directions and commits to non-homing lunges. Research references and
 later fairness tests: [docs/ENGINEER_AI_V2.md](docs/ENGINEER_AI_V2.md).
+
+**0.8.5 Engineer scripting pass:** articulated listening/search/pursuit poses,
+studio-equipment inspections, fair closed-locker detection, bounded
+pathfinding and per-round cleanup. The AI is behavior-complete **in source**;
+it still needs engine and multiplayer validation before release.
+See [the Engineer's complete behavior and acceptance plan](docs/ENGINEER_AI_SCRIPTED.md).
 More playtest details: [studio](docs/STUDIO_V2_PLAYTEST.md) and
 [hub](docs/HUB_V1_PLAYTEST.md).
 
