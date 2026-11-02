@@ -20,7 +20,7 @@ type Placement = {
 local PAPERS: { Placement } = {
 	{
 		id = "MachineServiceCard", caption = "SERVICE / TRANSPORT / 02 NOV",
-		at = Vector3.new(-65, 5.7, -106.42),
+		at = Vector3.new(-79, 5.7, -106.42),
 		size = Vector3.new(3.5, 2.6, 0.09),
 		face = Enum.NormalId.Back,
 	},
