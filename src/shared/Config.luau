@@ -110,6 +110,20 @@ Config.MONSTER = table.freeze({
 	HINT_AFTER = 75, -- seconds away from everyone before it drifts toward the players' area
 	-- Frenzy (shocks): it hears much farther, never backs off, and goes straight for loud sounds
 	FRENZY_HEARING = 2.5,
+	-- Sight (Monster/Vision). He's a man with great hearing, not a blind thing: hearing leads, and
+	-- light decides how far he sees. Ranges in studs.
+	SIGHT = table.freeze({
+		CONE_DEGREES = 110, -- his field of view
+		DARK_RANGE = 9, -- someone standing in the dark
+		LIT_RANGE = 28, -- someone in a lamp's pool of light
+		TORCH_RANGE = 40, -- someone with their flashlight on
+		BEAM_RANGE = 55, -- a flashlight shone across him is noticed from this far, wherever he faces
+		BEAM_DOT = 0.93, -- how directly the beam has to point at him
+		LIT_REACH = 0.7, -- a lamp lights this share of its range
+		NOTICE_MIN = 0.35, -- seconds of watching before he's sure, up close...
+		NOTICE_MAX = 1.3, -- ...and at the edge of his sight
+		FRENZY_SCALE = 1.25, -- in a frenzy he sees this much farther
+	}),
 })
 
 -- Rounds
