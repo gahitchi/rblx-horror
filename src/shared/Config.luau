@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.8.2-field-notebook"
+Config.VERSION = "0.8.3-evidence-pass"
 Config.DEBUG = true -- extra Output logging while in development
 Config.DEBUG_AI = false -- shows the monster's state, awareness and path in the world
 
