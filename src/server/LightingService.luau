@@ -38,6 +38,7 @@ local shockFogUntil = 0
 local rng = Random.new()
 local correction: ColorCorrectionEffect? = nil
 local bloom: BloomEffect? = nil
+local consoleIndicators: { BasePart } = {}
 
 local WARM_ROOMS: { [string]: boolean } = {
 	ControlA = true, ControlB = true, MasteringSuite = true,
@@ -183,6 +184,24 @@ local function show()
 	local suppressed = os.clock() < blackoutUntil
 	for _, lamp in lamps do
 		applyOne(lamp, suppressed)
+	end
+	-- Decorative desk LEDs must obey the chapter's power states too.
+	-- The hero console adds no extra PointLights for every channel.
+	for _, led in consoleIndicators do
+		if led.Parent then
+			local kind = led:GetAttribute("ConsoleIndicator")
+			local on = not suppressed and state ~= "dead"
+			led.Material = if on then Enum.Material.Neon else Enum.Material.SmoothPlastic
+			if not on then
+				led.Color = Color3.fromRGB(29, 32, 30)
+			elseif kind == "record" then
+				led.Color = if state == "red" then Color3.fromRGB(222, 68, 52)
+					else Color3.fromRGB(159, 86, 52)
+			else
+				led.Color = if state == "red" then Color3.fromRGB(83, 112, 93)
+					else Color3.fromRGB(120, 151, 102)
+			end
+		end
 	end
 end
 
@@ -344,6 +363,15 @@ end
 
 function LightingService.init(layout: MapContract.Layout)
 	lamps = layout.lamps
+	table.clear(consoleIndicators)
+	local console = layout.map:FindFirstChild("HeroMixConsole", true)
+	if console then
+		for _, descendant in console:GetDescendants() do
+			if descendant:IsA("BasePart") and descendant:GetAttribute("ConsoleIndicator") ~= nil then
+				table.insert(consoleIndicators, descendant)
+			end
+		end
+	end
 	ownsLighting = layout.map:GetAttribute("OwnsLighting") == true
 	authored = layout.map:GetAttribute("StudioLightingRig") == 1
 	table.clear(original)
