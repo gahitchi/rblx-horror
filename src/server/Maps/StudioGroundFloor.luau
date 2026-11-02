@@ -689,18 +689,8 @@ function StudioGroundFloor.build(): Model
 		C.dark,
 		true
 	)
-	for i = 1, 3 do
-		local reel = part(
-			props,
-			"ReelGuide",
-			Vector3.new(-75.8 + i * 1.8, 5.4, -92.3),
-			Vector3.new(1.5, 1.5, 0.2),
-			C.mustard,
-			Enum.Material.Metal,
-			false
-		)
-		reel.Shape = Enum.PartType.Cylinder
-	end
+	-- TapeMachine has one consolidated detailed transport facade in
+	-- StudioProductionDetail; avoid overlapping duplicate phantom reels.
 	objective(
 		objectives,
 		"MixingDesk",
@@ -732,7 +722,7 @@ function StudioGroundFloor.build(): Model
 	objective(objectives, "Safe", Vector3.new(-75, 2.5, -48), Vector3.new(4, 5, 3), C.navy, true)
 
 	-- Archive: index at the door, shelving on rear and side walls.
-	objective(
+	local cardIndex = objective(
 		objectives,
 		"CardIndex",
 		Vector3.new(-79, 2.6, -113),
@@ -740,6 +730,7 @@ function StudioGroundFloor.build(): Model
 		C.teal,
 		true
 	)
+	StudioFurnitureAsset.cardIndex(props, cardIndex)
 	for i, x in { -77, -72, -67, -62 } do
 		-- Rear-wall shelves stand on the floor, with real open bays and
 		-- three solid decks; no solid, featureless monolithic crate.
@@ -774,17 +765,8 @@ function StudioGroundFloor.build(): Model
 		Enum.Material.WoodPlanks,
 		true
 	)
-	for _, x in { -16, -12, -8 } do
-		part(
-			props,
-			"MicrophoneStand",
-			Vector3.new(x, 3, -94),
-			Vector3.new(0.25, 6, 0.25),
-			C.navy,
-			Enum.Material.Metal,
-			false
-		)
-	end
+	-- No freestanding unmounted microphone poles on the tracking riser:
+	-- actual supported microphone rigs are authored in ProductionDetail.
 	plaque(props, "LIVE RECORDING / QUIET", Vector3.new(5, 9, -57.7), Vector3.new(16, 1.4, 0.2))
 
 	-- Staff and visitor needs: two toilets in the correct zones and a janitor store.
@@ -797,7 +779,7 @@ function StudioGroundFloor.build(): Model
 		C.pale,
 		false
 	)
-	objective(
+	local spares = objective(
 		objectives,
 		"Spares",
 		Vector3.new(-78, 3.5, -23),
@@ -805,49 +787,10 @@ function StudioGroundFloor.build(): Model
 		C.navy,
 		true
 	)
-	for _, spec in
-		{
-			{ name = "Staff", x = 70, z = -45 },
-			{ name = "Visitor", x = 71, z = 0 },
-		}
-	do
-		part(
-			props,
-			spec.name .. "_Toilet",
-			Vector3.new(spec.x + 4, 1.1, spec.z - 4),
-			Vector3.new(2.2, 2.2, 3),
-			C.pale,
-			Enum.Material.SmoothPlastic,
-			false
-		)
-		part(
-			props,
-			spec.name .. "_Sink",
-			Vector3.new(spec.x - 5, 2.3, spec.z + 3),
-			Vector3.new(3.2, 1.1, 1.8),
-			C.teal,
-			Enum.Material.SmoothPlastic,
-			false
-		)
-	end
-	part(
-		props,
-		"JanitorShelf",
-		Vector3.new(74, 3.8, -28),
-		Vector3.new(7, 7.6, 1.5),
-		C.navy,
-		Enum.Material.Metal,
-		false
-	)
-	part(
-		props,
-		"MopBucket",
-		Vector3.new(76, 0.8, -21),
-		Vector3.new(2, 1.6, 2),
-		C.mustard,
-		nil,
-		false
-	)
+	StudioFurnitureAsset.objectiveCabinet(props, spares, "SPARES / STAFF")
+	-- Restroom fixtures and janitor storage are each built ONCE in
+	-- StudioServiceDetail. Removed old duplicate toilets, sinks, a giant
+	-- phantom JanitorShelf and redundant mop bucket.
 	plaque(props, "CLEANING / STAFF ONLY", Vector3.new(65, 9, -18), Vector3.new(9, 1.1, 0.2))
 
 	-- Load-in for instruments (no extra exterior escape) and dedicated machine racks.
