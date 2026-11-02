@@ -58,6 +58,7 @@ type State = {
 	numbers: { string },
 	inputs: { number },
 	shelf: string,
+	shelfLabels: { [string]: string },
 	clutterLeft: number,
 	caseOpened: boolean,
 	safeOpened: boolean,
@@ -216,21 +217,26 @@ local function onMachine(player: Player)
 	end
 end
 
-local function giveReel(player: Player, letter: string, where: Vector3)
-	if Kit.give(player, reelId(letter), where) then
-		Kit.notify(
-			player,
-			"You have reel " .. letter .. ". Load it on the machine in control room A."
-		)
+local function giveReel(player: Player, letter: string, where: Vector3): boolean
+	-- Do not consume a unique reel or award XP if the player's hands are full.
+	-- Dropped items are handled by Kit when a carrier is lost.
+	if Kit.holding(player) then
+		Kit.notify(player, "Your hands are full. Put your item down (G) to take this reel.")
+		return false
 	end
+	if not Kit.give(player, reelId(letter), where) then
+		return false
+	end
+	Kit.notify(player, "Reel " .. letter .. " acquired. Bring it to control room A.")
 	ProgressService.award(player, "Found a reel", Config.REWARDS.REEL_FOUND)
+	return true
 end
 
 -- ===== Setup each round =====
 
-local function randomNumbers(count: number): { string }
+local function randomNumbers(count: number, excluded: { [string]: boolean }?): { string }
 	local rng = Kit.random()
-	local used: { [string]: boolean } = {}
+	local used: { [string]: boolean } = table.clone(excluded or {})
 	local list: { string } = {}
 	while #list < count do
 		local number = string.format("WS-%04d", rng:NextInteger(1000, 8999))
@@ -245,27 +251,43 @@ end
 local function cardIndexText(): string
 	local rng = Kit.random()
 	local cards: { { number: string, text: string } } = {}
-	local decoyNumbers = randomNumbers(S.DECOY_CARDS + 3)
 	local titles = table.clone(Text.DECOY_TITLES)
-	local real = { [state.numbers[1]] = true, [state.numbers[2]] = true, [state.numbers[3]] = true }
-	for _, number in decoyNumbers do
-		if #cards >= S.DECOY_CARDS or #titles == 0 then
-			break
-		end
-		if not real[number] then
-			local title = table.remove(titles, rng:NextInteger(1, #titles)) :: string
-			table.insert(cards, {
-				number = number,
-				text = string.format("%s   %s   >  SHELF %d", number, title, rng:NextInteger(1, 8)),
-			})
-		end
+	local used: { [string]: boolean } = {}
+	for _, number in state.numbers do
+		used[number] = true
 	end
-	table.insert(
-		cards,
-		{ number = state.numbers[1], text = Text.cardArchive(state.numbers[1], state.shelf) }
-	)
-	table.insert(cards, { number = state.numbers[2], text = Text.cardRoadCase(state.numbers[2]) })
-	table.insert(cards, { number = state.numbers[3], text = Text.cardSafe(state.numbers[3]) })
+
+	-- The visible labels on ordinary reels must agree with the archive ledger.
+	-- Their shelf numbers are reserved *before* generating additional decoy cards.
+	for shelf, number in state.shelfLabels do
+		used[number] = true
+		local title = table.remove(titles, rng:NextInteger(1, #titles)) :: string
+		table.insert(cards, {
+			number = number,
+			text = Text.cardOrdinary(number, title, shelf),
+		})
+	end
+	local extra = math.max(0, S.DECOY_CARDS - #cards)
+	for _, number in randomNumbers(extra, used) do
+		local title = table.remove(titles, rng:NextInteger(1, #titles)) :: string
+		table.insert(cards, {
+			number = number,
+			text = Text.cardOrdinary(number, title, tostring(rng:NextInteger(1, 8))),
+		})
+	end
+
+	table.insert(cards, {
+		number = state.numbers[1],
+		text = Text.cardArchive(state.numbers[1], state.shelf),
+	})
+	table.insert(cards, {
+		number = state.numbers[2],
+		text = Text.cardRoadCase(state.numbers[2]),
+	})
+	table.insert(cards, {
+		number = state.numbers[3],
+		text = Text.cardSafe(state.numbers[3]),
+	})
 	table.sort(cards, function(a, b)
 		return a.number < b.number
 	end)
@@ -290,9 +312,8 @@ local function setUpArchiveReel()
 			REEL_COLOR
 		)
 		Kit.prompt(reel, "Take", "Reel A", 0, function(player)
-			if reel.Parent then
+			if reel.Parent and giveReel(player, "A", reel.Position) then
 				reel:Destroy()
-				giveReel(player, "A", reel.Position)
 			end
 		end)
 		return
@@ -309,12 +330,15 @@ local function setUpArchiveReel()
 		REEL_COLOR
 	)
 	Kit.prompt(reel, "Take", "Reel " .. state.numbers[1], 0, function(player)
-		if reel.Parent then
+		if reel.Parent and giveReel(player, "A", reel.Position) then
 			reel:Destroy()
-			giveReel(player, "A", reel.Position)
 		end
 	end)
-	-- Every other shelf spot holds an ordinary reel, so you have to read the label.
+	-- Every other shelf spot holds an ordinary reel with a matching card-index entry.
+	local used: { [string]: boolean } = {}
+	for _, number in state.numbers do
+		used[number] = true
+	end
 	for _, other in layout.reelSpots do
 		if other ~= spot then
 			local decoy = Kit.spawnPart(
@@ -323,7 +347,12 @@ local function setUpArchiveReel()
 				Vector3.new(1.6, 0.4, 1.6),
 				Color3.fromRGB(90, 80, 70)
 			)
-			local otherNumber = randomNumbers(1)[1]
+			local otherNumber = randomNumbers(1, used)[1]
+			used[otherNumber] = true
+			local shelfId = other:GetAttribute("Shelf")
+			local shelfName = if type(shelfId) == "string"
+				then shelfId else tostring(table.find(layout.reelSpots, other))
+			state.shelfLabels[shelfName] = otherNumber
 			Kit.prompt(decoy, "Read the label", otherNumber, 0, function(player)
 				Kit.notify(player, "Reel " .. otherNumber .. ". Not one of the three.")
 			end)
@@ -366,10 +395,12 @@ local function setUpRoadCase()
 		if state.caseOpened then
 			return
 		end
+		if not giveReel(player, "B", top + Vector3.new(0, 0.4, 0)) then
+			return
+		end
 		state.caseOpened = true
 		casePrompt.Enabled = false
 		Kit.sound(Sounds.TAPE_CLUNK, case.Position, 0.8)
-		giveReel(player, "B", top + Vector3.new(0, 0.4, 0))
 	end)
 	for i = 1, state.clutterLeft do
 		local shape = shapes[i]
@@ -418,10 +449,12 @@ local function setUpSafe()
 			return
 		end
 		if answer == S.SAFE_COMBO then
+			if not giveReel(player, "C", safe.Position + Vector3.new(0, safe.Size.Y / 2 + 0.3, 0)) then
+				return
+			end
 			state.safeOpened = true
 			Kit.closePuzzle(player)
 			Kit.sound(Sounds.SAFE_CLICK, safe.Position, 1)
-			giveReel(player, "C", safe.Position + Vector3.new(0, safe.Size.Y / 2 + 0.3, 0))
 		else
 			state.safeWrong += 1
 			Kit.sound(Sounds.SAFE_CLICK, safe.Position, 1, 60, 0.6)
@@ -620,6 +653,7 @@ function Studio1.start()
 		numbers = randomNumbers(3),
 		inputs = inputs,
 		shelf = "?",
+		shelfLabels = {},
 		clutterLeft = 0,
 		caseOpened = false,
 		safeOpened = false,
