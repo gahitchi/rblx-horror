@@ -5,6 +5,7 @@
 
 local StudioLayout = require(script.Parent.StudioLayout)
 local StudioProductionDetail = require(script.Parent.StudioProductionDetail)
+local StudioCriticalFixtures = require(script.Parent.StudioCriticalFixtures)
 local StudioServiceDetail = require(script.Parent.StudioServiceDetail)
 local StudioArchitectureDetail = require(script.Parent.StudioArchitectureDetail)
 local StudioStoryDetail = require(script.Parent.StudioStoryDetail)
@@ -927,6 +928,7 @@ function StudioGroundFloor.build(): Model
 
 	-- Phase 1 dressing is additive: the map contract and objective parts remain authoritative.
 	StudioProductionDetail.apply(map)
+	StudioCriticalFixtures.apply(map)
 	StudioServiceDetail.apply(map)
 	StudioArchitectureDetail.apply(map)
 	StudioStoryDetail.apply(map)
