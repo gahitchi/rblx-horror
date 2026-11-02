@@ -5,7 +5,7 @@
 local Workspace = game:GetService("Workspace")
 local map = Workspace:WaitForChild("Map")
 local foundCases: { Model } = {}
-local furniture = {}
+local furniture: { [string]: number } = {}
 for _, child in map:GetDescendants() do
 	if child:IsA("Model") and child:GetAttribute("PhysicsVersion") == 1 then
 		table.insert(foundCases, child)
