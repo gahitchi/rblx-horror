@@ -447,10 +447,17 @@ local function buildImported(parent: Instance, objectives: Instance?): Model?
 			item.CanCollide = false
 			item.CanQuery = false
 			item.CanTouch = false
+			local parentName = if item.Parent then item.Parent.Name else ""
+			-- glTF importer adds one wrapper Model per node on some Studio versions.
+			-- Read either MeshPart or parent name to find our channel identities.
 			item.CastShadow = string.find(item.Name, "DA16_WOOD", 1, true) ~= nil
+				or string.find(parentName, "DA16_WOOD", 1, true) ~= nil
 				or string.find(item.Name, "DA16_METAL", 1, true) ~= nil
-			local channelId = string.match(item.Name, "^ArmButton_(%d%d)")
-			local busId = string.match(item.Name, "^BusLamp_(%d%d)")
+				or string.find(parentName, "DA16_METAL", 1, true) ~= nil
+			local channelId = string.match(item.Name, "ArmButton_(%d%d)")
+				or string.match(parentName, "ArmButton_(%d%d)")
+			local busId = string.match(item.Name, "BusLamp_(%d%d)")
+				or string.match(parentName, "BusLamp_(%d%d)")
 			if channelId or busId then
 				local isRecord = channelId == "01" or channelId == "02" or busId == "06"
 				item:SetAttribute("ConsoleIndicator", if isRecord then "record" else "signal")
