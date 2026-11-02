@@ -743,13 +743,13 @@ function StudioGroundFloor.build(): Model
 	for i, x in { -77, -72, -67, -62 } do
 		-- Rear-wall shelves stand on the floor, with real open bays and
 		-- three solid decks; no solid, featureless monolithic crate.
-		StudioFurnitureAsset.archiveShelf(props, "ArchiveShelf_" .. tostring(i), x, -132)
+		StudioFurnitureAsset.archiveShelf(props, "ArchiveShelf_" .. tostring(i), x, -132.65)
 		-- Chapter's ReelSpot remains an actual reachable prompt from aisle.
-		local mark = helper(markers, "ReelSpot", Vector3.new(x, 5.3, -130.5))
+		local mark = helper(markers, "ReelSpot", Vector3.new(x, 5.3, -130.9))
 		mark:SetAttribute("Shelf", tostring(i))
 		plaque(
 			props, "SHELF " .. tostring(i),
-			Vector3.new(x, 6.88, -131.02),
+			Vector3.new(x, 6.88, -131.67),
 			Vector3.new(3.65, 0.64, 0.12)
 		)
 	end
