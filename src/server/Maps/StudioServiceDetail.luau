@@ -74,7 +74,7 @@ end
 local function phone(parent: Instance, x: number, y: number, z: number)
 	Kit.box(parent, "RotaryTelephone", x, y, z, 1.8, 0.7, 1.6, C.dark)
 	Kit.disc(parent, "PhoneDial", x, y + 0.34, z - 0.1, 1.1, 0.12, C.cream)
-	Kit.box(parent, "PhoneReceiver", x, y + 0.65, z + 0.18, 2, 0.32, 0.55, C.black)
+	Kit.box(parent, "PhoneReceiver", x, y + 0.46, z + 0.18, 2, 0.32, 0.55, C.black)
 end
 
 local function wallClock(parent: Instance, x: number, y: number, z: number)
@@ -270,34 +270,26 @@ function Detail.apply(map: Model)
 	local transit = Kit.group(root, "CorridorsAndNavy")
 
 	-- Reception should read as an actual family-run music business at the entrance.
-	Kit.box(
-		public,
-		"ReceptionCounterGlass",
-		-52,
-		3.7,
-		11,
-		10.5,
-		0.16,
-		2.3,
-		C.glass,
-		Enum.Material.Glass
-	)
-	Kit.box(public, "DeskBell", -50, 3.86, 10.1, 0.65, 0.28, 0.65, C.gold, Enum.Material.Metal)
-	phone(public, -56, 3.95, 11)
-	Kit.box(public, "PencilCup", -48.5, 4, 12, 0.7, 0.65, 0.7, C.wood)
+	-- The desk top is at y = 3.24. A thin writing mat now lies ON it;
+	-- the previous large glass plate floated roughly 0.4 studs above.
+	Kit.box(public, "ReceptionWritingMat", -52, 3.266, 11,
+		6.8, 0.05, 2.1, C.leather, Enum.Material.Fabric)
+	Kit.box(public, "DeskBell", -50, 3.405, 10.1, 0.65, 0.28, 0.65, C.gold, Enum.Material.Metal)
+	phone(public, -56, 3.6, 11)
+	Kit.box(public, "PencilCup", -48.5, 3.57, 12, 0.7, 0.65, 0.7, C.wood)
 	for _, dx in { -0.1, 0.13, 0.32 } do
 		Kit.rod(
 			public,
 			"DeskPencil",
-			Vector3.new(-48.5 + dx, 4.1, 12),
-			Vector3.new(-48.5 + dx, 5, 12),
+			Vector3.new(-48.5 + dx, 3.65, 12),
+			Vector3.new(-48.5 + dx, 4.32, 12),
 			0.07,
 			C.gold
 		)
 	end
 	Kit.sofa(public, -3, 16, 8.2, 90)
 	Kit.table(public, "ReceptionCoffeeTable", -9, 12, 4.5, 3.2, 1.7, C.woodLight)
-	Kit.box(public, "VisitorMagazine", -8, 1.92, 12, 2.1, 0.12, 1.4, C.paper)
+	Kit.box(public, "VisitorMagazine", -8, 1.90, 12, 2.1, 0.12, 1.4, C.paper)
 	Kit.sign(
 		public,
 		"ENQUIRIES / SESSION BOOKINGS",
@@ -309,13 +301,21 @@ function Detail.apply(map: Model)
 	Kit.poster(public, "TOWN CHOIR / AUTUMN CONCERT", -19, 8, 23.55, 3.5)
 	Kit.poster(public, "FISHERMEN'S SONGS / 1986", -9, 8, 23.55, 3.4)
 	wallClock(public, -42, 12, -6.5)
+	-- The old vinyl sleeves hovered against a blank wall. They now rest
+	-- on a continuous, bracketed display shelf near reception.
+	Kit.box(public, "RecordDisplayShelf", -73, 3.30, 23.15,
+		12, 0.20, 1.0, C.wood, Enum.Material.Wood, true)
+	for _, bracketX in { -78, -73, -68 } do
+		Kit.box(public, "ShelfWallBracket", bracketX, 2.60, 23.45,
+			0.22, 1.24, 0.28, C.metal, Enum.Material.Metal, true)
+	end
 	for _, x in { -77, -73, -69 } do
 		Kit.box(
 			public,
 			"RecordSleeve",
 			x,
-			5,
-			23.45,
+			5.0,
+			23.14,
 			2.3,
 			3.2,
 			0.2,
@@ -381,11 +381,11 @@ function Detail.apply(map: Model)
 
 	-- The break room feels used by choir members and engineers, rather than just a puzzle closet.
 	Kit.sofa(breakRoom, -44, -12, 7.5, 180)
-	Kit.box(breakRoom, "CoffeeMachine", -41, 3.5, -27, 2.6, 2, 2, C.metal, Enum.Material.Metal)
-	Kit.box(breakRoom, "BreakCounter", -45, 1.5, -28.5, 8, 3, 2.1, C.wood, Enum.Material.Wood)
+	Kit.box(breakRoom, "CoffeeMachine", -43, 4.0, -28.4, 2.6, 2, 2, C.metal, Enum.Material.Metal)
+	Kit.box(breakRoom, "BreakCounter", -45, 1.5, -28.5, 8, 3, 2.1, C.wood, Enum.Material.Wood, true)
 	Kit.box(breakRoom, "StaffFridge", -36.9, 3.7, -27.7, 3, 7.4, 4, C.cream, Enum.Material.Metal)
 	Kit.box(breakRoom, "FridgeHandle", -38.55, 4.2, -25.65, 0.3, 2.5, 0.1, C.metal)
-	Kit.box(breakRoom, "SmallTeaTin", -46, 3.22, -28.4, 1, 0.8, 0.8, C.teal)
+	Kit.box(breakRoom, "SmallTeaTin", -46.6, 3.4, -28.4, 1, 0.8, 0.8, C.teal)
 	Kit.chair(breakRoom, -63, -18, 45, C.fabric)
 	Kit.chair(breakRoom, -53, -23, -45, C.fabric)
 	Kit.sign(
@@ -457,8 +457,15 @@ function Detail.apply(map: Model)
 	for _, x in { 63, 66, 69 } do
 		broom(janitor, x, -27, x == 66)
 	end
+	-- Cleaning supplies cannot float on standalone shelves: a floor-to-top
+	-- steel frame actually carries the three tiers against the rear wall.
+	for _, side in { 69.65, 78.35 } do
+		Kit.box(janitor, "ShelfFramePost", side, 4.5, -29.4,
+			0.27, 9, 1.25, C.metal, Enum.Material.Metal, true)
+	end
 	for _, y in { 2, 5.7, 8 } do
-		Kit.box(janitor, "CleaningShelf", 74, y, -29.4, 9, 0.22, 1.1, C.steel, Enum.Material.Metal)
+		Kit.box(janitor, "CleaningShelf", 74, y, -29.4,
+			9, 0.22, 1.1, C.steel, Enum.Material.Metal, true)
 	end
 	for i = 1, 6 do
 		Kit.box(
