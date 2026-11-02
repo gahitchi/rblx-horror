@@ -215,7 +215,8 @@ Config.STUDIO1 = table.freeze({
 -- Hiding in wardrobes and lockers. Inside, your noise is muffled. With the monster close your
 -- breathing grows loud: hold it (Space) for a few seconds, or it hears you. Run out and you gasp.
 Config.HIDE = table.freeze({
-	MUFFLE = 0.35, -- noise from inside a hiding spot carries this much as far
+	MUFFLE = 0.35, -- legacy enclosed lockers
+	DESK_MUFFLE = 0.72, -- open-front tables are only a little quieter, not soundproof
 	BREATH_RANGE = 16, -- the monster this close makes your breathing loud
 	BREATH_INTERVAL = 1.2, -- seconds between breaths it might hear
 	HOLD_SECONDS = 6, -- how long you can hold your breath
