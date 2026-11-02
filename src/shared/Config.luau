@@ -4,7 +4,7 @@
 local Config = {}
 
 Config.GAME_NAME = "Dead Air"
-Config.VERSION = "0.8.7-control-a-console"
+Config.VERSION = "0.8.8-readable-lighting"
 Config.DEBUG = true -- extra Output logging while in development
 Config.DEBUG_AI = false -- shows the monster's state, awareness and path in the world
 
@@ -171,16 +171,16 @@ Config.PACING = table.freeze({
 	PRESSURE_FULL = 25 * 60, -- ...and is at its strongest here
 	PRESSURE_HEARING = 0.5, -- at full pressure the monster hears this much farther (x1.5)
 	PRESSURE_HINT = 0.6, -- at full pressure it drifts toward the crew this much sooner
-	FOG_END_CALM = 160, -- how far you see through the fog at the start
-	FOG_END_FULL = 70, -- and at full pressure
+	FOG_END_CALM = 210, -- long early sightlines let players read the room plan
+	FOG_END_FULL = 110, -- pressure reduces visibility without obscuring navigation
 })
 
 -- The shocks.
 Config.SHOCK = table.freeze({
-	BLACKOUT = 7, -- seconds of total darkness in the second shock
+	BLACKOUT = 7, -- main power trip; battery-backed route/EXIT pilots remain lit
 	FRENZY = 20, -- seconds the monster frenzies after the second shock
-	FOG_END = 35, -- the fog that seeps in with the second shock
-	FOG_SECONDS = 25, -- before it thins back to the pressure level
+	FOG_END = 75, -- brief shock haze; corridors remain readable at a distance
+	FOG_SECONDS = 16, -- returns to the pressure-based grade promptly
 	REPLAYED_SOUNDS = 6, -- the team's own sounds played back through the speakers
 })
 
