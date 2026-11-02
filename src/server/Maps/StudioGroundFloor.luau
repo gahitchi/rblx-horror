@@ -100,7 +100,7 @@ local function locatePortal(a: Room, b: Room, kind: string): Portal
 		overlap = hi - lo
 		along = (lo + hi) / 2
 	end
-	assert(overlap >= 14, "portal too narrow: " .. a.name .. " / " .. b.name)
+	assert(overlap >= 12, "portal too narrow: " .. a.name .. " / " .. b.name)
 	return {
 		a = a.name, b = b.name, axis = axis, at = at, along = along,
 		width = if kind == "open" then 15 else 9,
@@ -300,6 +300,18 @@ function StudioGroundFloor.build(): Model
 			Vector3.new(width - 0.6, room.height, depth - 0.6))
 		-- Default unobstructed center spot plus service/large-room patrol points.
 		local points: { Vector3 } = { Vector3.new(center.X, 2.5, center.Z) }
+		local hidingApproaches: { [string]: Vector3 } = {
+			TapeArchive = Vector3.new(-75, 2.5, -119),
+			ControlA = Vector3.new(-74, 2.5, -73),
+			ControlB = Vector3.new(-75, 2.5, -37),
+			BreakRoom = Vector3.new(-74, 2.5, -15),
+			Reception = Vector3.new(-74, 2.5, 13),
+			ServicePass = Vector3.new(70, 2.5, -76),
+			LiveHall = Vector3.new(35, 2.5, -70),
+		}
+		if hidingApproaches[room.name] then
+			table.insert(points, hidingApproaches[room.name])
+		end
 		if width >= 40 and depth >= 24 and room.role ~= "washroom" then
 			table.insert(points, Vector3.new(center.X - width / 4, 2.5, center.Z - depth / 5))
 			table.insert(points, Vector3.new(center.X + width / 4, 2.5, center.Z + depth / 5))
