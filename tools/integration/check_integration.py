@@ -127,6 +127,9 @@ def main() -> int:
     match = require_text("src/server/Main.server.luau")
     replay = require_text("src/server/ReplayService.luau")
     studio = require_text("src/server/Maps/StudioGroundFloor.luau")
+    world_evidence = require_text("src/server/Maps/StudioEvidenceDetail.luau")
+    chapter_text = require_text("src/server/Chapters/Studio1Text.luau")
+    chapter_ui = require_text("src/client/ChapterUi.luau")
     chapter = require_text("src/server/Chapters/Studio1.luau")
     tension = require_text("src/server/Chapters/StudioTension.luau")
     notebook = require_text("src/client/NotebookUi.luau")
@@ -179,6 +182,34 @@ def main() -> int:
                   "table.clear(radio)", "ChapterUi.isOpen()", "Enum.KeyCode.J",
                   "MAX_RADIO = 16", "MAX_PAPERS = 8"):
         must_have(notebook, token, "match/client/NotebookUi")
+    # The optional sheets are actually in the authored map and are
+    # server-delivered through the normal, round-owned read prompts.
+    evidence_ids = set(re.findall(r'id = "([A-Za-z]+)", label =', chapter_text))
+    world_ids = set(re.findall(r'id = "([A-Za-z]+)", caption =', world_evidence))
+    if len(evidence_ids) != 5 or evidence_ids != world_ids:
+        fail(f"Story evidence mismatch: text={sorted(evidence_ids)} map={sorted(world_ids)}")
+    for token in ("StudioEvidenceDetail.apply(map)",
+                  "StudioProductionDetail.apply", "StudioServiceDetail.apply"):
+        must_have(studio, token, "match/StudioGroundFloor")
+    for token in ("Text.EVIDENCE", 'props:FindFirstChild("RecordedEvidence")',
+                  'Kit.prompt(paper, "Read"', "Kit.document(player, entry.title, entry.body)"):
+        must_have(chapter, token, "match/Studio1")
+    for token in ("state.shelfLabels", "Text.cardOrdinary",
+                  "randomNumbers(extra, used)", "giveReel(player, \"A\"",
+                  'if not giveReel(player, "B"', 'if not giveReel(player, "C"'):
+        must_have(chapter, token, "match/Studio1")
+    must_have(chapter_text, "3 NOVEMBER 1979", "match/Studio1Text")
+    must_have(chapter_text, "Text.cardOrdinary", "match/Studio1Text")
+    must_have(config, 'SAFE_COMBO = "031179"', "shared/Config")
+    for token in ("guideButtons", "guide.BackgroundColor3 = BUTTON"):
+        must_have(chapter_ui, token, "match/client/ChapterUi")
+    notebook_capacity = re.search(r"MAX_PAPERS = (\d+)", notebook)
+    if not notebook_capacity or int(notebook_capacity.group(1)) < len(evidence_ids) + 4:
+        fail("Notebook cannot retain all five optional pages plus four core documents")
+    for token in ("if not state.diaryRead then", "if not state.logRead then",
+                  'table.insert(lines, "Read the session log (control A)")'):
+        must_have(chapter, token, "match/Studio1")
+
     must_have(chapter, "StudioTension.start(myRound)", "match/Studio1")
     for guard in ("MAX_CUES_PER_ROUND", "MIN_CUE_GAP", "OPENING_END",
                   'RoundState.get("LastCall")', "Kit.shocksFired() > 0"):
