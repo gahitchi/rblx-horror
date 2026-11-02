@@ -243,8 +243,16 @@ end
 local function makeVan(hub: Model, markers: Folder, ground: Folder)
 	local van = folder(hub, "HandlersVan")
 	-- Original design, no real-world brand. The rear opens toward the crew at x=-44.
-	local body = box(van, "CreamPanelVanBody", -24, 4.5, -25,
-		27, 8.4, 13.5, C.cream, Enum.Material.Metal, true)
+	-- Hollow shell, not a single obstructing block: players can inspect the
+	-- rear workbench and the recovered tapes inside the open van.
+	box(van, "VanCabFront", -13, 4.5, -25, 4.2, 8.4, 13.5,
+		C.cream, Enum.Material.Metal, true)
+	box(van, "VanUnderbody", -25, 0.85, -25, 25.8, 1.6, 13.5,
+		C.cream, Enum.Material.Metal, true)
+	for _, z in { -31.7, -18.3 } do
+		box(van, "VanSidePanel", -26, 4.5, z, 23.8, 7.8, 0.48,
+			C.cream, Enum.Material.Metal, true)
+	end
 	for _, z in { -31.9, -18.1 } do
 		box(van, "RustSideStripe", -24, 4.25, z,
 			26.9, 2, 0.11, C.rust, Enum.Material.Metal)
@@ -269,7 +277,7 @@ local function makeVan(hub: Model, markers: Folder, ground: Folder)
 				* CFrame.Angles(0, 0, math.rad(90)),
 				Vector3.new(1.15, 3.65, 3.65), C.black)
 			tyre.CanCollide = false
-			cylinder(van, "SteelHubcap", CFrame.new(x, 1.5, z + if z < -25 then -0.65 else 0.65)
+			cylinder(van, "SteelHubcap", CFrame.new(x, 1.5, z + (if z < -25 then -0.65 else 0.65))
 				* CFrame.Angles(0, 0, math.rad(90)),
 				Vector3.new(0.2, 1.9, 1.9), C.navy)
 		end
