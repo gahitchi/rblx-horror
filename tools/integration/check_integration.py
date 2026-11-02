@@ -246,8 +246,8 @@ def main() -> int:
     )
     fixtures = fixture_pattern.findall(studio_lighting)
     names = {f[0] for f in fixtures}
-    if len(fixtures) != 40 or len(names) != len(fixtures):
-        fail(f"Lighting rig expected 40 unique authored fixtures, found {len(fixtures)}")
+    if len(fixtures) != 55 or len(names) != len(fixtures):
+        fail(f"Lighting rig expected 55 unique authored fixtures, found {len(fixtures)}")
     bounce_count = 0
     for name, room, x, y, z, role, range_, intensity in fixtures:
         bounds = positions.get(room)
@@ -265,6 +265,20 @@ def main() -> int:
             bounce_count += 1
     if bounce_count != 8:
         fail(f"Expected eight localized indirect-light proxies, found {bounce_count}")
+    route_count = sum(1 for f in fixtures if f[5] == "Route")
+    if route_count != 15:
+        fail(f"Studio requires fifteen mounted emergency/route lights, found {route_count}")
+    for token in ("StudioRouteFixtures", "room.height - 0.36", 'role = "Route"'):
+        must_have(studio_lighting, token, "match/StudioLightingRig")
+    for token in ('role == "Route"', "nominal * 0.35",
+                  "Lighting.Brightness = 1.20",
+                  "Lighting.EnvironmentDiffuseScale = 0.25",
+                  "Lighting.ExposureCompensation"):
+        must_have(studio_lighting_service, token, "match/LightingService")
+    must_have(config, "FOG_END_CALM = 210", "shared/Config")
+    must_have(config, "FOG_END_FULL = 110", "shared/Config")
+    must_have(config, "FOG_END = 75", "shared/Config")
+
     if "StudioLightingRig" not in studio:
         fail("Studio geometry isn't wired to the lighting pass")
 
@@ -293,7 +307,7 @@ def main() -> int:
               "match/StudioGroundFloor")
     must_have(studio, 'objective(objectives, "SessionLog", Vector3.new(-57, 3.68, -75.65)',
               "match/StudioGroundFloor")
-    must_have(config, 'Config.VERSION = "0.8.7-control-a-console"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.8.8-readable-lighting"', "shared/Config")
 
     for objective in ("BookingDiary", "SessionLog", "TapeMachine", "Spares",
                       "CardIndex", "RoadCase", "Safe", "MemorialProgramme",
