@@ -402,6 +402,10 @@ def main() -> int:
     must_have(config, 'Config.VERSION = "0.9.2-convincing-assets"', "shared/Config")
 
     # High-detail console is authored visual geometry, not a second puzzle.
+    for token in ("WrenmouthDA16", "buildImported(parent, objectives)", "ImportedQualityMesh",
+                  "clone:ScaleTo", "clone:PivotTo", "UseOpacityForPower"):
+        must_have(hero_console, token, "match/StudioHeroConsole/import")
+    must_have(studio_lighting_service, "UseOpacityForPower", "match/LightingService/import")
     for token in ("StudioHeroConsole.build(ctrl, map)", "ProductionDressing",
                   "local ctrl = Kit.group(production, \"ControlA\")"):
         must_have(studio_production, token, "match/StudioProductionDetail")
