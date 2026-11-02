@@ -43,6 +43,16 @@ pathfinding and per-round cleanup. The AI is behavior-complete **in source**;
 it still needs engine and multiplayer validation before release.
 See [the Engineer's complete behavior and acceptance plan](docs/ENGINEER_AI_SCRIPTED.md).
 
+
+**Control A live-lighting follow-up (source-only, awaiting MCP QA):**
+the eight artistic bounce sources no longer spawn visible floating housings;
+pre-shock fault lights now use the intended pale color. The developer-only
+light-state test covers both regressions. New matched-camera, active-gameplay
+visual acceptance and safe branch reconciliation steps are in
+[docs/CONTROL_A_LIVE_LIGHTING_QA.md](docs/CONTROL_A_LIVE_LIGHTING_QA.md).
+These remote source changes do **not** include or overwrite the user's
+local uncommitted DA-16 orientation correction.
+
 **0.8.6 lighting milestone:** The studio now uses Roblox's Realistic renderer
 configuration and a 40-fixture, room-specific lighting system with simulated
 indirect light bounce, two broad SurfaceLights, three total planned dynamic
