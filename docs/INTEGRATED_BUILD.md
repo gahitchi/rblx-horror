@@ -1,7 +1,7 @@
 # Dead Air — unified hub + recording-studio development build
 
 **Branch:** `chatgpt/integrated-v1`  
-**Shared build version:** `0.8.4-engineer-ai`  
+**Shared build version:** `0.8.5-engineer-scripted`  
 **Status:** Both source branches merged into one code branch. Source-level checks,
 not a Roblox Studio or published-server playtest.
 
@@ -159,7 +159,8 @@ places separately. Tool versions/installation differ by machine.
 - Do not merge this to `main` until the two-place Play/teleport
   smoke test succeeds.
 
-**Related documentation:** `docs/ENGINEER_AI_V2.md`,
+**Related documentation:** `docs/ENGINEER_AI_SCRIPTED.md`,
+`docs/ENGINEER_AI_V2.md`,
 `docs/STUDIO_CH1_EVIDENCE.md`,
 `docs/HUB_V1_PLAYTEST.md`,
 `docs/STUDIO_V2_PLAYTEST.md`, `docs/STUDIO_CH1_OPENING.md`,
