@@ -9,7 +9,7 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: integrated 0.8.0 — hub and studio (not playtested)
+## Status: integrated 0.8.3 — hub, studio and evidence trail (not playtested)
 
 **Use branch `chatgpt/integrated-v1`.** It includes both the playable-code Wrenmouth
 cliff-top hub and the detailed 23-room recording house in **two distinct Roblox places**.
@@ -26,6 +26,11 @@ playtesting are still outstanding. The design is in `docs/DIRECTION.md`.
 review documents you have read and radio subtitles you have received this
 round. The notes contain no hidden solutions and reset on the next round.
 Design and later mobile checks: [docs/FIELD_NOTEBOOK.md](docs/FIELD_NOTEBOOK.md).
+
+**0.8.3 evidence pass:** Chapter 1 now includes optional readable service, archive,
+road-case, routing and navy records. The archive card index matches physical
+reel labels, full-hand pickups preserve reels, and objectives are introduced
+in a more natural sequence. See [docs/STUDIO_CH1_EVIDENCE.md](docs/STUDIO_CH1_EVIDENCE.md).
 More playtest details: [studio](docs/STUDIO_V2_PLAYTEST.md) and
 [hub](docs/HUB_V1_PLAYTEST.md).
 
