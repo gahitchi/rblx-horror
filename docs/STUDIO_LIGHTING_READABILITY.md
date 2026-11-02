@@ -41,7 +41,7 @@ evenly lit room.
 Existing low-energy bounce proxies, threshold spill and practical
 ceiling lights now provide enough shape to distinguish walls and equipment
 without flattening materials. Acoustic shadows remain, especially around
-the Engineeer's approach routes and shelving.
+the Engineer's approach routes and shelving.
 
 ### Three story states
 
@@ -88,6 +88,11 @@ hero mixing console still follow the chapter state.
   sight system itself is not made omniscient.
 - A sound puzzle or chase never modifies the room geometry or moveable
   props to force lighting onto players.
+
+**Fallback reliability:** if the detailed studio throws an error, the
+old greybox route still receives nonzero initial Lighting brightness
+and working generic lamps. This is a safety net, not an alternative
+visual-quality target.
 
 ## Acceptance tests when Studio is available
 
