@@ -294,10 +294,16 @@ local function onStart(player: Player)
 	if not lobby or lobby.host ~= player or lobby.starting then
 		return
 	end
-	if Config.PLACES.MATCH == 0 or RunService:IsStudio() then
+	-- Require a valid round trip before sending anyone into a reserved server.
+	-- The match's ReplayService requires *both* IDs for the return-to-hub vote.
+	if RunService:IsStudio()
+		or Config.PLACES.HUB == 0
+		or Config.PLACES.MATCH == 0
+		or Config.PLACES.HUB == Config.PLACES.MATCH
+	then
 		notify(
 			player,
-			"Starting a match needs the published game with Config.PLACES set (see docs/HUB.md)."
+			"Publish both Hub and Match places and set their separate IDs in Config.PLACES before starting."
 		)
 		return
 	end
