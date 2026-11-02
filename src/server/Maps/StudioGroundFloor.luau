@@ -102,9 +102,13 @@ local function underDesk(
 		return p
 	end
 	board("Top", 0, height, 0, width, 0.28, depth, workMaterial)
-	for _, sign in { -1, 1 } do
-		board("Leg", sign * (width / 2 - 0.23), (height - 0.24) / 2, 0,
-			0.36, height - 0.24, depth, workMaterial)
+	-- Four corner posts keep the knee bay open. Old full-depth side
+	-- "legs" were walls that made every desk look like a box.
+	for _, sx in {-1,1} do
+		for _, sz in {-1,1} do
+			board("Leg", sx*(width/2-0.32), (height-0.24)/2,
+				sz*(depth/2-0.30), 0.44,height-0.24,0.44,workMaterial)
+		end
 	end
 	-- Front = local negative Z. No solid panel covers the front opening;
 	-- Engineer must walk over and look under the actual table.
@@ -125,16 +129,20 @@ local function underDesk(
 	for _, side in { -1, 1 } do
 		trim("TopEdgeRail", side * (width/2 - 0.10), height + 0.075, 0,
 			0.14, 0.07, depth - 0.18, C.floor)
-		trim("SidePanelInset", side * (width/2 - 0.47),
-			(height - 0.32)/2, 0,
-			0.035, height - 0.62, depth - 0.62, C.floor)
+		trim("SideApron",side*(width/2-0.31),height-0.49,0,
+			0.13,0.43,depth-0.6,C.floor)
 	end
 	trim("ToeKick", 0, 0.22, depth/2 - 0.26,
 		width - 0.65, 0.23, 0.14, C.navy)
 	trim("LongEdgeRail", 0, height + 0.075, -depth/2 + 0.095,
 		width - 0.23, 0.07, 0.14, C.floor)
 	trim("BackTopRail", 0, height + 0.075, depth/2 - 0.095,
-		width - 0.23, 0.07, 0.14, C.mustard)
+		width - 0.23, 0.07, 0.14, C.floor)
+	-- Small stationery drawer on the right, outside the central hiding bay.
+	trim("DrawerFace",width/2-1.18,height-0.45,-depth/2+0.12,
+		1.63,0.38,0.16,C.floor)
+	trim("DrawerPull",width/2-1.18,height-0.43,-depth/2-0.006,
+		0.62,0.09,0.12,C.navy)
 	local marker = part(hiding, name .. "Cover", (cf * CFrame.new(0, 1.2, 0)).Position,
 		Vector3.new(math.min(width - 1.2, 3.6), 2.4, math.min(depth - 0.6, 2.6)),
 		C.mustard, nil, false)
