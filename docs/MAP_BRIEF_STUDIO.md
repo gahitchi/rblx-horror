@@ -79,13 +79,24 @@ scale), so it drops in without script changes.
 
 ## Markers
 
-Map contract v2 is coming with build plan batch A (`docs/BUILD_PLAN.md`): `ReelSpot` (at least 3,
-more is better), `SessionLog`, `TapeMachine`, `MixingDesk`, `Shutters` with a `Route` attribute,
-`sealed` and `barricaded` doors, hiding spots, `Throwable` spawns, lighting-state groups. The
-generator, fuse box, fuse spots and power lights go away. Exact names land in
-`docs/MAP_CONTRACT.md` when batch A is pushed; until then, place things where they belong and the
-markers can be added on top. If the map needs something the contract doesn't allow, change the
-contract (and `MapContract.luau`) or say so in a commit message and it'll be worked out together.
+Map contract v2 is in: `docs/MAP_CONTRACT.md` lists every folder, marker and objective name
+chapter 1 needs (`ReelSpot`, `OptionalTapeSpot`, `Throwable`, `HidingSpots`, `Shutters`, `Lamps`,
+`sealed` and `barricaded` doors, and the objective table). The greybox in
+`src/server/MapBuilder.luau` builds all of it and is a working example of every rule. A map
+missing any of chapter 1's objectives is refused and the greybox loads instead; the Output says
+what's missing. If the map needs something the contract doesn't allow, change the contract (and
+`MapContract.luau`) or say so in a commit message and it'll be worked out together.
+
+## How to work
+
+- Start a fresh branch from current `main` (for example `chatgpt/studio-v2`): `main` changed a
+  lot since `chatgpt/studio-art-pass` branched. Bring pieces over from the old branch, don't merge it.
+- Order: block out the ground floor first (rooms, doorways, routes, the stairwell landing), with
+  the markers and objectives in place, so it can be played as soon as possible. Then the landmark
+  props, then lighting, then dressing.
+- Push playable steps often, so each can be tested in a round.
+- The look: the Wrenmouth look-book (Gabriel has the link) and `docs/DIRECTION.md`. Studio colours:
+  foam brown, beige, teal, mustard, against the navy's grey and yellow-black.
 
 ## Worth bringing over from `chatgpt/studio-art-pass`
 
