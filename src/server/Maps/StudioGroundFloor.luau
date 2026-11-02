@@ -72,6 +72,51 @@ local function part(
 	return p
 end
 
+-- Open-front, structurally coherent desk cover. The old solid counter blocks
+-- all underside space; this shape has a real hollow knee bay, grounded side
+-- panels, a tabletop and a back modesty screen that blocks vision rays.
+-- The actual Hide trigger is an invisible marker in Map.HidingSpots.
+local function underDesk(
+	props: Instance,
+	hiding: Instance,
+	name: string,
+	x: number, z: number,
+	width: number, depth: number,
+	height: number,
+	facing: number,
+	color: Color3
+)
+	local cf = CFrame.new(x, 0, z) * CFrame.Angles(0, math.rad(facing), 0)
+	local function board(id: string, dx: number, y: number, dz: number,
+		w: number, h: number, d: number, material: Enum.Material)
+		local p = part(props, name .. id,
+			(cf * CFrame.new(dx, y, dz)).Position, Vector3.new(w,h,d),
+			color, material, true)
+		p.CFrame = cf * CFrame.new(dx, y, dz)
+		return p
+	end
+	board("Top", 0, height, 0, width, 0.28, depth, Enum.Material.Wood)
+	local side = 0.27
+	for _, sign in { -1, 1 } do
+		board("Leg", sign * (width / 2 - 0.23), (height - 0.24) / 2, 0,
+			0.36, height - 0.24, depth, Enum.Material.Wood)
+	end
+	-- Front = local negative Z. No solid panel covers the front opening;
+	-- Engineer must walk over and look under the actual table.
+	board("BackScreen", 0, (height - 0.24) / 2, depth / 2 - 0.16,
+		width - 0.6, height - 0.24, 0.28, Enum.Material.Wood)
+	board("FrontLip", 0, height - 0.25, -depth / 2 + 0.12,
+		width - 0.65, 0.42, 0.20, Enum.Material.Wood)
+	local marker = helper(hiding, name .. "Cover",
+		(cf * CFrame.new(0, 1.2, 0)).Position,
+		Vector3.new(math.min(width - 1.2, 3.6), 2.4, math.min(depth - 0.6, 2.6)))
+	marker.CFrame = cf * CFrame.new(0, 1.2, 0)
+	marker:SetAttribute("Kind", "underdesk")
+	marker:SetAttribute("CoverName", name)
+	marker:SetAttribute("ExitClearance", 2.5)
+	return marker
+end
+
 local function helper(parent: Instance, name: string, at: Vector3, size: Vector3?): Part
 	local p = part(parent, name, at, size or Vector3.one, C.mustard, nil, false)
 	p.Transparency = 1
@@ -557,15 +602,9 @@ function StudioGroundFloor.build(): Model
 	end
 
 	-- Reception: front-of-house desk, dated records and the only round exit.
-	part(
-		props,
-		"ReceptionCounter",
-		Vector3.new(-52, 1.55, 11),
-		Vector3.new(11, 3.1, 3),
-		C.floor,
-		Enum.Material.Wood,
-		true
-	)
+	-- The reception desk is a genuine hollow working counter rather than a
+	-- rectangular collision block. Diary and dressing retain their position.
+	underDesk(props, hiding, "ReceptionCounter", -52, 11, 11, 3.6, 3.1, 180, C.floor)
 	objective(
 		objectives,
 		"BookingDiary",
@@ -722,15 +761,7 @@ function StudioGroundFloor.build(): Model
 	plaque(props, "LIVE RECORDING / QUIET", Vector3.new(5, 9, -57.7), Vector3.new(16, 1.4, 0.2))
 
 	-- Staff and visitor needs: two toilets in the correct zones and a janitor store.
-	part(
-		props,
-		"BreakTable",
-		Vector3.new(-55, 1.5, -17.5),
-		Vector3.new(7, 3, 3.5),
-		C.floor,
-		Enum.Material.Wood,
-		true
-	)
+	underDesk(props, hiding, "BreakTable", -55, -17.5, 7, 3.5, 3.0, 180, C.floor)
 	objective(
 		objectives,
 		"MemorialProgramme",
@@ -814,30 +845,21 @@ function StudioGroundFloor.build(): Model
 		true
 	)
 
-	-- Functional hiding containers: every placement is close to a patrol Spot.
-	for _, data in
-		{
-			{ name = "ArchiveLocker", x = -80, z = -119, dx = 1, dz = 0, kind = "locker" },
-			{ name = "ControlAWardrobe", x = -80, z = -73, dx = 1, dz = 0, kind = "wardrobe" },
-			{ name = "ControlBLocker", x = -80, z = -37, dx = 1, dz = 0, kind = "locker" },
-			{ name = "BreakWardrobe", x = -80, z = -15, dx = 1, dz = 0, kind = "wardrobe" },
-			{ name = "ReceptionLocker", x = -80, z = 13, dx = 1, dz = 0, kind = "locker" },
-			{ name = "ServiceLocker", x = 75, z = -76, dx = -1, dz = 0, kind = "locker" },
-			{ name = "LiveWardrobe", x = 39, z = -72, dx = -1, dz = 0, kind = "wardrobe" },
-		}
-	do
-		local p = part(
-			hiding,
-			data.name,
-			Vector3.new(data.x, 3.85, data.z),
-			Vector3.new(3.7, 7.7, 3.4),
-			if data.kind == "locker" then C.navy else C.floor,
-			Enum.Material.Wood,
-			true
-		)
-		p.CFrame = CFrame.lookAt(p.Position, p.Position + Vector3.new(data.dx, 0, data.dz))
-		p:SetAttribute("Kind", data.kind)
-	end
+	-- Existing furniture becomes the hiding space: small under-desk bays,
+	-- not a line of gigantic wardrobes randomly blocking room circulation.
+	-- Reception and BreakTable were registered where their original solid
+	-- furniture used to be, so clue positions stay unchanged.
+	underDesk(props, hiding, "ArchiveSortingDesk", -66, -114, 7.6, 3.8, 3.15, 0, C.floor)
+	underDesk(props, hiding, "ServiceMaintenanceDesk", 67, -78, 7.0, 3.9, 3.15, 90, C.navy)
+	underDesk(props, hiding, "LiveRoomMusicDesk", -10, -67, 7.4, 3.8, 3.15, 180, C.floor)
+	-- Control B has its own open-legged edit counter built by production
+	-- dressing. Reuse the real furniture instead of building a clone.
+	local editCover = helper(hiding, "ControlBEditCover",
+		Vector3.new(-52, 1.2, -52), Vector3.new(3.4, 2.4, 2.6))
+	editCover.CFrame = CFrame.new(-52, 1.2, -52) * CFrame.Angles(0, math.rad(180), 0)
+	editCover:SetAttribute("Kind", "underdesk")
+	editCover:SetAttribute("CoverName", "EditCounter")
+	editCover:SetAttribute("ExitClearance", 2.5)
 
 	for _, pos in
 		{
