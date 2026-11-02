@@ -143,6 +143,7 @@ def main() -> int:
     match = require_text("src/server/Main.server.luau")
     replay = require_text("src/server/ReplayService.luau")
     studio = require_text("src/server/Maps/StudioGroundFloor.luau")
+    desk_cover_test = require_text("tools/studio/DeskCoverSelfTest.server.luau")
     studio_production = require_text("src/server/Maps/StudioProductionDetail.luau")
     hero_console = require_text("src/server/Maps/StudioHeroConsole.luau")
     studio_lighting = require_text("src/server/Maps/StudioLightingRig.luau")
@@ -307,7 +308,7 @@ def main() -> int:
               "match/StudioGroundFloor")
     must_have(studio, 'objective(objectives, "SessionLog", Vector3.new(-57, 3.68, -75.65)',
               "match/StudioGroundFloor")
-    must_have(config, 'Config.VERSION = "0.8.8-readable-lighting"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.8.9-desk-cover"', "shared/Config")
 
     for objective in ("BookingDiary", "SessionLog", "TapeMachine", "Spares",
                       "CardIndex", "RoadCase", "Safe", "MemorialProgramme",
@@ -416,6 +417,32 @@ def main() -> int:
     for token in ("NoiseService.emit(spot.Position, Config.NOISE.GASP",
                   "NoiseService.emit(spot.Position, Config.NOISE.BREATH"):
         must_have(hiding, token, "match/HideService")
+
+    # Verified cover must be intentional and visible, not random wardrobes
+    # or an omniscient hidden-player query. The Engineer only guarantees
+    # inspection after actually SEEING someone enter that exact cover.
+    for token in ("local function underDesk(", '"Kind", "underdesk"',
+                  '"ReceptionCounter"', '"BreakTable"', '"ArchiveSortingDesk"',
+                  '"ServiceMaintenanceDesk"', '"LiveRoomMusicDesk"',
+                  '"ControlBEditCover"', '"ExitClearance"', '"BackScreen"'):
+        must_have(studio, token, "match/StudioGroundFloor")
+    for obsolete in ('"ArchiveLocker"', '"ControlAWardrobe"', '"LiveWardrobe"',
+                     '"ReceptionLocker"', '"ServiceLocker"'):
+        if obsolete in studio:
+            fail("Removed locker asset still generated: " + obsolete)
+    for token in ('prompt.ActionText = if kind == "underdesk" then "Get under"',
+                  'MonsterService.reportHide(player, spot)', 'originalAutoRotate',
+                  'humanoid.Sit = true', '"underdesk" then HIDE.DESK_MUFFLE',
+                  'Remotes.LeaveHiding.OnServerEvent', 'HideService.leave(found)'):
+        must_have(hiding, token, "match/HideService")
+    for token in ("function MonsterService.reportHide(", "lastVisual[seen.player]",
+                  "now - record.time > 2.5", "spotFronts = { [point] = spot }",
+                  "onCatch(found)", 'log("caught", found.Name, "under cover")'):
+        must_have(engineer, token, "match/MonsterService")
+    must_have(studio_production, '"EditCounterBackPanel"', "match/StudioProductionDetail")
+    must_have(config, "DESK_MUFFLE = 0.72", "shared/Config")
+    must_have(desk_cover_test, "assert(count == 6", "tools/studio/DeskCoverSelfTest")
+    must_have(config, 'Config.VERSION = "0.8.9-desk-cover"', "shared/Config")
 
     must_have(chapter, "StudioTension.start(myRound)", "match/Studio1")
     for guard in ("MAX_CUES_PER_ROUND", "MIN_CUE_GAP", "OPENING_END",
