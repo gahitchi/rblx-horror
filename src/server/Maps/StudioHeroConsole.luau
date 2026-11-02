@@ -6,10 +6,6 @@
 -- interaction volume and Chapter 1's authoritative puzzle target.
 -- All new detail is noncolliding, non-queryable and designed around
 -- Control A's existing warm desk/softbox lighting.
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local Kit = require(script.Parent.StudioDecorKit)
-
 local HeroConsole = {}
 
 local PALETTE = {
@@ -110,7 +106,7 @@ local function surfaceLabel(part_: BasePart, text_: string, face: Enum.NormalId,
 end
 
 local function meter(parent: Instance, x: number, id: number)
-	local basis = CFrame.new(-56 + x, 4.64, -79.62)
+	local basis = CFrame.new(-56 + x, 4.64, -79.15)
 	-- Front face points toward operator, positive Z.
 	local case = block(parent, "VUHousing_" .. id, basis, 0, 0, 0,
 		1.00, 1.04, 0.20, PALETTE.shadow, Enum.Material.Metal)
@@ -194,9 +190,8 @@ local function buildMaster(parent: Instance)
 	end
 end
 
-function HeroConsole.build(parent: Instance): Model
-	local obj = Workspace:FindFirstChild("Map")
-	local objectives = obj and obj:FindFirstChild("Objectives")
+function HeroConsole.build(parent: Instance, map: Model): Model
+	local objectives = map:FindFirstChild("Objectives")
 	local interaction = objectives and objectives:FindFirstChild("MixingDesk")
 	if interaction and interaction:IsA("BasePart") then
 		-- Invisible collision/prompt body; all visible construction is below.
