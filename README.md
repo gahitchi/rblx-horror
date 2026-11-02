@@ -21,6 +21,11 @@ The original Chapter 1 game systems remain authoritative, with full story
 objectives, horror pacing and Last Call; the 1987 studio is built procedurally
 when no hand-made map is supplied. Placeholder audio and Roblox Studio
 playtesting are still outstanding. The design is in `docs/DIRECTION.md`.
+
+**0.8.2 field notebook:** During a match, press **J** or use **NOTES [J]** to
+review documents you have read and radio subtitles you have received this
+round. The notes contain no hidden solutions and reset on the next round.
+Design and later mobile checks: [docs/FIELD_NOTEBOOK.md](docs/FIELD_NOTEBOOK.md).
 More playtest details: [studio](docs/STUDIO_V2_PLAYTEST.md) and
 [hub](docs/HUB_V1_PLAYTEST.md).
 
