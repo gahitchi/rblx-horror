@@ -8,6 +8,7 @@ local StudioProductionDetail = require(script.Parent.StudioProductionDetail)
 local StudioServiceDetail = require(script.Parent.StudioServiceDetail)
 local StudioArchitectureDetail = require(script.Parent.StudioArchitectureDetail)
 local StudioStoryDetail = require(script.Parent.StudioStoryDetail)
+local StudioEvidenceDetail = require(script.Parent.StudioEvidenceDetail)
 local StudioStoreAssets = require(script.Parent.StudioStoreAssets)
 
 type Room = StudioLayout.Room
@@ -561,6 +562,7 @@ function StudioGroundFloor.build(): Model
 	StudioServiceDetail.apply(map)
 	StudioArchitectureDetail.apply(map)
 	StudioStoryDetail.apply(map)
+	StudioEvidenceDetail.apply(map)
 	-- Optional saved Creator Store geometry, with native fallbacks when nothing is staged.
 	StudioStoreAssets.apply(map)
 
