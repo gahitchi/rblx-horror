@@ -667,6 +667,22 @@ function Studio1.start()
 	}
 	Kit.setShocks({ shock1, shock2 })
 
+	-- Optional 1987 paper trail: a map without our visual notes skips these.
+	-- Every read is server-delivered, so the field notebook only files
+	-- pages that the individual player actually examined.
+	local props = Kit.layout().map:FindFirstChild("Props")
+	local evidence = props and props:FindFirstChild("RecordedEvidence")
+	if evidence then
+		for _, entry in Text.EVIDENCE do
+			local paper = evidence:FindFirstChild(entry.id)
+			if paper and paper:IsA("BasePart") then
+				Kit.prompt(paper, "Read", entry.label, 0.2, function(player)
+					Kit.document(player, entry.title, entry.body)
+				end)
+			end
+		end
+	end
+
 	-- Documents
 	Kit.prompt(Kit.objective("BookingDiary"), "Read", "Booking diary", 0, function(player)
 		Kit.document(player, Text.DIARY_TITLE, Text.DIARY)
