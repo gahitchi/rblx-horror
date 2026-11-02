@@ -299,20 +299,31 @@ function StudioGroundFloor.build(): Model
 		helper(roomArea, "Bounds", Vector3.new(center.X, room.height / 2, center.Z),
 			Vector3.new(width - 0.6, room.height, depth - 0.6))
 		-- Default unobstructed center spot plus service/large-room patrol points.
-		local points: { Vector3 } = { Vector3.new(center.X, 2.5, center.Z) }
-		local hidingApproaches: { [string]: Vector3 } = {
-			TapeArchive = Vector3.new(-75, 2.5, -119),
-			ControlA = Vector3.new(-74, 2.5, -73),
-			ControlB = Vector3.new(-75, 2.5, -37),
-			BreakRoom = Vector3.new(-74, 2.5, -15),
-			Reception = Vector3.new(-74, 2.5, 13),
-			ServicePass = Vector3.new(70, 2.5, -76),
-			LiveHall = Vector3.new(35, 2.5, -70),
+		local authoredSpots: { [string]: { Vector3 } } = {
+			TapeArchive = { Vector3.new(-71, 2.5, -119), Vector3.new(-76, 2.5, -118) },
+			ControlA = {
+				Vector3.new(-59, 2.5, -84), Vector3.new(-74, 2.5, -73),
+				Vector3.new(-45, 2.5, -85), Vector3.new(-66, 2.5, -67),
+			},
+			ControlB = { Vector3.new(-59, 2.5, -44), Vector3.new(-75, 2.5, -37) },
+			BreakRoom = {
+				Vector3.new(-67, 2.5, -23), Vector3.new(-44, 2.5, -11),
+				Vector3.new(-74, 2.5, -15),
+			},
+			Reception = {
+				Vector3.new(-38, 2.5, 8), Vector3.new(-20, 2.5, 18),
+				Vector3.new(-69, 2.5, -2), Vector3.new(-74, 2.5, 13),
+			},
+			ServicePass = { Vector3.new(61, 2.5, -82), Vector3.new(70, 2.5, -76) },
+			LiveHall = {
+				Vector3.new(5, 2.5, -82), Vector3.new(-25, 2.5, -86),
+				Vector3.new(-6, 2.5, -69), Vector3.new(24, 2.5, -99),
+				Vector3.new(35, 2.5, -70),
+			},
 		}
-		if hidingApproaches[room.name] then
-			table.insert(points, hidingApproaches[room.name])
-		end
-		if width >= 40 and depth >= 24 and room.role ~= "washroom" then
+		local points: { Vector3 } = authoredSpots[room.name] or { Vector3.new(center.X, 2.5, center.Z) }
+		if authoredSpots[room.name] == nil and width >= 40 and depth >= 24
+			and room.role ~= "washroom" then
 			table.insert(points, Vector3.new(center.X - width / 4, 2.5, center.Z - depth / 5))
 			table.insert(points, Vector3.new(center.X + width / 4, 2.5, center.Z + depth / 5))
 		end
