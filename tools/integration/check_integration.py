@@ -127,6 +127,8 @@ def main() -> int:
     match = require_text("src/server/Main.server.luau")
     replay = require_text("src/server/ReplayService.luau")
     studio = require_text("src/server/Maps/StudioGroundFloor.luau")
+    studio_production = require_text("src/server/Maps/StudioProductionDetail.luau")
+    hero_console = require_text("src/server/Maps/StudioHeroConsole.luau")
     studio_lighting = require_text("src/server/Maps/StudioLightingRig.luau")
     studio_lighting_service = require_text("src/server/LightingService.luau")
     studio_rooms = require_text("src/server/Maps/StudioLayout.luau")
@@ -249,6 +251,33 @@ def main() -> int:
         fail(f"Expected eight localized indirect-light proxies, found {bounce_count}")
     if "StudioLightingRig" not in studio:
         fail("Studio geometry isn't wired to the lighting pass")
+
+    # High-detail console is authored visual geometry, not a second puzzle.
+    for token in ("StudioHeroConsole.build(ctrl, map)", "ProductionDressing",
+                  "local ctrl = Kit.group(production, \"ControlA\")"):
+        must_have(studio_production, token, "match/StudioProductionDetail")
+    if '"DeskMeterBridge"' in studio_production or '"ChannelVU"' in studio_production:
+        fail("Old duplicate Control A meter bridge must not coexist with hero console")
+    for token in ("local CHANNELS = 16", "for i = 1, CHANNELS do",
+                  "for i = 1, 8 do", "function HeroConsole.build(parent: Instance, map: Model)",
+                  "interaction.Transparency = 1", "SessionLogReadingShelf",
+                  "ConsoleIndicator", "VULens_", "FaderCap_",
+                  "ChannelNumber_", "MasterPanel", "WoodSideCheek"):
+        must_have(hero_console, token, "match/StudioHeroConsole")
+    for token in ("StudioHeroConsole = require", "HeroMixConsole",
+                  'descendant:GetAttribute("ConsoleIndicator")',
+                  "for _, led in consoleIndicators do", "state ~= \"dead\""):
+        if token == "StudioHeroConsole = require":
+            must_have(studio_production, token, "match/StudioProductionDetail")
+        else:
+            must_have(studio_lighting_service, token, "match/LightingService")
+    if '"MixFader"' in studio:
+        fail("Old decorative MixFaders must not overlap the new controls")
+    must_have(studio, 'objective(objectives, "MixingDesk", Vector3.new(-56, 1.6, -78)',
+              "match/StudioGroundFloor")
+    must_have(studio, 'objective(objectives, "SessionLog", Vector3.new(-57, 3.68, -75.65)',
+              "match/StudioGroundFloor")
+    must_have(config, 'Config.VERSION = "0.8.7-control-a-console"', "shared/Config")
 
     for objective in ("BookingDiary", "SessionLog", "TapeMachine", "Spares",
                       "CardIndex", "RoadCase", "Safe", "MemorialProgramme",
