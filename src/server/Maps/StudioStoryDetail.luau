@@ -144,22 +144,25 @@ function Story.apply(map: Model)
 		"STAFF NOTE / NOV 2",
 		"FINAL CHOIR SESSION\nDO NOT ERASE THE MASTER"
 	)
+	-- Every loose-looking prop here is deliberately positioned on a
+	-- physical top: memorial vase and tapes on BreakTable (top 3.14),
+	-- coffee mug on BreakCounter (top 3.0). No hovering decoration.
 	-- Break room: Eleanor's remembrance beside a household routine abandoned in haste.
-	Kit.box(root, "MemorialVase", -61, 3.45, -17.5, 0.9, 1.1, 0.9, C.teal)
+	Kit.box(root, "MemorialVase", -57.45, 3.70, -16.38, 0.9, 1.1, 0.9, C.teal)
 	for _, dx in { -0.4, 0, 0.35 } do
 		Kit.rod(
 			root,
 			"MemorialFlowerStem",
-			Vector3.new(-61, 4.1, -17.5),
-			Vector3.new(-61 + dx, 5.1, -17.5),
+			Vector3.new(-57.45, 4.27, -16.38),
+			Vector3.new(-57.45 + dx, 5.27, -16.38),
 			0.07,
 			C.green
 		)
-		local flower = Kit.box(root, "WhiteFlower", -61 + dx, 5.15, -17.5, 0.6, 0.5, 0.6, C.cream)
+		local flower = Kit.box(root, "WhiteFlower", -57.45 + dx, 5.32, -16.38, 0.6, 0.5, 0.6, C.cream)
 		flower.Shape = Enum.PartType.Ball
 	end
-	Kit.box(root, "CoffeeMug", -49, 3.42, -28, 0.8, 0.75, 0.75, C.cream)
-	setOfTapes(root, -58, 3.5, -16)
+	Kit.box(root, "CoffeeMug", -47.5, 3.375, -28.0, 0.8, 0.75, 0.75, C.cream)
+	setOfTapes(root, -56.1, 3.475, -18.75)
 
 	-- Backstage: the unfinished session and suspicious naval work are different stories.
 	incidentClue(
