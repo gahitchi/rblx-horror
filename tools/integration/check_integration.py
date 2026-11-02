@@ -145,6 +145,11 @@ def main() -> int:
     studio = require_text("src/server/Maps/StudioGroundFloor.luau")
     desk_cover_test = require_text("tools/studio/DeskCoverSelfTest.server.luau")
     studio_production = require_text("src/server/Maps/StudioProductionDetail.luau")
+    furniture_kit = require_text("src/server/Maps/StudioDecorKit.luau")
+    furniture_assets = require_text("src/server/Maps/StudioFurnitureAsset.luau")
+    physical_assets = require_text("src/server/Maps/StudioPhysicalAssets.luau")
+    physical_assets_test = require_text("tools/studio/PhysicalAssetsSelfTest.server.luau")
+    studio_service = require_text("src/server/Maps/StudioServiceDetail.luau")
     hero_console = require_text("src/server/Maps/StudioHeroConsole.luau")
     studio_lighting = require_text("src/server/Maps/StudioLightingRig.luau")
     studio_lighting_service = require_text("src/server/LightingService.luau")
@@ -283,6 +288,41 @@ def main() -> int:
     if "StudioLightingRig" not in studio:
         fail("Studio geometry isn't wired to the lighting pass")
 
+    # Physical asset pass: reusable furniture must have actual structural
+    # collision, and the two wheeled flight cases must simulate in Roblox.
+    for token in ("local Furniture = require(script.Parent.StudioFurnitureAsset)",
+                  "return Furniture.table(", "return Furniture.chair(",
+                  "return Furniture.rack(", "return Furniture.sofa("):
+        must_have(furniture_kit, token, "match/StudioDecorKit")
+    for token in ("function Furniture.table(", "function Furniture.chair(",
+                  "function Furniture.sofa(", "function Furniture.rack(",
+                  "p.CanCollide = collides", "p.CanQuery = collides",
+                  "Enum.PartType.Cylinder", "HardwoodTopCollider",
+                  "SeatFrame", "SolidBack", "RackChassisCollider"):
+        must_have(furniture_assets, token, "match/StudioFurnitureAsset")
+    for token in ("function PhysicalAssets.roadCase(", "function PhysicalAssets.finishObjectiveRoadCase(",
+                  "Instance.new(\"HingeConstraint\")", "Instance.new(\"WeldConstraint\")",
+                  "wheel.CanCollide = true", "root.Anchored = false",
+                  "body:SetNetworkOwner(nil)", "body:CanSetNetworkOwnership()",
+                  "PhysicalProperties.new(", "CaseBodyCollider"):
+        must_have(physical_assets, token, "match/StudioPhysicalAssets")
+    for token in ('StudioPhysicalAssets.roadCase(props, "LoadingFlightCase"',
+                  "StudioPhysicalAssets.finishObjectiveRoadCase(props, storyCase)",
+                  '"MachineRack_" .. tostring(x)', "StudioFurnitureAsset.rack("):
+        must_have(studio, token, "match/StudioGroundFloor")
+    for token in ('StudioPhysicalAssets.roadCase(tech, "UnopenedRoadCase"',
+                  "local StudioPhysicalAssets = require"):
+        must_have(studio_service, token, "match/StudioServiceDetail")
+    for token in ('"MonitorSpeakerCabinet"', "Enum.Material.Wood, true",
+                  '"MonitorStandFoot"'):
+        must_have(studio_production, token, "match/StudioProductionDetail")
+    if '"FreightTrolley"' in studio_service or '"TrolleyWheel"' in studio_service:
+        fail("Old decorative trolley parts must not coexist with physical cases")
+    for token in ('assert(#foundCases == 2', 'hinges == 4',
+                  'body:GetNetworkOwner() == nil', 'furniture.AnalogueRack'):
+        must_have(physical_assets_test, token, "tools/studio/PhysicalAssetsSelfTest")
+    must_have(config, 'Config.VERSION = "0.9.0-physical-assets"', "shared/Config")
+
     # High-detail console is authored visual geometry, not a second puzzle.
     for token in ("StudioHeroConsole.build(ctrl, map)", "ProductionDressing",
                   "local ctrl = Kit.group(production, \"ControlA\")"):
@@ -308,7 +348,7 @@ def main() -> int:
               "match/StudioGroundFloor")
     must_have(studio, 'objective(objectives, "SessionLog", Vector3.new(-57, 3.68, -75.65)',
               "match/StudioGroundFloor")
-    must_have(config, 'Config.VERSION = "0.8.9-desk-cover"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.9.0-physical-assets"', "shared/Config")
 
     for objective in ("BookingDiary", "SessionLog", "TapeMachine", "Spares",
                       "CardIndex", "RoadCase", "Safe", "MemorialProgramme",
@@ -442,7 +482,7 @@ def main() -> int:
     must_have(studio_production, '"EditCounterBackPanel"', "match/StudioProductionDetail")
     must_have(config, "DESK_MUFFLE = 0.72", "shared/Config")
     must_have(desk_cover_test, "assert(count == 6", "tools/studio/DeskCoverSelfTest")
-    must_have(config, 'Config.VERSION = "0.8.9-desk-cover"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.9.0-physical-assets"', "shared/Config")
 
     must_have(chapter, "StudioTension.start(myRound)", "match/Studio1")
     for guard in ("MAX_CUES_PER_ROUND", "MIN_CUE_GAP", "OPENING_END",
