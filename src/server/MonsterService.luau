@@ -1,6 +1,6 @@
 --!strict
--- The Engineer: map 1's monster. Blind; it knows where you are only from what it hears, and from
--- touch when you're right next to it.
+-- The Engineer: map 1's monster. A man with great hearing: he finds you mostly by what he hears,
+-- sees you when there's light to see by (Monster/Vision), and feels you when you're right next to him.
 --
 -- Built in layers (see Config.MONSTER for the tuning):
 --   Monster/Perception: awareness and fuzzy sound localisation.
@@ -38,6 +38,7 @@ local Mimicry = require(script.Parent.Monster.Mimicry)
 local Motion = require(script.Parent.Monster.Motion)
 local Navigator = require(script.Parent.Monster.Navigator)
 local Perception = require(script.Parent.Monster.Perception)
+local Vision = require(script.Parent.Monster.Vision)
 
 type State = "Dormant" | "Roam" | "Listen" | "Investigate" | "Search" | "Hunt" | "Retreat"
 type LungePhase = "None" | "Windup" | "Lunge"
@@ -841,6 +842,44 @@ local function updateDebug()
 	end
 end
 
+-- Sight: watching someone for a moment makes him sure, and then he hunts. Until he's sure he stops
+-- and stares toward them, which gives players a beat to get out of the light. In a hunt, seeing his
+-- target keeps the chase going however quiet they are.
+local function lookAround(now: number, dt: number)
+	local r = root
+	local m = model
+	if not r or not m then
+		return
+	end
+	local seen = Vision.scan(
+		dt,
+		ear(),
+		r.CFrame.LookVector,
+		{ m },
+		Players:GetPlayers(),
+		isTarget,
+		if frenzied() then M.SIGHT.FRENZY_SCALE else 1
+	)
+	if not seen then
+		return
+	end
+	if state == "Hunt" then
+		if seen.player == huntTarget then
+			updateTrack(seen.position, now)
+		end
+		return
+	end
+	if state == "Retreat" and not frenzied() then
+		return -- backing off after a catch or a long encounter: he lets you go
+	end
+	if seen.sure then
+		log("saw", seen.player.Name)
+		startHunt(seen.player, seen.position)
+	elseif state == "Roam" or state == "Search" or state == "Listen" then
+		startListen(seen.position, 0.8)
+	end
+end
+
 local function step(now: number, dt: number)
 	local r = root
 	local n = nav
@@ -852,6 +891,7 @@ local function step(now: number, dt: number)
 	end
 	Director.update(dt, now, r.Position, state == "Hunt", targetPositions())
 	feelAround()
+	lookAround(now, dt)
 	if state == "Roam" or state == "Search" then
 		-- Now and then: throw a remembered sound nearby, then wait for whoever comes to look.
 		local lure = Mimicry.tryPerform(now, r.Position, areas, targetPositions())
@@ -949,6 +989,7 @@ function MonsterService.spawn(position: Vector3)
 	NoiseService.setIgnoreList({ m })
 	Director.reset(os.clock())
 	Perception.reset()
+	Vision.reset()
 	Mimicry.reset(os.clock())
 	currentArea = areaAt(position)
 	startRoam()
@@ -981,6 +1022,11 @@ end
 function MonsterService.setHidingSpots(spots: { BasePart }, check: (BasePart) -> Player?)
 	hidingSpots = spots
 	checkSpot = check
+end
+
+-- The map's lamps: he sees people standing in their light.
+function MonsterService.setLamps(lamps: { MapContract.Lamp })
+	Vision.setLamps(lamps)
 end
 
 -- Soft pressure from the round, 0 (calm) to 1 (full): it hears farther and comes looking sooner.

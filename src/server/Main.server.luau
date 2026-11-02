@@ -155,6 +155,7 @@ end
 
 MonsterService.init(layout.areas, RoundService.isTarget, RoundService.catch)
 LightingService.init(layout)
+MonsterService.setLamps(layout.lamps)
 HideService.init(layout, RoundService.isTarget)
 PlayerService.init()
 ProgressService.init()
