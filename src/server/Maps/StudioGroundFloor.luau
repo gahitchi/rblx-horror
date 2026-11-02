@@ -89,6 +89,10 @@ local function underDesk(
 	color: Color3
 )
 	local cf = CFrame.new(x, 0, z) * CFrame.Angles(0, math.rad(facing), 0)
+	-- The maintenance desk is a steel industrial station. The creative
+	-- working tables are period-appropriate stained wooden joinery.
+	local workMaterial = if name == "ServiceMaintenanceDesk"
+		then Enum.Material.Metal else Enum.Material.Wood
 	local function board(id: string, dx: number, y: number, dz: number,
 		w: number, h: number, d: number, material: Enum.Material)
 		local p = part(props, name .. id,
@@ -97,17 +101,17 @@ local function underDesk(
 		p.CFrame = cf * CFrame.new(dx, y, dz)
 		return p
 	end
-	board("Top", 0, height, 0, width, 0.28, depth, Enum.Material.Wood)
+	board("Top", 0, height, 0, width, 0.28, depth, workMaterial)
 	for _, sign in { -1, 1 } do
 		board("Leg", sign * (width / 2 - 0.23), (height - 0.24) / 2, 0,
-			0.36, height - 0.24, depth, Enum.Material.Wood)
+			0.36, height - 0.24, depth, workMaterial)
 	end
 	-- Front = local negative Z. No solid panel covers the front opening;
 	-- Engineer must walk over and look under the actual table.
 	board("BackScreen", 0, (height - 0.24) / 2, depth / 2 - 0.16,
-		width - 0.6, height - 0.24, 0.28, Enum.Material.Wood)
+		width - 0.6, height - 0.24, 0.28, workMaterial)
 	board("FrontLip", 0, height - 0.25, -depth / 2 + 0.12,
-		width - 0.65, 0.42, 0.20, Enum.Material.Wood)
+		width - 0.65, 0.42, 0.20, workMaterial)
 	-- The furniture has a mechanical reason to stand: a real floor-mounted
 	-- back screen and edge rails, not a rectangular phantom floating over
 	-- an invisible hiding volume. Everything follows the exact local basis.
@@ -115,7 +119,7 @@ local function underDesk(
 		w: number, h: number, d: number, tint: Color3)
 		local p = part(props, name .. id,
 			(cf * CFrame.new(dx, y, dz)).Position, Vector3.new(w, h, d),
-			tint, Enum.Material.Wood, false)
+			tint, workMaterial, false)
 		p.CFrame = cf * CFrame.new(dx, y, dz)
 	end
 	for _, side in { -1, 1 } do
