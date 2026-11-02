@@ -69,42 +69,92 @@ local function assembly(parent: Instance, name: string, kind: string): Model
 	return model
 end
 
--- Rectangular 1987 writing/production table: real independent tabletop,
--- four sturdy leg colliders, perimeter apron, hardwood trim, cross braces.
--- No solid filled-in middle: players can walk up to chairs and knee space.
+-- A joiner-built 1980s writing table. The load-bearing table has four
+-- cylinders down to the floor, an actual collision top, cross bracing,
+-- trim and a shallow inset work surface. Trim never acts as a fake wall.
+-- Placement is defined by the table's PURPOSE in its caller, not scattered.
 function Furniture.table(
 	parent: Instance, name: string,
 	x: number, z: number, w: number, d: number,
 	h: number, topColor: Color3
-)
+): Model
+	assert(w > 3.4 and d > 2.6 and h > 1.1, "Working table dimensions must fit real supports")
 	local m = assembly(parent, name, "WorkingTable")
 	local basis = CFrame.new(x, 0, z)
 	local wood = Enum.Material.Wood
 	local metal = Enum.Material.Metal
-	piece(m, "HardwoodTopCollider", basis, Vector3.new(0,h,0),
-		Vector3.new(w,0.27,d), topColor,wood,true)
+	local thickness = 0.26
+	local top = piece(m, "HardwoodTopCollider", basis, Vector3.new(0, h, 0),
+		Vector3.new(w, thickness, d), topColor, wood, true)
+	m.PrimaryPart = top
+	-- The darker underside and contrasting edge make the top look crafted,
+	-- not like a single rectangular slab or floating tabletop.
+	piece(m, "InsetUnderside", basis, Vector3.new(0,h-0.22,0),
+		Vector3.new(w-0.22,0.18,d-0.24), C.woodDark,wood,false)
 	for _, sign in { -1, 1 } do
-		piece(m, "LongTopBevel", basis, Vector3.new(0,h-0.17,sign*(d/2-0.09)),
-			Vector3.new(w-0.15,0.075,0.15),C.woodEdge,wood,false)
-		piece(m, "ShortTopBevel", basis, Vector3.new(sign*(w/2-0.09),h-0.17,0),
-			Vector3.new(0.15,0.075,d-0.15),C.woodEdge,wood,false)
+		piece(m, "LongEdgeBead", basis, Vector3.new(0,h+0.03,sign*(d/2-0.075)),
+			Vector3.new(w-0.18,0.095,0.14),C.woodEdge,wood,false)
+		piece(m, "EndGrainTrim", basis, Vector3.new(sign*(w/2-0.075),h+0.03,0),
+			Vector3.new(0.14,0.095,d-0.18),C.woodEdge,wood,false)
 	end
-	local legX=w/2-0.43
-	local legZ=d/2-0.43
+	local legX=w/2-0.47
+	local legZ=d/2-0.45
+	local legHeight=h-thickness/2
 	for _, sx in { -1, 1 } do
 		for _, sz in { -1, 1 } do
-			cylinder(m,"SolidSteelLeg",basis,Vector3.new(sx*legX,(h-0.22)/2,sz*legZ),
-				0.18,h-0.22,C.metal,true)
-			piece(m,"Foot",basis,Vector3.new(sx*legX,0.10,sz*legZ),
-				Vector3.new(0.52,0.2,0.52),C.black,Enum.Material.Rubber,false)
+			cylinder(m, "TurnedLeg", basis,
+				Vector3.new(sx*legX,legHeight/2,sz*legZ),
+				0.19,legHeight,C.metal,true)
+			cylinder(m,"RaisedSocket",basis,
+				Vector3.new(sx*legX,h-0.37,sz*legZ),
+				0.29,0.28,C.steel,false)
+			piece(m,"RubberFloorShoe",basis,
+				Vector3.new(sx*legX,0.095,sz*legZ),
+				Vector3.new(0.48,0.19,0.48),C.black,Enum.Material.Rubber,false)
 		end
-		piece(m,"ApronSide",basis,Vector3.new(sx*(w/2-0.20),h-0.45,0),
-			Vector3.new(0.14,0.57,d-0.62),C.woodDark,wood,false)
+		piece(m,"UnderSideRail",basis,
+			Vector3.new(sx*(w/2-0.29),h-0.43,0),
+			Vector3.new(0.10,0.36,d-0.70),C.woodDark,wood,false)
 	end
 	for _, sz in { -1, 1 } do
-		piece(m,"ApronFrontBack",basis,Vector3.new(0,h-0.45,sz*(d/2-0.18)),
-			Vector3.new(w-0.46,0.56,0.15),C.woodDark,wood,false)
+		piece(m,"UnderFrontRail",basis,
+			Vector3.new(0,h-0.43,sz*(d/2-0.27)),
+			Vector3.new(w-0.74,0.36,0.11),C.woodDark,wood,false)
 	end
+	-- Cross brace supports the table along its true depth; placed high
+	-- enough to leave an accessible knee bay at normal sitting height.
+	piece(m,"SteelCrossSupport",basis,
+		Vector3.new(0,h-0.62,0),
+		Vector3.new(w-0.90,0.10,0.10),C.metal,metal,false)
+	return m
+end
+
+-- Storage wall deliberately placed against the archive's rear wall.
+-- Real open bays (not four big cuboids) allow tapes and ReelSpot prompts
+-- to be visually present on physically supported shelves.
+function Furniture.archiveShelf(parent: Instance, name: string, x: number, z: number): Model
+	local m = assembly(parent, name, "TapeArchiveShelf")
+	local basis = CFrame.new(x,0,z)
+	local width, depth = 4.1, 1.8
+	local wood = Enum.Material.Wood
+	for _, sx in { -1, 1 } do
+		piece(m,"SolidEndPanel",basis,Vector3.new(sx*(width/2-0.12),3.6,0),
+			Vector3.new(0.24,7.2,depth),C.wood,wood,true)
+	end
+	piece(m,"BackPanel",basis,Vector3.new(0,3.6,depth/2-0.10),
+		Vector3.new(width-0.25,7.2,0.20),C.woodDark,wood,true)
+	for _, level in { 1.7, 3.55, 5.4 } do
+		piece(m,"SolidShelfDeck",basis,Vector3.new(0,level,0),
+			Vector3.new(width-0.22,0.23,depth-0.12),C.wood,wood,true)
+		piece(m,"ShelfFrontLip",basis,Vector3.new(0,level+0.04,-depth/2+0.03),
+			Vector3.new(width-0.26,0.17,0.09),C.woodEdge,wood,false)
+		piece(m,"RearShelfBracket",basis,Vector3.new(0,level-0.22,depth/2-0.17),
+			Vector3.new(width-0.32,0.26,0.20),C.metal,Enum.Material.Metal,false)
+	end
+	piece(m,"Crown",basis,Vector3.new(0,7.14,0),
+		Vector3.new(width+0.10,0.18,depth+0.1),C.woodEdge,wood,true)
+	piece(m,"Plinth",basis,Vector3.new(0,0.18,0),
+		Vector3.new(width,0.36,depth),C.woodDark,wood,true)
 	return m
 end
 
