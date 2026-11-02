@@ -24,7 +24,13 @@ local choices: { [Player]: boolean } = {}
 local votes: { [Player]: string } = {}
 
 local function canTeleport(): boolean
-	return not RunService:IsStudio() and Config.PLACES.HUB ~= 0 and Config.PLACES.MATCH ~= 0
+	-- A round trip is only valid when the two published places are configured
+	-- and distinct. Match the lobby's preflight rather than sending players
+	-- back to the same place when the IDs were copied incorrectly.
+	return not RunService:IsStudio()
+		and Config.PLACES.HUB ~= 0
+		and Config.PLACES.MATCH ~= 0
+		and Config.PLACES.HUB ~= Config.PLACES.MATCH
 end
 
 local function notify(player: Player, message: string)
