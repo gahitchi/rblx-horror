@@ -153,7 +153,13 @@ local function applyOne(lamp: MapContract.Lamp, suppressed: boolean)
 		light.Color = color
 		light.Brightness = intensity
 		if type(range) == "number" then
-			light.Range = range
+			if light:IsA("PointLight") then
+				light.Range = range
+			elseif light:IsA("SpotLight") then
+				light.Range = range
+			elseif light:IsA("SurfaceLight") then
+				light.Range = range
+			end
 		end
 	end
 
@@ -267,9 +273,10 @@ function LightingService.blackout(seconds: number)
 	local untilTime = os.clock() + math.max(0, seconds)
 	blackoutUntil = math.max(blackoutUntil, untilTime)
 	show()
-	local myGeneration = generation
-	task.delay(seconds + 0.06, function()
-		if generation == myGeneration and os.clock() >= blackoutUntil then
+	task.delay(math.max(0, seconds) + 0.06, function()
+		-- A state switch during a blackout must not leave lamps off forever;
+		-- newer blackout calls have their own later restoration callback.
+		if os.clock() >= blackoutUntil then
 			show()
 		end
 	end)
