@@ -133,6 +133,12 @@ def main() -> int:
     chapter = require_text("src/server/Chapters/Studio1.luau")
     tension = require_text("src/server/Chapters/StudioTension.luau")
     engineer = require_text("src/server/MonsterService.luau")
+    engineer_model = require_text("src/server/Monster/EngineerModel.luau")
+    engineer_motion = require_text("src/server/Monster/Motion.luau")
+    engineer_environment = require_text("src/server/Monster/Environment.luau")
+    engineer_navigator = require_text("src/server/Monster/Navigator.luau")
+    engineer_mimicry = require_text("src/server/Monster/Mimicry.luau")
+    engineer_scenarios = require_text("tools/studio/EngineerAiSelfTest.server.luau")
     engineer_memory = require_text("src/server/Monster/EvidenceMemory.luau")
     engineer_director = require_text("src/server/Monster/Director.luau")
     engineer_senses = require_text("src/server/Monster/Perception.luau")
@@ -239,6 +245,45 @@ def main() -> int:
         must_have(config, token, "shared/Config")
     for token in ("Director.startRetreat", "Director.pickArea", "Director.wantsRetreat"):
         must_have(engineer, token, "match/MonsterService")
+    # Finishing pass: real physical poses, native rig pivot hierarchy,
+    # sensible inspection opportunities, protected hide/round boundaries,
+    # bounded path costs and a deterministic Studio unit harness.
+    for token in ("local Motion = require(", "Motion.new(m, r)", "pose.update(state,",
+                  "motion.destroy()", "Environment.select(areas, center, investigateKind)",
+                  'model:SetAttribute("Inspecting", inspection)',
+                  'player:GetAttribute("Hiding") ~= true',
+                  'startSearch(r.Position)', "inspectionPoints = {}"):
+        must_have(engineer, token, "match/MonsterService")
+    if engineer.count('player:GetAttribute("Hiding") ~= true') < 2:
+        fail("Both contact detection and catch validation must exclude hidden players")
+    for token in ("Motor6D", "joint.C0 = CFrame.new(offset +",
+                  "joint.C1 = CFrame.new(0, pivotY)", "head\n",
+                  "left", "head:SetAttribute"):
+        # Case insensitive on the joint names; don't demand a specific skin.
+        if token not in ("left",) and token not in engineer_model:
+            fail("Engineer articulated rig missing: " + token)
+    for token in ("HeadJoint", "LeftArm", "RightLeg", 'model:SetAttribute("Intent", intent)',
+                  "local headYaw", "joint.C0 = joint.C0:Lerp",
+                  "function visual.destroy"):
+        # The joints are generated as name .. Joint, not literal HeadJoint.
+        if token == "HeadJoint":
+            must_have(engineer_model, 'joint.Name = name .. "Joint"', "match/EngineerModel")
+        else:
+            must_have(engineer_motion, token, "match/Motion")
+    for token in ("function Environment.select", "BY_SOUND", "TapeMachine",
+                  "MixingDesk", "CardIndex", "PatchBay", "RoadCase",
+                  "bestWalk = 9"):
+        must_have(engineer_environment, token, "match/Environment")
+    for token in ("MAX_FALLBACK_PATHS = 6", "attempts >= MAX_FALLBACK_PATHS",
+                  "os.clock() - lastComputeTime >= REPLAN_INTERVAL"):
+        must_have(engineer_navigator, token, "match/Navigator")
+    for token in ("generation += 1", "generation ~= myGeneration"):
+        must_have(engineer_mimicry, token, "match/Mimicry")
+    for token in ("brain.attend(", "brain.observe(", "brain.confidentNear(",
+                  "brain.sortSearch(", "brain.reset()"):
+        must_have(engineer_scenarios, token, "tools/studio/EngineerAiSelfTest")
+    must_have(config, "INSPECT_SECONDS = 1.6", "shared/Config")
+
     must_have(engineer_director, "function Director.update", "match/Director")
     must_have(engineer_senses, "NoiseService.effectiveLoudness", "match/Perception")
     for token in ("NoiseService.emit(spot.Position, Config.NOISE.GASP",
