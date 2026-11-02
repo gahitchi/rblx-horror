@@ -29,7 +29,7 @@ type LampLight = { light: Light, at: BasePart }
 local Vision = {}
 
 local lampLights: { LampLight } = {}
-local watched: { [Player]: number? } = {} -- seconds of looking at each player, recently
+local watched: { [Player]: number } = {} -- seconds of looking at each player, recently
 local coneCos = math.cos(math.rad(S.CONE_DEGREES / 2))
 local params = RaycastParams.new()
 params.FilterType = Enum.RaycastFilterType.Exclude
@@ -133,7 +133,7 @@ function Vision.scan(
 			continue -- a wall, a shelf, a closed door in the way
 		end
 		seenNow[player] = true
-		local looked: number = (watched[player] or 0) + dt
+		local looked = (watched[player] or 0) + dt
 		watched[player] = looked
 		local reach = math.max(range, S.DARK_RANGE)
 		local need = S.NOTICE_MIN
@@ -149,7 +149,11 @@ function Vision.scan(
 	for player, looked: number in watched do
 		if not seenNow[player] then
 			local left = looked - dt * 2
-			watched[player] = if left > 0 then left else nil
+			if left > 0 then
+				watched[player] = left
+			else
+				watched[player] = nil
+			end
 		end
 	end
 	return best
