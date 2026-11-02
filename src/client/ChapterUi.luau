@@ -149,11 +149,13 @@ local function showRethread(data: any)
 	local progress = textLabel(body, "", UDim2.new(1, 0, 0, 36), UDim2.fromOffset(0, 44), 14)
 	progress.TextColor3 = AMBER
 	local chosen: { string } = {}
+	local guideButtons: { TextButton } = {}
 
 	local function refresh()
 		progress.Text = if #chosen == 0
-			then "Tape: (not threaded)"
-			else "Tape: " .. table.concat(chosen, " > ")
+			then "Guides: 0/" .. tostring(#order) .. "  /  Start at the supply reel"
+			else "Guides: " .. tostring(#chosen) .. "/" .. tostring(#order)
+				.. "  /  " .. table.concat(chosen, " > ")
 	end
 	refresh()
 
@@ -176,6 +178,7 @@ local function showRethread(data: any)
 				90 + row * 52 + rng:NextInteger(0, 6)
 			)
 		)
+		table.insert(guideButtons, b)
 		b.Activated:Connect(function()
 			if openKind ~= "rethread" or table.find(chosen, name) then
 				return
@@ -185,7 +188,10 @@ local function showRethread(data: any)
 				-- Slipped off: the server hears about it (noise), and you start again.
 				Remotes.PuzzleAnswer:FireServer("rethread", chosen)
 				chosen = {}
-				progress.Text = "The tape slipped off. Start again from the supply reel."
+				for _, guide in guideButtons do
+					guide.BackgroundColor3 = BUTTON
+				end
+				progress.Text = "Wrong guide. The tape slipped off. Restart at the supply reel."
 				progress.TextColor3 = BAD
 				task.delay(1.2, function()
 					if openKind == "rethread" then
