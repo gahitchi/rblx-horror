@@ -38,6 +38,17 @@ local soundLockRoute = lightFor("SoundLockRoute")
 local galleryRoute = lightFor("GalleryRoute")
 
 LightingService.set("dead")
+-- Bounce light sources must never manufacture visible floating fixtures.
+local bounceHolder = fixtureFolder:FindFirstChild("Light_DeskToWallBounce")
+check(bounceHolder ~= nil and bounceHolder:IsA("BasePart"),
+	"desk bounce source holder should exist")
+if bounceHolder and bounceHolder:IsA("BasePart") then
+	check(bounceHolder.Transparency == 1, "bounce source housing must be invisible")
+	check(bounceHolder:FindFirstChild("FrostedDiffuser") == nil,
+		"indirect bounce source must not have a visible glass lens")
+end
+check(fault.Color == Color3.fromRGB(153, 164, 157),
+	"before the shock the fault fixture must be pale, not emergency red")
 check(desk.Enabled and desk.Brightness > 0.3,
 	"desk must be readable from the beginning")
 check(pilot.Enabled, "guide pilot must exist in early exploration")
