@@ -453,7 +453,12 @@ local function decorate(holders: Instance, spec: Fixture, rooms: { Room })
 	anchor.CanQuery = false
 	anchor.CanTouch = false
 	anchor.CastShadow = false
-	anchor.Size = if spec.role == "Route"
+	-- Artificial bounce sources are not new lamps in the room. Their geometry
+	-- must be completely invisible; only their soft fill contributes to light.
+	local isBounce = spec.role == "Bounce"
+	anchor.Transparency = if isBounce then 1 else 0
+	anchor.Size = if isBounce then Vector3.new(0.25, 0.25, 0.25)
+		elseif spec.role == "Route"
 		then Vector3.new(4.5, 0.28, 1.7)
 		elseif spec.kind == "Spot" then Vector3.new(2.4, 0.36, 1.5)
 		else Vector3.new(1.15, 0.3, 0.9)
@@ -482,19 +487,21 @@ local function decorate(holders: Instance, spec: Fixture, rooms: { Room })
 	anchor:SetAttribute("LightShadow", spec.shadows == true)
 	anchor.Parent = holders
 
-	-- A discreet frosted lens means the fixture still reads in its off state.
-	-- It is not an extra Light instance, so costs only one dynamic light.
-	local lens = Instance.new("Part")
-	lens.Name = "FrostedDiffuser"
-	lens.Anchored = true
-	lens.CanCollide, lens.CanQuery, lens.CanTouch = false, false, false
-	lens.CastShadow = false
-	lens.Size = Vector3.new(anchor.Size.X * 0.75, 0.07, anchor.Size.Z * 0.67)
-	lens.CFrame = anchor.CFrame * CFrame.new(0, -anchor.Size.Y / 2 - 0.04, 0)
-	lens.Color = colorFor(spec.role)
-	lens.Material = Enum.Material.Glass
-	lens.Transparency = 0.3
-	lens.Parent = anchor
+	-- Only actual, visible fixtures receive a frosted lens. Bounce sources
+	-- are lighting-only proxies and must not look like floating hardware.
+	if not isBounce then
+		local lens = Instance.new("Part")
+		lens.Name = "FrostedDiffuser"
+		lens.Anchored = true
+		lens.CanCollide, lens.CanQuery, lens.CanTouch = false, false, false
+		lens.CastShadow = false
+		lens.Size = Vector3.new(anchor.Size.X * 0.75, 0.07, anchor.Size.Z * 0.67)
+		lens.CFrame = anchor.CFrame * CFrame.new(0, -anchor.Size.Y / 2 - 0.04, 0)
+		lens.Color = colorFor(spec.role)
+		lens.Material = Enum.Material.Glass
+		lens.Transparency = 0.3
+		lens.Parent = anchor
+	end
 
 	local light: Light
 	if spec.kind == "Spot" then
