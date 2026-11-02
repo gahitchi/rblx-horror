@@ -24,6 +24,7 @@ local StoryTapes = require(Shared:WaitForChild("StoryTapes"))
 
 local Kit = require(script.Parent.Kit)
 local Text = require(script.Parent.Studio1Text)
+local StudioTension = require(script.Parent.StudioTension)
 local LightingService = require(script.Parent.Parent.LightingService)
 local MonsterService = require(script.Parent.Parent.MonsterService)
 local ProgressService = require(script.Parent.Parent.ProgressService)
@@ -702,6 +703,8 @@ function Studio1.start()
 			Kit.radio(Text.RADIO.arrival2)
 		end
 	end)
+	-- Quiet positional tension while exploring; stops on shocks, Last Call or round reset.
+	StudioTension.start(myRound)
 	barricadeThumps(myRound)
 	broadcastFragments(myRound)
 	objectiveLines()
