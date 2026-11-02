@@ -54,7 +54,10 @@ end
 local function lit(position: Vector3): boolean
 	for _, entry in lampLights do
 		local light = entry.light
-		if light.Enabled and light.Brightness > 0.05 and entry.at.Parent then
+		-- A dim equipment indicator can be visibly glowing while giving
+		-- almost no usable illumination. Only actual work lighting grants
+		-- the longer lit-range detection distance.
+		if light.Enabled and light.Brightness >= S.LIT_MIN_BRIGHTNESS and entry.at.Parent then
 			local anyLight: any = light
 			local range: number = anyLight.Range
 			if (entry.at.Position - position).Magnitude <= range * S.LIT_REACH then
