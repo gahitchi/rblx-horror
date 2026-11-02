@@ -1,7 +1,7 @@
 --!strict
 -- Chapter 1 practical lighting controller.
--- "dead" is near-dark with a few mysterious residual circuit pilots,
--- "woken" restores warm working lights, and "red" keeps readable cool work
+-- "dead" is PARTIAL POWER: readable routes and a few working practicals,
+-- "woken" restores full warm work lighting, and "red" keeps emergency routes
 -- pools while navy fault/emergency fittings pulse red. No full-screen red wash.
 -- Also handles manual/greybox maps without the authored studio fixture tags.
 local Lighting = game:GetService("Lighting")
@@ -69,7 +69,7 @@ local function colorFor(room: string, role: string): Color3
 	if role == "Fault" then
 		return STYLE_RED
 	end
-	if state == "dead" then
+	if state == "dead" and role == "Fault" then
 		return STYLE_DEAD
 	end
 	if role == "Emergency" then
@@ -90,34 +90,39 @@ local function colorFor(room: string, role: string): Color3
 	return STYLE_NEUTRAL
 end
 
+-- "dead" remains the story's pre-shock phase, but electrical circuits in
+-- an abandoned building need not all be dead. A readable route is paramount.
+-- Scaling is local per fixture; the original base brightness is not mutated.
 local function intensityFor(role: string, base: number): number
 	if state == "dead" then
-		if role == "Guide" then
-			return base * 0.50
-		elseif role == "Emergency" then
-			return base * 0.26
+		if role == "Route" then return base * 0.95
+		elseif role == "Ceiling" then return base * 0.58
+		elseif role == "Task" then return base * 0.60
+		elseif role == "Guide" then return base * 0.87
+		elseif role == "Threshold" then return base * 0.72
+		elseif role == "Accent" then return base * 0.50
+		elseif role == "Bounce" then return base * 0.52
+		elseif role == "Emergency" then return base * 0.60
+		elseif role == "Fault" then return base * 0.10
 		end
-		return 0
+		return base * 0.55
 	elseif state == "woken" then
-		if role == "Fault" then
-			return base * 0.14
-		elseif role == "Emergency" then
-			return base * 0.42
+		if role == "Fault" then return base * 0.14
+		elseif role == "Emergency" then return base * 0.42
 		end
 		return base
 	else
-		if role == "Fault" or role == "Emergency" then
-			return base
-		elseif role == "Guide" then
-			return base * 0.65
-		elseif role == "Task" then
-			return base * 0.55
-		elseif role == "Ceiling" then
-			return base * 0.36
-		elseif role == "Accent" then
-			return base * 0.42
+		-- A red alert is a change in priorities, not a monochrome blackout.
+		if role == "Fault" or role == "Emergency" then return base * 0.90
+		elseif role == "Route" then return base * 0.88
+		elseif role == "Guide" then return base * 0.85
+		elseif role == "Task" then return base * 0.72
+		elseif role == "Ceiling" then return base * 0.58
+		elseif role == "Threshold" then return base * 0.75
+		elseif role == "Accent" then return base * 0.60
+		elseif role == "Bounce" then return base * 0.52
 		end
-		return base * 0.44
+		return base * 0.60
 	end
 end
 
@@ -156,8 +161,17 @@ local function applyOne(lamp: MapContract.Lamp, suppressed: boolean)
 	local place = if type(room) == "string" then room else ""
 	local base = part:GetAttribute("LightBase")
 	local range = part:GetAttribute("LightRange")
-	local intensity = intensityFor(role, if type(base) == "number" then base else 0.4)
-	local on = intensity > 0 and not suppressed
+	local nominal = if type(base) == "number" then base else 0.4
+	local intensity = intensityFor(role, nominal)
+	if suppressed then
+		-- The main breakers trip, but battery-backed corridors, EXIT fixtures
+		-- and tiny pilots persist. Gameplay never becomes a black void.
+		intensity = if role == "Route" then nominal * 0.35
+			elseif role == "Guide" then nominal * 0.25
+			elseif role == "Emergency" then nominal * 0.25
+			else 0
+	end
+	local on = intensity > 0
 	local color = colorFor(place, role)
 	for _, light in lamp.lights do
 		light.Enabled = on
@@ -222,18 +236,18 @@ local function grade()
 		return
 	end
 	Lighting.ExposureCompensation = if state == "dead"
-		then 0.04
-		elseif state == "woken" then -0.02
-		else -0.09
+		then 0.15
+		elseif state == "woken" then 0.08
+		else 0.06
 	Lighting.Ambient = if state == "dead"
-		then Color3.fromRGB(9, 13, 18)
-		elseif state == "woken" then Color3.fromRGB(15, 17, 20)
-		else Color3.fromRGB(11, 17, 21)
-	Lighting.OutdoorAmbient = Color3.fromRGB(21, 28, 35)
+		then Color3.fromRGB(39, 42, 46)
+		elseif state == "woken" then Color3.fromRGB(37, 39, 41)
+		else Color3.fromRGB(33, 38, 43)
+	Lighting.OutdoorAmbient = Color3.fromRGB(40, 46, 50)
 	if correction then
-		correction.Brightness = if state == "red" then -0.006 else 0.008
-		correction.Contrast = if state == "red" then 0.16 else 0.11
-		correction.Saturation = if state == "red" then -0.18 else -0.11
+		correction.Brightness = if state == "red" then 0.012 else 0.020
+		correction.Contrast = if state == "red" then 0.09 else 0.055
+		correction.Saturation = if state == "red" then -0.13 else -0.07
 		correction.TintColor = if state == "red"
 			then Color3.fromRGB(232, 239, 245)
 			else Color3.fromRGB(251, 246, 237)
@@ -271,6 +285,7 @@ local function startFlicker(myGeneration: number)
 				local role = if p then p:GetAttribute("LightRole") else nil
 				if
 					role ~= "Guide"
+					and role ~= "Route"
 					and role ~= "Task"
 					and role ~= "Emergency"
 					and #lamp.lights > 0
@@ -350,9 +365,9 @@ local function configureGlobal()
 	Lighting.GlobalShadows = true
 	Lighting.ShadowSoftness = 0.43
 	Lighting.ClockTime = 0
-	Lighting.Brightness = 0.28
-	Lighting.EnvironmentDiffuseScale = 0.12
-	Lighting.EnvironmentSpecularScale = 0.15
+	Lighting.Brightness = 1.20
+	Lighting.EnvironmentDiffuseScale = 0.25
+	Lighting.EnvironmentSpecularScale = 0.25
 	Lighting.FogColor = Color3.fromRGB(29, 39, 47)
 	local prevCorrection = Lighting:FindFirstChild("DeadAirStudioGrade")
 	if prevCorrection and prevCorrection:IsA("ColorCorrectionEffect") then
