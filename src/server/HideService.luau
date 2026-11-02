@@ -28,6 +28,8 @@ local isTarget: (Player) -> boolean = function()
 	return false
 end
 local hiddenIn: { [Player]: BasePart } = {}
+local hiddenAt: { [Player]: number } = {}
+local promptOf: { [BasePart]: ProximityPrompt } = {}
 local occupant: { [BasePart]: Player } = {}
 local breath: { [Player]: Breath } = {}
 
@@ -62,9 +64,15 @@ function HideService.leave(player: Player)
 		return
 	end
 	hiddenIn[player] = nil
+	hiddenAt[player] = nil
 	occupant[spot] = nil
 	breath[player] = nil
 	setAttributes(player, false)
+	-- The spot's prompt is off while someone is inside (see hide()); it's free again.
+	local prompt = promptOf[spot]
+	if prompt then
+		prompt.Enabled = true
+	end
 	local r = rootOf(player)
 	if r and r.Parent then
 		local floorY = spot.Position.Y - spot.Size.Y / 2
@@ -83,7 +91,14 @@ local function hide(player: Player, spot: BasePart)
 		return
 	end
 	hiddenIn[player] = spot
+	hiddenAt[player] = os.clock()
 	occupant[spot] = player
+	-- Stepping out has its own key (LeaveHiding, bound by the client while hiding), so the
+	-- "Hide" prompt is switched off: from inside it was the only way out and it never showed.
+	local prompt = promptOf[spot]
+	if prompt then
+		prompt.Enabled = false
+	end
 	breath[player] = { holding = false, left = HIDE.HOLD_SECONDS, nextBreath = 0 }
 	setAttributes(player, true)
 	r.Anchored = true
@@ -170,6 +185,7 @@ function HideService.init(layout: MapContract.Layout, targetCheck: (Player) -> b
 		prompt.MaxActivationDistance = 6
 		prompt.RequiresLineOfSight = false
 		prompt.Parent = spot
+		promptOf[spot] = prompt
 		prompt.Triggered:Connect(function(player)
 			if hiddenIn[player] == spot then
 				HideService.leave(player)
@@ -185,12 +201,20 @@ function HideService.init(layout: MapContract.Layout, targetCheck: (Player) -> b
 	NoiseService.setMuffle(HideService.muffle)
 	MonsterService.setHidingSpots(layout.hidingSpots, HideService.check)
 	Remotes.HoldBreath.OnServerEvent:Connect(onHoldBreath)
+	Remotes.LeaveHiding.OnServerEvent:Connect(function(player)
+		-- Ignore the press that's still held from getting in.
+		local since = hiddenAt[player]
+		if since and os.clock() - since > 0.4 then
+			HideService.leave(player)
+		end
+	end)
 	Players.PlayerRemoving:Connect(function(player)
 		local spot = hiddenIn[player]
 		if spot then
 			occupant[spot] = nil
 		end
 		hiddenIn[player] = nil
+		hiddenAt[player] = nil
 		breath[player] = nil
 	end)
 	local last = os.clock()

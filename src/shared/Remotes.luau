@@ -59,6 +59,7 @@ return table.freeze({
 	DropItem = event("DropItem"), -- client -> server: () put down what you're holding
 	Throw = event("Throw"), -- client -> server: (direction: Vector3) throw what you're holding
 	HoldBreath = event("HoldBreath"), -- client -> server: (holding: boolean) in a hiding spot
+	LeaveHiding = event("LeaveHiding"), -- client -> server: () step out of a hiding spot
 	-- Echoes
 	EchoMove = event("EchoMove"), -- client -> server: (position: Vector3) where the echo floats
 	EchoPing = event("EchoPing"), -- client -> server: () mark the monster for the living
