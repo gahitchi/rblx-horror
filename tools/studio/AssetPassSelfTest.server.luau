@@ -46,7 +46,7 @@ check(reel~=nil and (counts.AnodizedTapeSpool or 0)==2,
 for _,key in {"BookingDiary","SessionLog","TapeMachine","MixingDesk",
 	"PatchBay","Safe","CardIndex","Spares","MemorialProgramme","RoadCase"} do
 	local part=objectives:FindFirstChild(key)
-	check(part and part:IsA("BasePart"),"Authoritative objective missing: "..key)
+	check(part ~= nil and part:IsA("BasePart"),"Authoritative objective missing: "..key)
 end
 for _,name in {"ToiletTank","SinkBasin","GalleryBench_-3"} do
 	check(props:FindFirstChild(name,true)~=nil,"Missing "..name)
