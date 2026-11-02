@@ -110,6 +110,30 @@ Config.MONSTER = table.freeze({
 	HINT_AFTER = 75, -- seconds away from everyone before it drifts toward the players' area
 	-- Frenzy (shocks): it hears much farther, never backs off, and goes straight for loud sounds
 	FRENZY_HEARING = 2.5,
+	-- Short-term cognition: attention is stable, but hearing never reveals
+	-- unseen players' true coordinates. Tuning after a real multiplayer test.
+	COGNITION = table.freeze({
+		ATTENTION_SECONDS = 2.5, -- do not swivel instantly for every quiet tick
+		SWITCH_RATIO = 1.2, -- stronger evidence can interrupt investigation
+		STATIC_WINDOW = 12, -- classify repeated *anonymous* noises from the same spot
+		STATIC_RADIUS = 6,
+		STATIC_REPEATS = 3, -- first two decoy noises still matter
+		STATIC_DISCOUNT = 0.36,
+		TRACK_SECONDS = 4.5, -- forget a player's sound bearing quickly
+		TRACK_CLARITY = 0.42,
+		PREDICTION_SECONDS = 1.0, -- avoid supernatural perfect intercepts
+		SWITCH_HUNT_AFTER = 1.3, -- can turn to another loud player if first goes quiet
+		SWITCH_HUNT_CLARITY = 0.65,
+		HIDE_EVIDENCE_SECONDS = 7.0,
+		HIDE_EVIDENCE_CLARITY = 0.55,
+		HIDE_EVIDENCE_RADIUS = 12,
+		SEARCH_REVISIT_SECONDS = 48,
+		SEARCH_REVISIT_PENALTY = 22,
+		SEARCH_CELL = 6,
+		MAX_VISITED = 48,
+		GENERIC_HIDE_CHECK = 0.08, -- occasionally searches a wardrobe without certainty
+		LUNGE_EVIDENCE_RADIUS = 8, -- no leap after a sound whose bearing is far off
+	}),
 })
 
 -- Rounds
