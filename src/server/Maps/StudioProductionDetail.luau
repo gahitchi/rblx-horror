@@ -201,7 +201,7 @@ function Detail.apply(map: Model)
 	-- Mastering suite: a smaller technical workstation tucked beside the archive.
 	console(mastering, -45.5, -129, 8.7)
 	Kit.chair(mastering, -45.5, -124.5, 180, C.fabric)
-	Kit.rack(mastering, "MasteringOutboard", -56, -125, 3.3, 7.3, 90)
+	Kit.rack(mastering, "MasteringOutboard", -54, -131, 3.3, 7.3, 90)
 	speaker(mastering, -37, 5.2, -131)
 	Kit.sign(mastering, "CUTTING / MASTER TRANSFER", CFrame.new(-46, 11.5, -133.55),
 		Vector3.new(17, 1.1, 0.1))
