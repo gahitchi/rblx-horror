@@ -139,13 +139,15 @@ local function applyOne(lamp: MapContract.Lamp, suppressed: boolean)
 	local p = lamp.part
 	local tagged = authored and p ~= nil and p:GetAttribute("LightRole") ~= nil
 	if not tagged then
-		-- Keep pre-existing hand-authored / fallback maps compatible.
-		local on = state ~= "dead" and not suppressed
+		-- An untagged greybox must also be readable on its first frame.
+		-- Preserve hand-authored light ownership (handled above in init).
+		local on = not suppressed
 		local color = if state == "red" then STYLE_RED else STYLE_WARM
 		for _, light in lamp.lights do
 			light.Enabled = on
 			light.Color = color
-			light.Brightness = if state == "red" then 0.85 else 0.55
+			light.Brightness = if state == "dead" then 0.42
+				elseif state == "red" then 0.65 else 0.65
 		end
 		if p then
 			local look = remember(p)
@@ -232,7 +234,7 @@ local function show()
 end
 
 local function grade()
-	if not authored or ownsLighting then
+	if ownsLighting then
 		return
 	end
 	Lighting.ExposureCompensation = if state == "dead"
@@ -414,7 +416,9 @@ function LightingService.init(layout: MapContract.Layout)
 	ownsLighting = layout.map:GetAttribute("OwnsLighting") == true
 	authored = layout.map:GetAttribute("StudioLightingRig") == 1
 	table.clear(original)
-	if authored and not ownsLighting then
+	if not ownsLighting then
+		-- The greybox fallback must never inherit the place's uninitialized
+		-- zero-brightness defaults when a studio generator error occurs.
 		configureGlobal()
 	end
 	LightingService.reset()
