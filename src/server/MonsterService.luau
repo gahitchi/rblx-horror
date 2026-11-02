@@ -31,6 +31,7 @@ local DoorService = require(script.Parent.DoorService)
 local MapContract = require(script.Parent.MapContract)
 local NoiseService = require(script.Parent.NoiseService)
 local Director = require(script.Parent.Monster.Director)
+local EvidenceMemory = require(script.Parent.Monster.EvidenceMemory)
 local EngineerModel = require(script.Parent.Monster.EngineerModel)
 local Mimicry = require(script.Parent.Monster.Mimicry)
 local Navigator = require(script.Parent.Monster.Navigator)
@@ -40,6 +41,7 @@ type State = "Dormant" | "Roam" | "Listen" | "Investigate" | "Search" | "Hunt" |
 type LungePhase = "None" | "Windup" | "Lunge"
 
 local M = Config.MONSTER
+local C = M.COGNITION
 local TICK = 0.1
 
 local MonsterService = {}
@@ -59,6 +61,7 @@ local nav: Navigator.Navigator? = nil
 local glows: { PointLight } = {}
 local loopId = 0
 local rng = Random.new()
+local memory = EvidenceMemory.new() -- sound estimates, never actual unseen positions
 
 -- The brain
 local state: State = "Dormant"
@@ -301,14 +304,13 @@ local function startSearch(center: Vector3)
 			end
 		end
 	end
-	table.sort(nearby, function(a, b)
-		return (a - center).Magnitude < (b - center).Magnitude
-	end)
-	for i = 1, math.min(M.SEARCH_POINTS - 1, #nearby) do
-		table.insert(spots, nearby[i])
+	local ordered = memory.sortSearch(center, nearby, os.clock())
+	for i = 1, math.min(M.SEARCH_POINTS - 1, #ordered) do
+		table.insert(spots, ordered[i])
 	end
-	-- Hiding spots nearby: the closest one always gets opened, others now and then.
+	-- Search hiding spots based on *heard evidence*, not actual occupancy.
 	spotFronts = {}
+	local hasEvidence = memory.confidentNear(center, os.clock())
 	local closestSpot: BasePart? = nil
 	local closestDistance = math.huge
 	for _, spot in hidingSpots do
@@ -319,9 +321,10 @@ local function startSearch(center: Vector3)
 	end
 	for _, spot in hidingSpots do
 		local d = (spot.Position - center).Magnitude
-		if
-			d < M.SEARCH_RADIUS
-			and (spot == closestSpot or rng:NextNumber() < Config.HIDE.CHECK_CHANCE)
+		local chance = if hasEvidence then Config.HIDE.CHECK_CHANCE
+			else C.GENERIC_HIDE_CHECK
+		if d < M.SEARCH_RADIUS
+			and ((hasEvidence and spot == closestSpot) or rng:NextNumber() < chance)
 		then
 			local front = spot.CFrame * CFrame.new(0, 0, -(spot.Size.Z / 2 + 2.2))
 			local floorY = spot.Position.Y - spot.Size.Y / 2
@@ -390,37 +393,52 @@ local function react(stimulus: Perception.Stimulus)
 	local now = os.clock()
 	local source = stimulus.source
 	Mimicry.remember(stimulus.kind, source ~= nil)
+	-- Only current targets can leave a track. An anonymous sound might be
+	-- equipment or a thrown object; it cannot reveal a hidden player's location.
+	if not source or isTarget(source) then
+		memory.observe(stimulus, now)
+	end
 
 	if state == "Hunt" then
-		-- Focused on its target; everyone else's sounds wash past it.
 		if source and source == huntTarget then
 			updateTrack(stimulus.estimate, now)
+		elseif source and isTarget(source) and now - lastHeard > C.SWITCH_HUNT_AFTER
+			and stimulus.clarity >= C.SWITCH_HUNT_CLARITY
+			and stimulus.distance <= M.CHASE_LOCK_DISTANCE then
+			-- A nearby new voice can draw it off a quarry that went silent.
+			-- Chase the source's sound estimate, not their current RootPart.
+			endLunge(now)
+			heading = Vector3.zero
+			huntStart = now
+			startHunt(source, stimulus.estimate)
 		end
 		return
 	end
 	if state == "Retreat" and not stimulus.loud and not frenzied() then
 		return
 	end
+	local busy = state == "Investigate" or state == "Search" or state == "Listen"
+	if not memory.attend(stimulus, now, busy) and not frenzied() then
+		return
+	end
 
 	local awareness = Perception.awareness()
 	if frenzied() then
-		-- In a frenzy nothing is too faint to chase down.
 		Perception.set(math.max(awareness, M.HURRY_AT))
 		awareness = Perception.awareness()
 	end
-	if
-		source
-		and isTarget(source)
+	if source and isTarget(source)
 		and awareness >= M.HUNT_AT
 		and stimulus.clarity >= 0.3
-		and stimulus.distance <= M.CHASE_LOCK_DISTANCE
-	then
+		and stimulus.distance <= M.CHASE_LOCK_DISTANCE then
 		startHunt(source, stimulus.estimate)
 	elseif awareness >= M.INVESTIGATE_AT or stimulus.loud then
-		startInvestigate(stimulus.estimate, stimulus.loud or awareness >= M.HURRY_AT)
-	elseif
-		awareness >= M.LISTEN_AT and (state == "Roam" or state == "Search" or state == "Listen")
-	then
+		local goal = if source and isTarget(source)
+			then memory.predicted(source, now) or stimulus.estimate
+			else stimulus.estimate
+		startInvestigate(goal, stimulus.loud or awareness >= M.HURRY_AT)
+	elseif awareness >= M.LISTEN_AT
+		and (state == "Roam" or state == "Search" or state == "Listen") then
 		startListen(stimulus.estimate)
 	end
 end
@@ -490,6 +508,12 @@ local function updateLunge(now: number, h: Humanoid, r: BasePart): boolean
 	end
 	local offset = targetRoot.Position - r.Position
 	if flat(offset).Magnitude > M.LUNGE_RANGE or math.abs(offset.Y) > 5 then
+		return false
+	end
+	local heardAt = lastKnown
+	-- Blind lunges require recent audio close to the current target position.
+	if not heardAt or flat(targetRoot.Position - heardAt).Magnitude
+		> C.LUNGE_EVIDENCE_RADIUS + math.min(now - lastHeard, 1) * Config.SPRINT_SPEED then
 		return false
 	end
 	local ignore: { Instance } = { model :: Model }
@@ -568,6 +592,9 @@ local function followRoute(
 	n.moveTo(spot)
 	local status = n.status()
 	if status == "Arrived" or status == "Failed" then
+		if state == "Search" then
+			memory.visited(spot, now)
+		end
 		table.remove(route, 1)
 		if status == "Arrived" and rng:NextNumber() < pauseChance then
 			pauseUntil = now + rng:NextNumber(pauseMin, pauseMax)
@@ -622,6 +649,7 @@ local function think(now: number)
 		if spot and nextPoint and flat(nextPoint - r.Position).Magnitude < 3.2 then
 			table.remove(route, 1)
 			spotFronts[nextPoint] = nil
+			memory.visited(nextPoint, now)
 			n.stop()
 			local found = checkSpot(spot)
 			local foundRoot = if found then rootOf(found) else nil
@@ -673,9 +701,8 @@ local function think(now: number)
 		local lunging = updateLunge(now, h, r)
 		if not lunging then
 			-- Right after hearing them it knows roughly where they are; after that, it predicts.
-			local goal = if silence < 0.6
-				then targetRoot.Position
-				else known + heading * math.min(silence, 1.5)
+			local goal = memory.predicted(target, now)
+				or (known + heading * math.min(silence, 1.5))
 			n.moveTo(goal, true)
 			if n.status() == "Failed" then
 				n.moveTo(known, false)
@@ -714,9 +741,10 @@ local function updateDebug()
 	end
 	if debugLabel then
 		debugLabel.Text = string.format(
-			"%s  aware %d\ndirector %s  menace %.2f\nnav %s",
+			"%s  aware %d  focus %.0f\ndirector %s  menace %.2f\nnav %s",
 			state,
 			Perception.awareness(),
+			memory.interest(),
 			Director.mode(),
 			Director.menace(),
 			n.status()
@@ -812,6 +840,7 @@ function MonsterService.despawn()
 	frenzyUntil = 0
 	frenzyHeld = false
 	Perception.reset()
+	memory.reset()
 	NoiseService.setIgnoreList({})
 end
 
