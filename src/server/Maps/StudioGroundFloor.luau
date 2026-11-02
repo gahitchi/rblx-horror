@@ -647,7 +647,7 @@ function StudioGroundFloor.build(): Model
 	objective(
 		objectives,
 		"BookingDiary",
-		Vector3.new(-52, 3.25, 11),
+		Vector3.new(-52, 3.39, 11),
 		Vector3.new(2.2, 0.3, 1.5),
 		C.mustard,
 		false
@@ -783,7 +783,7 @@ function StudioGroundFloor.build(): Model
 	objective(
 		objectives,
 		"MemorialProgramme",
-		Vector3.new(-55, 3.2, -17.5),
+		Vector3.new(-55, 3.24, -17.5),
 		Vector3.new(2.3, 0.2, 1.5),
 		C.pale,
 		false
