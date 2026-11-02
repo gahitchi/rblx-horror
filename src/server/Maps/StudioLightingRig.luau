@@ -29,6 +29,8 @@ local FIXTURES: { Fixture } = {
 		role = "Guide", range = 10, intensity = 0.24 },
 	{ name = "MixingDeskScaleLight", room = "ControlA", at = Vector3.new(-55, 4.7, -78),
 		role = "Accent", range = 10, intensity = 0.27 },
+	{ name = "ControlASoftboxReturn", room = "ControlA", at = Vector3.new(-62, 9.4, -76),
+		role = "Task", range = 14, intensity = 0.30, kind = "Surface", angle = 104 },
 	{ name = "PatchBayInspection", room = "ControlA", at = Vector3.new(-40, 8.2, -96),
 		role = "Task", range = 13, intensity = 0.50, kind = "Spot", angle = 80 },
 	{ name = "TrackingGlassRim", room = "ControlA", at = Vector3.new(-36.5, 10.0, -98),
@@ -63,6 +65,8 @@ local FIXTURES: { Fixture } = {
 		role = "Task", range = 15, intensity = 0.52, kind = "Spot", angle = 82 },
 	{ name = "LiveRoomCueLamp", room = "LiveHall", at = Vector3.new(9, 13, -81),
 		role = "Task", range = 20, intensity = 0.45, kind = "Spot", angle = 92 },
+	{ name = "LiveRoomWideSoftbox", room = "LiveHall", at = Vector3.new(-9, 15.4, -81),
+		role = "Task", range = 20, intensity = 0.29, kind = "Surface", angle = 108 },
 	{ name = "LiveRoomLowMarker", room = "LiveHall", at = Vector3.new(18, 6.6, -81),
 		role = "Guide", range = 9, intensity = 0.20 },
 	{ name = "TrackingWindowSpill", room = "LiveHall", at = Vector3.new(-31, 7.2, -98),
@@ -173,6 +177,11 @@ local function decorate(
 		spot.Face = Enum.NormalId.Bottom
 		spot.Angle = spec.angle or 90
 		light = spot
+	elseif spec.kind == "Surface" then
+		local panel = Instance.new("SurfaceLight")
+		panel.Face = Enum.NormalId.Bottom
+		panel.Angle = spec.angle or 110
+		light = panel
 	else
 		light = Instance.new("PointLight")
 	end
