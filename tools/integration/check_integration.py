@@ -129,6 +129,8 @@ def main() -> int:
     studio = require_text("src/server/Maps/StudioGroundFloor.luau")
     chapter = require_text("src/server/Chapters/Studio1.luau")
     tension = require_text("src/server/Chapters/StudioTension.luau")
+    notebook = require_text("src/client/NotebookUi.luau")
+    client_main = require_text("src/client/Main.client.luau")
     config = require_text("src/shared/Config.luau")
     studio_layout(require_text("src/server/Maps/StudioLayout.luau"))
 
@@ -170,6 +172,13 @@ def main() -> int:
                       "CardIndex", "RoadCase", "Safe", "MemorialProgramme",
                       "PatchBay", "MixingDesk", "MailSlot", "ExitZone"):
         must_have(studio, f'"{objective}"', "match/StudioGroundFloor")
+    for token in ("NotebookUi = require(script.Parent.NotebookUi)", "NotebookUi = NotebookUi"):
+        must_have(client_main, token, "match/client/Main")
+    for token in ("Remotes.Document.OnClientEvent", "Remotes.Radio.OnClientEvent",
+                  'state:GetAttributeChangedSignal("Phase")', "table.clear(papers)",
+                  "table.clear(radio)", "ChapterUi.isOpen()", "Enum.KeyCode.J",
+                  "MAX_RADIO = 16", "MAX_PAPERS = 8"):
+        must_have(notebook, token, "match/client/NotebookUi")
     must_have(chapter, "StudioTension.start(myRound)", "match/Studio1")
     for guard in ("MAX_CUES_PER_ROUND", "MIN_CUE_GAP", "OPENING_END",
                   'RoundState.get("LastCall")', "Kit.shocksFired() > 0"):
