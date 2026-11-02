@@ -45,6 +45,7 @@ local STUCK_INTERVAL = 1
 local STUCK_PROGRESS = 1 -- studs it must cover per interval while moving
 local DOOR_REACH = 5
 local FALLBACK_RADII = { 4, 8 }
+local MAX_FALLBACK_PATHS = 6 -- cap expensive ComputeAsync attempts per failed request
 
 local Navigator = {}
 
@@ -164,7 +165,13 @@ function Navigator.new(
 		-- Something moved into the way after planning: plan again.
 		blockedConnection = path.Blocked:Connect(function(blockedIndex: number)
 			if blockedIndex >= index and destination then
-				requestPath(destination)
+				-- Door motion can fire multiple Blocked events in one frame.
+				-- Retry on the next update if this path was just computed.
+				if os.clock() - lastComputeTime >= REPLAN_INTERVAL then
+					requestPath(destination)
+				else
+					plannedFor = nil
+				end
 			end
 		end)
 	end
@@ -177,22 +184,26 @@ function Navigator.new(
 		task.spawn(function()
 			local from = root.Position
 			local path, waypoints = tryCompute(from, target)
-			-- The exact spot may be unreachable (inside a prop, a wall, mid-air): try around it.
+			-- A fallen prop can obstruct the exact sound point. Try only a few
+			-- alternatives per request; an unbounded fallback loop can spike
+			-- server cost while several other NPC tasks are running.
 			if not path then
+				local attempts = 0
 				for _, radius in FALLBACK_RADII do
-					for i = 0, 7 do
+					for i = 0, 3 do
 						if myId ~= computeId or destroyed then
 							return
 						end
-						local angle = i * math.pi / 4
+						local angle = i * math.pi / 2 + math.pi / 4
 						local candidate = target
 							+ Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius
 						path, waypoints = tryCompute(from, candidate)
-						if path then
+						attempts += 1
+						if path or attempts >= MAX_FALLBACK_PATHS then
 							break
 						end
 					end
-					if path then
+					if path or attempts >= MAX_FALLBACK_PATHS then
 						break
 					end
 				end
