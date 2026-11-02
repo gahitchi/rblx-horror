@@ -429,12 +429,12 @@ function StudioGroundFloor.build(): Model
 	end
 	objective(objectives, "MixingDesk", Vector3.new(-56, 1.6, -78),
 		Vector3.new(11, 3.2, 4), C.teal, true)
-	for i = 1, 8 do
-		part(props, "MixFader", Vector3.new(-62 + i * 1.2, 3.3, -77.5),
-			Vector3.new(0.2, 0.15, 1.4), C.mustard, nil, false)
-	end
-	objective(objectives, "SessionLog", Vector3.new(-57, 3.35, -78),
-		Vector3.new(2, 0.2, 1.4), C.pale, false)
+	-- The original gameplay volume is preserved. The actual 16-channel
+	-- hero visual is built by StudioHeroConsole in the production dressing.
+	-- Move the same SessionLog objective to a visible reader shelf in front
+	-- of the desk instead of covering the EQ/faders with the paper prompt.
+	objective(objectives, "SessionLog", Vector3.new(-57, 3.68, -75.65),
+		Vector3.new(2, 0.2, 1.2), C.pale, false)
 	objective(objectives, "PatchBay", Vector3.new(-39, 3.6, -96),
 		Vector3.new(4, 4.8, 0.7), C.navy, true)
 	objective(objectives, "Safe", Vector3.new(-75, 2.5, -48),
