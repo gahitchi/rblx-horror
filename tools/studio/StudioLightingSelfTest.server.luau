@@ -9,7 +9,7 @@ local map = workspace:WaitForChild("Map")
 local fixtureFolder = map:FindFirstChild("Lamps")
 assert(fixtureFolder, "[Lighting test] Map.Lamps not found")
 assert(map:GetAttribute("StudioLightingRig") == 1, "[Lighting test] authored studio rig not present")
-assert(map:GetAttribute("StudioAddedFixtures") == 40, "[Lighting test] incorrect fixture count")
+assert(map:GetAttribute("StudioAddedFixtures") == 55, "[Lighting test] incorrect fixture count")
 
 local originalState = LightingService.state()
 local testCount = 0
@@ -33,13 +33,21 @@ local fault = lightFor("ControlACircuitFault")
 local bounce = lightFor("DeskToWallBounce")
 local softbox = lightFor("ControlASoftboxReturn")
 local pulse = lightFor("LiveRoomWideSoftbox")
+local receptionRoute = lightFor("ReceptionNorthRoute")
+local soundLockRoute = lightFor("SoundLockRoute")
+local galleryRoute = lightFor("GalleryRoute")
 
 LightingService.set("dead")
-check(not desk.Enabled, "desk must be dark before the first shock")
+check(desk.Enabled and desk.Brightness > 0.3,
+	"desk must be readable from the beginning")
 check(pilot.Enabled, "guide pilot must exist in early exploration")
-check(not bounce.Enabled, "bounced fill must not fake active power when dead")
+check(bounce.Enabled, "the desk retains restrained indirect fill from the start")
+check(receptionRoute.Enabled and soundLockRoute.Enabled and galleryRoute.Enabled,
+	"route lighting must work in reception and main transition corridors")
+local earlyDesk = desk.Brightness
 LightingService.set("woken")
-check(desk.Enabled, "desk task light must wake")
+check(desk.Enabled and desk.Brightness > earlyDesk,
+	"desk task lighting must become brighter when the building wakes")
 check(bounce.Enabled, "bounce proxy must track live desk power")
 check(softbox.Enabled and pulse.Enabled, "broad surface lights must activate")
 check(not fault.Enabled or fault.Brightness < 0.1,
@@ -50,7 +58,9 @@ check(emergency.Enabled and fault.Enabled,
 check(desk.Enabled and desk.Brightness > 0,
 	"task lights must remain dim but usable during red emergency")
 LightingService.blackout(0.16)
-check(not desk.Enabled and not pilot.Enabled, "blackout suppresses all practicals")
+check(not desk.Enabled, "blackout must shut down main working practicals")
+check(pilot.Enabled and receptionRoute.Enabled and soundLockRoute.Enabled,
+	"battery-backed route and pilot lights must survive the main power trip")
 -- Intentionally switch state during blackout to exercise the restore guard.
 LightingService.set("woken")
 task.wait(0.28)
