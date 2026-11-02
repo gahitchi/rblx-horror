@@ -252,7 +252,9 @@ function Furniture.rack(
 	x: number, z: number, width: number, height: number, yaw: number
 ): Model
 	local m=assembly(parent,name,"AnalogueRack")
-	local basis=CFrame.new(x,0,z)*CFrame.Angles(0,math.rad(yaw),0)
+	-- Hardware is on local -Z. Turn the rack toward the accessible aisle:
+	-- machine-room units face +Z and mastering outboard faces +X.
+	local basis=CFrame.new(x,0,z)*CFrame.Angles(0,math.rad(yaw+180),0)
 	local metal=Enum.Material.Metal
 	piece(m,"RackChassisCollider",basis,Vector3.new(0,height/2,0),
 		Vector3.new(width,height,1.75),C.dark,metal,true)
@@ -368,21 +370,21 @@ function Furniture.objectiveCabinet(parent: Instance, body: BasePart, label: str
 	local m=assembly(parent,name,"ObjectiveCabinetFinish")
 	local basis=body.CFrame
 	local w,h,d=body.Size.X,body.Size.Y,body.Size.Z
-	local front=-d/2-0.045
+	local front=d/2+0.045
 	for _, side in {-1,1} do
 		local dx=side*w/4
 		piece(m,"InsetDoor",basis,Vector3.new(dx,0,front),
 			Vector3.new(w/2-0.12,h-0.40,0.07),C.metal,Enum.Material.Metal,false)
-		piece(m,"RecessedDoorInlay",basis,Vector3.new(dx,0,front-0.043),
+		piece(m,"RecessedDoorInlay",basis,Vector3.new(dx,0,front+0.043),
 			Vector3.new(w/2-0.36,h-0.65,0.025),C.dark,Enum.Material.Metal,false)
-		piece(m,"Latch",basis,Vector3.new(side*0.27,0.1,front-0.11),
+		piece(m,"Latch",basis,Vector3.new(side*0.27,0.1,front+0.11),
 			Vector3.new(0.12,0.62,0.18),C.steel,Enum.Material.Metal,false)
 	end
 	for _, y in {-h/2+0.21,h/2-0.21} do
 		piece(m,"CabinetRail",basis,Vector3.new(0,y,front),
 			Vector3.new(w-0.12,0.13,0.12),C.steel,Enum.Material.Metal,false)
 	end
-	local plaque=piece(m,"CabinetID",basis,Vector3.new(0,h/2-0.48,front-0.13),
+	local plaque=piece(m,"CabinetID",basis,Vector3.new(0,h/2-0.48,front+0.13),
 		Vector3.new(math.min(w-0.5,2.8),0.28,0.06),C.brass,Enum.Material.Metal,false)
 	local gui=Instance.new("SurfaceGui")
 	gui.Name="InventoryPlate"
@@ -407,17 +409,17 @@ end
 function Furniture.cardIndex(parent: Instance, body: BasePart): Model
 	local m=assembly(parent,"CardIndexDrawerFinish","CardIndex")
 	local basis=body.CFrame
-	local front=-body.Size.Z/2-0.06
+	local front=body.Size.Z/2+0.06
 	piece(m,"OuterRim",basis,Vector3.new(0,0,front),
 		Vector3.new(body.Size.X-0.1,body.Size.Y-0.16,0.09),C.wood,Enum.Material.Wood,false)
 	local drawerH=(body.Size.Y-0.65)/4
 	for i=1,4 do
 		local y=-body.Size.Y/2+0.32+(i-0.5)*drawerH
-		piece(m,"DrawerFace",basis,Vector3.new(0,y,front-0.10),
+		piece(m,"DrawerFace",basis,Vector3.new(0,y,front+0.10),
 			Vector3.new(body.Size.X-0.4,drawerH-0.12,0.12),C.woodDark,Enum.Material.Wood,false)
-		piece(m,"LabelHolder",basis,Vector3.new(0,y+0.10,front-0.19),
+		piece(m,"LabelHolder",basis,Vector3.new(0,y+0.10,front+0.19),
 			Vector3.new(1.08,0.24,0.08),C.brass,Enum.Material.Metal,false)
-		piece(m,"DrawerPull",basis,Vector3.new(0,y-0.16,front-0.23),
+		piece(m,"DrawerPull",basis,Vector3.new(0,y-0.16,front+0.23),
 			Vector3.new(0.86,0.12,0.16),C.steel,Enum.Material.Metal,false)
 	end
 	return m
