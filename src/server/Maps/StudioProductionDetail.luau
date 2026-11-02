@@ -320,6 +320,7 @@ function Detail.apply(map: Model)
 
 	-- Control B: editing, small tape and duplicate monitor chain.
 	Kit.table(edit, "EditCounter", -52, -52, 10, 3.7, 2.8, C.wood)
+	Kit.box(edit, "EditCounterBackPanel", -52, 1.35, -53.65, 8.9, 2.7, 0.26, C.wood, Enum.Material.Wood, true)
 	Kit.box(edit, "EditingDeck", -52, 3.6, -52, 5.6, 1, 2.5, C.metal, Enum.Material.Metal)
 	for _, x in { -53.5, -50.5 } do
 		Kit.disc(edit, "EditSpool", x, 4.22, -52, 1.8, 0.16, C.cream)
