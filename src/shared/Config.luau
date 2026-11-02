@@ -119,6 +119,7 @@ Config.MONSTER = table.freeze({
 		STATIC_RADIUS = 6,
 		STATIC_REPEATS = 3, -- first two decoy noises still matter
 		STATIC_DISCOUNT = 0.36,
+		STATIC_MIN_INTEREST = 26, -- after repetition, distant identical decoys can be ignored
 		TRACK_SECONDS = 4.5, -- forget a player's sound bearing quickly
 		TRACK_CLARITY = 0.42,
 		PREDICTION_SECONDS = 1.0, -- avoid supernatural perfect intercepts
