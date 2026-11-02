@@ -1,7 +1,7 @@
 # DEAD AIR — LIGHTING BIBLE / V1
 
 **Branch:** `chatgpt/integrated-v1`  
-**Build:** `0.8.6-studio-lighting`  
+**Build:** `0.8.8-readable-lighting` (revised after first playtest)  
 **Status:** source-complete studio lighting pass; **not** yet measured or seen in Roblox Studio.
 
 ## Visual north star
@@ -94,10 +94,11 @@ balanced in Roblox Studio on phone and desktop before we call them final.
 
 ## Lighting behavior as a game mechanic
 
-**Dead / early exploration:** ceiling lights and active machines are off.
-Only a few very weak guide and emergency pilots remain, allowing familiar
-landmarks to exist without giving away the next task. The flashlight is still
-important; the game does **not** start fully lit.
+**Dead / early exploration:** the building runs on partial power. Ceiling,
+route, task and guide fixtures already illuminate key corridors and work
+stations at reduced strength. Players can read the layout without always
+using the flashlight. The first shock still makes the working circuits
+noticeably brighter.
 
 **Woken / first shock:** real studio work lights wake:
 desk lamps, archive, patch board, live hall and control room equipment.
@@ -122,11 +123,12 @@ leaves a lamp off when the current state changes.
 
 ## Lighting budget and architecture
 
-- **40 new physical fixtures**, all inside named rooms, including
-  **11 in Control A**. Eight are simulated indirect bounce proxies.
+- **55 new physical fixtures**, including **15 ceiling-mounted route
+  lights** and **12 in Control A**. Eight are simulated indirect bounce
+  proxies. See [the playtest readability revision](STUDIO_LIGHTING_READABILITY.md).
 - Two added `SurfaceLight` fixtures provide broader, softer pools than
   point/spot lights; all are real Roblox lights, **not path tracers**.
-- Most new lights have **Range 9–20** studs and brightness below **0.9**.
+- Most new lights have **Range 9–24** studs and brightness below **0.9**.
 - **Only one new fixture** (Control A writing lamp) casts a dynamic shadow.
   Existing landmark ceiling fixtures in Live Hall and Reception also cast
   shadows, for a planned total of three authored shadow sources.
@@ -169,8 +171,8 @@ state. Never run this in a public server.
 
 Run both desktop and mobile Roblox Studio sessions:
 
-1. **Start dark:** Verify exact initial visibility and flashlight need
-   without pure-black voids or unusable reception diary.
+1. **Start with partial power:** Verify that doorway/floor transitions and
+   key props are readable without the flashlight; retain usable dark cover.
 2. **Control A first shock:** Standing at the mixing desk, inspect the
    transition from darkness to warm practicals; console controls must
    be readable. Check the 11 layers do not create unnatural blotches.
