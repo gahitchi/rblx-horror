@@ -1,6 +1,6 @@
 # Studio v2 — recording house redesign / first playable
 
-Build: `0.7.4-studio-v2` on `chatgpt/studio-v2`.
+Build: `0.7.5-studio-v2` on `chatgpt/studio-v2`.
 The default match place builds `src/server/Maps/StudioGroundFloor.luau`.
 The older `MapBuilder` greybox is retained only as an error fallback.
 The contract is still **v2**: `docs/MAP_CONTRACT.md` and
@@ -61,7 +61,7 @@ exit exists through the loading bay, basement, flat or service lift.
 ## What to playtest next
 
 1. Run `rojo serve` from the match project (`default.project.json`) and
-   confirm `Config.VERSION = 0.7.4-studio-v2`.
+   confirm `Config.VERSION = 0.7.5-studio-v2`.
 2. Read every `[Map]` Output line. **Any ERROR is a stop**: an invalid generated
    map will be replaced by the fallback greybox. Confirm the `MapName` attribute
    reads Wrenmouth Recording House / Chapter 1.
@@ -112,7 +112,7 @@ some original large objective cabinets remain solid.
 
 ### Priority smoke test (before deciding the next art pass)
 
-1. Verify `0.7.4-studio-v2` in the server Output and that `Workspace.Map`
+1. Verify `0.7.5-studio-v2` in the server Output and that `Workspace.Map`
    says `Wrenmouth Recording House / Chapter 1` (not the fallback greybox).
 2. At the start, the room must be dark. Load a reel to wake dim warm lamps and
    confirm red emergency lighting after the second shock. Inspect in phone view.
@@ -153,3 +153,34 @@ from ServerStorage to restore its native fallback immediately.
 
 No actual third-party Creator Store models are preinstalled on this branch;
 Studio visual and playability checks remain outstanding.
+
+
+## Offline pre-playtest cleanup — 0.7.5
+
+No Studio playthrough was claimed or simulated. Source review was limited to
+low-risk improvements until a real session can identify gameplay problems:
+
+- Dynamic shadow cost: only the central LiveHall and Reception practicals
+  retain shadow casting; other lamps still participate in dead/woken/red.
+- 1987 story continuity: last session is **2 November**, the broadcast and
+  town's silence begin **3 November**, and subsequent navy closures are
+  labelled November. The chapter's document and puzzle dates take precedence
+  over decorative signs.
+- The viewing gallery's benches no longer clip the two side walls.
+- StudioStoreAssets remains opt-in; no third-party assets are bundled or
+  automatically downloaded, and no new gameplay systems or validators exist.
+
+### First return to Roblox Studio (quick gate)
+
+1. Open the match place on `chatgpt/studio-v2`; ensure Output reports
+   `0.7.5-studio-v2` and the new recording house (not the greybox).
+2. From Reception, reach Control A and interact with the tape machine,
+   patch bay and mixing desk. Check that prompts aren't hidden by visuals.
+3. Open a booth door and retrieve the archive reel. Confirm the shelf
+   label matches the card index and the reel can be grabbed.
+4. Complete or manually trigger Last Call; confirm the Control B shortcut
+   shuts while the Live Hall exit route and front-door escape still work.
+5. Watch phone FPS near the lights, live drum kit and control-room consoles.
+
+Only after this gate should new Creator Store imports, path-blocking furniture,
+or further art/detail changes be considered.
