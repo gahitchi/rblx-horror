@@ -19,7 +19,7 @@ local function speaker(parent: Instance, x: number, y: number, z: number)
 	Kit.box(parent, "MonitorStandIsolator", x, standTop - 0.08, z,
 		2.35, 0.18, 1.5, C.foam, Enum.Material.Fabric)
 	local cabinet = Kit.box(parent, "MonitorSpeakerCabinet", x, y, z,
-		2.7, 4.4, 1.3, C.wood, Enum.Material.Wood)
+		2.7, 4.4, 1.3, C.wood, Enum.Material.Wood, true)
 	cabinet.CanQuery = true -- credible opaque furniture, even without collision
 	Kit.box(parent, "MonitorFrontBaffle", x, y, z + 0.69,
 		2.38, 4.04, 0.11, C.black, Enum.Material.Metal)
