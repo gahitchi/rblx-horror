@@ -120,15 +120,15 @@ local function underDesk(
 	end
 	for _, side in { -1, 1 } do
 		trim("TopEdgeRail", side * (width/2 - 0.10), height + 0.075, 0,
-			0.14, 0.07, depth - 0.18, C.mustard)
-		trim("ToeKick", 0, 0.22, depth/2 - 0.26,
-			width - 0.65, 0.23, 0.14, C.navy)
+			0.14, 0.07, depth - 0.18, C.floor)
 		trim("SidePanelInset", side * (width/2 - 0.47),
 			(height - 0.32)/2, 0,
-			0.035, height - 0.62, depth - 0.62, C.mustard)
+			0.035, height - 0.62, depth - 0.62, C.floor)
 	end
+	trim("ToeKick", 0, 0.22, depth/2 - 0.26,
+		width - 0.65, 0.23, 0.14, C.navy)
 	trim("LongEdgeRail", 0, height + 0.075, -depth/2 + 0.095,
-		width - 0.23, 0.07, 0.14, C.mustard)
+		width - 0.23, 0.07, 0.14, C.floor)
 	trim("BackTopRail", 0, height + 0.075, depth/2 - 0.095,
 		width - 0.23, 0.07, 0.14, C.mustard)
 	local marker = part(hiding, name .. "Cover", (cf * CFrame.new(0, 1.2, 0)).Position,
@@ -745,7 +745,7 @@ function StudioGroundFloor.build(): Model
 		mark:SetAttribute("Shelf", tostring(i))
 		plaque(
 			props, "SHELF " .. tostring(i),
-			Vector3.new(x, 7.7, -131.02),
+			Vector3.new(x, 6.88, -131.02),
 			Vector3.new(3.65, 0.64, 0.12)
 		)
 	end
