@@ -116,7 +116,7 @@ function Kit.table(
 	w: number, d: number, h: number, topColor: Color3
 )
 	local c = Kit.palette
-	Kit.box(parent, name .. "Top", x, h, z, w, 0.32, d, topColor, Enum.Material.Wood)
+	Kit.box(parent, name .. "Top", x, h, z, w, 0.32, d, topColor, Enum.Material.Wood, true)
 	for _, dx in { -w / 2 + 0.5, w / 2 - 0.5 } do
 		for _, dz in { -d / 2 + 0.5, d / 2 - 0.5 } do
 			Kit.box(parent, name .. "Leg", x + dx, h / 2, z + dz,
@@ -147,7 +147,7 @@ function Kit.rack(
 	local c = Kit.palette
 	local basis = CFrame.new(x, 0, z) * CFrame.Angles(0, math.rad(yaw), 0)
 	Kit.block(parent, name .. "Body", basis * CFrame.new(0, height / 2, 0),
-		Vector3.new(width, height, 1.75), c.black, Enum.Material.Metal)
+		Vector3.new(width, height, 1.75), c.black, Enum.Material.Metal, true)
 	Kit.block(parent, "RackFace", basis * CFrame.new(0, height / 2, -0.9),
 		Vector3.new(width - 0.35, height - 0.4, 0.12), c.metal, Enum.Material.Metal)
 	for j = 1, math.floor((height - 0.5) / 1.1) do
@@ -165,7 +165,7 @@ function Kit.sofa(parent: Instance, x: number, z: number, width: number, yaw: nu
 	local c = Kit.palette
 	local basis = CFrame.new(x, 0, z) * CFrame.Angles(0, math.rad(yaw), 0)
 	Kit.block(parent, "SofaBase", basis * CFrame.new(0, 1.1, 0),
-		Vector3.new(width, 1.6, 3.2), c.wood, Enum.Material.Wood)
+		Vector3.new(width, 1.6, 3.2), c.wood, Enum.Material.Wood, true)
 	Kit.block(parent, "SofaCushion", basis * CFrame.new(0, 2, -0.35),
 		Vector3.new(width - 0.6, 0.55, 2.3), c.leather, Enum.Material.Fabric)
 	Kit.block(parent, "SofaBack", basis * CFrame.new(0, 3.1, 1.45),
