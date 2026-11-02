@@ -22,7 +22,7 @@ Design doc: https://claude.ai/artifact/Y3L4y9snNMY5AaPbwh1GLQ. Read it before de
 - Claude and ChatGPT are teammates, not rivals (Gabriel's rule). The focus areas are about who leads on what, not ownership: either can change any file. Make the other's work easier: keep things compatible with their branch, explain changes that affect them, offer help, credit their work, and describe untested work the same way for both. Never frame their work as competing or lesser.
 
 ## Workflow
-- Current milestone: `docs/BUILD_PLAN.md` (playable chapter 1). ChatGPT's map brief: `docs/MAP_BRIEF_STUDIO.md`.
+- Current milestone: `docs/BUILD_PLAN.md` (playable chapter 1). ChatGPT's map briefs: `docs/MAP_BRIEF_STUDIO.md` (now), then `docs/MAP_BRIEF_HUB.md`.
 - Claude writes code here and pushes to `main`. Gabriel runs `rojo serve` on his Arch laptop (Studio through Vinegar) and plays.
 - There's no Roblox runtime in Claude's environment, so nothing can be play-tested here: review logic carefully and say plainly what is untested.
 - Two places (docs/HUB.md): the hub (`hub.project.json`, `src/hub/`) and the match place (`default.project.json`, `src/server`, `src/client`); `src/shared` goes to both. Teleports can't be tested in Studio.
