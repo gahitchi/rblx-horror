@@ -851,6 +851,13 @@ local function lookAround(now: number, dt: number)
 	if not r or not m then
 		return
 	end
+	if state == "Retreat" and not frenzied() then
+		-- Grace means no hidden observation either. Otherwise he could
+		-- accumulate a full visual lock while retreating and hunt immediately
+		-- when the director's recovery window ends.
+		Vision.reset()
+		return
+	end
 	local seen = Vision.scan(
 		dt,
 		ear(),
@@ -868,9 +875,6 @@ local function lookAround(now: number, dt: number)
 			updateTrack(seen.position, now)
 		end
 		return
-	end
-	if state == "Retreat" and not frenzied() then
-		return -- backing off after a catch or a long encounter: he lets you go
 	end
 	if seen.sure then
 		log("saw", seen.player.Name)
