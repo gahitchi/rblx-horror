@@ -257,7 +257,7 @@ def main() -> int:
     if engineer.count('player:GetAttribute("Hiding") ~= true') < 2:
         fail("Both contact detection and catch validation must exclude hidden players")
     for token in ("Motor6D", "joint.C0 = CFrame.new(offset +",
-                  "joint.C1 = CFrame.new(0, pivotY)", "head\n",
+                  "joint.C1 = CFrame.new(0, pivotY, 0)", "head\n",
                   "left", "head:SetAttribute"):
         # Case insensitive on the joint names; don't demand a specific skin.
         if token not in ("left",) and token not in engineer_model:
