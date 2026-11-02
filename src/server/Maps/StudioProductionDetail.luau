@@ -373,7 +373,7 @@ function Detail.apply(map: Model)
 			local topY = level + 0.115
 			for i = 1, 4 do
 				local x = shelfX + (i - 2.5) * 0.68
-				tape(archive, x, topY + 0.415, -131.35,
+				tape(archive, x, topY + 0.415, -132.0,
 					if i == 4 then C.teal elseif i % 2 == 0 then C.woodLight else C.leather)
 			end
 		end
