@@ -204,26 +204,26 @@ local function console(parent: Instance, x: number, z: number, width: number)
 		width, 3.6, 2.8, C.wood)
 	support:SetAttribute("Purpose", "mastering")
 	Kit.block(parent, "MasteringPanel",
-		CFrame.new(x,3.24,z-0.1) * CFrame.Angles(math.rad(7),0,0),
+		CFrame.new(x,3.15,z-0.1) * CFrame.Angles(math.rad(7),0,0),
 		Vector3.new(width-0.45,0.34,2.95),C.metal,Enum.Material.Metal)
 	for i = 1, math.floor((width-0.6)/0.72) do
 		local dx = -width/2 + 0.47 + i*0.68
-		Kit.box(parent, "MasteringSlot", x+dx,3.48,z+0.35,
+		Kit.box(parent, "MasteringSlot", x+dx,3.34,z+0.35,
 			0.12,0.035,1.24,C.black,Enum.Material.Metal)
-		Kit.box(parent, "MasteringFader", x+dx,3.57,z+0.22+(i%4)*0.16,
+		Kit.box(parent, "MasteringFader", x+dx,3.43,z+0.22+(i%4)*0.16,
 			0.28,0.16,0.24,C.cream,Enum.Material.Metal)
-		local knob=Kit.box(parent,"MasteringEQ",x+dx,3.51,z-1.02,
+		local knob=Kit.box(parent,"MasteringEQ",x+dx,3.43,z-1.02,
 			0.19,0.14,0.19,C.gold,Enum.Material.Metal)
 		knob.Shape=Enum.PartType.Ball
 	end
 	-- Meters occupy a real cabinet whose footprint is on the rear table.
-	Kit.box(parent,"MasteringMeterCabinet",x,4.17,z-1.47,
+	Kit.box(parent,"MasteringMeterCabinet",x,3.67,z-1.47,
 		width-0.35,1.48,0.55,C.wood,Enum.Material.Wood)
 	for i=1,math.floor(width/1.72) do
 		local dx=-width/2+0.46+i*1.52
-		Kit.box(parent,"MasteringVULens",x+dx,4.27,z-1.17,
+		Kit.box(parent,"MasteringVULens",x+dx,3.87,z-1.17,
 			1.06,0.78,0.09,C.cream,Enum.Material.Glass)
-		Kit.box(parent,"MasteringNeedle",x+dx-0.11,4.17,z-1.10,
+		Kit.box(parent,"MasteringNeedle",x+dx-0.11,3.77,z-1.10,
 			0.035,0.48,0.06,C.red,Enum.Material.Metal)
 	end
 end
@@ -344,7 +344,7 @@ function Detail.apply(map: Model)
 	-- Safe face, combination dial and hinges are finished by StudioCriticalFixtures.
 	-- Editing paperwork belongs in a cabinet, not three upright
 	-- paper cuboids standing in open floor space.
-	Kit.storage(edit,"ControlBSessionArchive",-60,-35.0,6,5.4,2.2,false)
+	Kit.storage(edit,"ControlBSessionArchive",-74,-32.4,6,5.4,2.2,false)
 
 	-- Archival cases have exact shelf-space ownership. We no longer spawn
 	-- tapes in three arbitrary free-floating rows across an empty room.
