@@ -50,6 +50,13 @@ type Published = {
 
 local LobbyService = {}
 
+-- The hub scene may lift the barrier before a published teleport starts.
+local onDeparture: (() -> ())? = nil
+
+function LobbyService.onDeparture(callback: () -> ())
+	onDeparture = callback
+end
+
 local lobbies: { [string]: Lobby } = {}
 local lobbyOf: { [Player]: Lobby } = {}
 local friends: { [Player]: { [number]: boolean } } = {}
@@ -85,6 +92,10 @@ local function loadProgress(player: Player)
 	local store = progressStore
 	if not store then
 		player:SetAttribute("ChaptersCleared", "")
+		player:SetAttribute("TapesDelivered", "")
+		player:SetAttribute("Level", 1)
+		player:SetAttribute("FlashlightSkin", "warm")
+		player:SetAttribute("ProgressSaved", false)
 		return
 	end
 	local ok, result = pcall(function()
@@ -106,6 +117,19 @@ local function loadProgress(player: Player)
 		player:SetAttribute("ChaptersCleared", table.concat(ids(saved.chapters), ","))
 		-- Optional tapes delivered (the van's tape deck plays them back).
 		player:SetAttribute("TapesDelivered", table.concat(ids(saved.tapes), ","))
+		-- Expose only the public loadout fields, not a separate hub progression save.
+		local xp = math.max(0, tonumber(saved.xp) or 0)
+		local level, need, total = 1, 100, 0
+		while xp >= total + need do
+			total += need
+			need += 100
+			level += 1
+		end
+		player:SetAttribute("Level", level)
+		local skin = saved.skin
+		player:SetAttribute("FlashlightSkin", if type(skin) == "string"
+			and Config.FLASHLIGHT_SKINS[skin] then skin else "warm")
+		player:SetAttribute("ProgressSaved", ok)
 	end
 end
 
@@ -283,6 +307,15 @@ local function onStart(player: Player)
 	for _, member in members do
 		notify(member, "Starting " .. Chapters.name(lobby.chapter) .. "...")
 	end
+	if onDeparture then
+		local ok, message = pcall(onDeparture)
+		if not ok then
+			warn("[Hub gate] departure effect failed: " .. tostring(message))
+		end
+	end
+	-- Let the barrier rise before teleporting. The hub scene is never a
+	-- prerequisite for a match; an absent gate cannot stop valid crews.
+	task.wait(1.25)
 	local options = Instance.new("TeleportOptions")
 	options.ShouldReserveServer = true
 	options:SetTeleportData({ map = lobby.map, chapter = lobby.chapter, fromHub = true })
