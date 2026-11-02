@@ -72,10 +72,17 @@ The scripts switch the map between three states, so build lights that can be gro
 
 ## The Engineer
 
-One strong, stylized silhouette: tall (about 8.5 studs), thin, blind, old studio headphones grown
-into its skull, earcups that flare red when it lunges. Scary through shape, movement and sound, not
+A man, not a creature: tall (about 8.5 studs), thin, human, with old studio headphones fused into
+his skull, earcups that flare red when he lunges. Scary through shape, movement and sound, not
 anatomy. Keep it compatible with `src/server/Monster/EngineerModel.luau` (same root part and
 scale), so it drops in without script changes.
+
+He is **not blind** (changed 2 Nov 2026, Gabriel's call). Hearing still leads, but he sees too,
+and light decides how far (`src/server/Monster/Vision.luau`, tuning in `Config.MONSTER.SIGHT`):
+a few studs in the dark, much farther near a lamp that's on, farthest when a player's flashlight
+is on; a beam shone at him is noticed whichever way he faces. Walls, shelves and closed doors block
+his view, and hiding players are never seen. For the map this means: lamps in `Lamps` matter for
+gameplay (lit pools are dangerous), and solid cover and dark corners are where players survive.
 
 ## Markers
 
