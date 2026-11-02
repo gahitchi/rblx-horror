@@ -125,7 +125,7 @@ local function mainFacade(parent: Instance)
 		C.woodLight, Enum.Material.Wood)
 	Kit.sign(porch, "WRENMOUTH RECORDING HOUSE", CFrame.new(-43, 15.6, 24.65),
 		Vector3.new(35, 2.4, 0.17), Enum.NormalId.Back, C.cream)
-	Kit.sign(porch, "CLOSED BY ORDER OF THE NAVY - OCTOBER 1987",
+	Kit.sign(porch, "CLOSED BY ORDER OF THE NAVY - NOVEMBER 1987",
 		CFrame.new(-43, 10.5, 24.7), Vector3.new(23, 1.25, 0.15),
 		Enum.NormalId.Back, C.red, C.paper)
 	for _, x in { -50, -36 } do
