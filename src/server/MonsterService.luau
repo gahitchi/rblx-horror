@@ -85,6 +85,7 @@ local heading = Vector3.zero -- the target's estimated velocity, for predicting 
 local lungePhase: LungePhase = "None"
 local lungePhaseEnd = 0
 local lungeReadyAt = 0
+local lungeDestination: Vector3? = nil -- committed bearing; no mid-air homing
 
 local stepTimer = 0
 
@@ -342,6 +343,7 @@ end
 local function endLunge(now: number)
 	if lungePhase ~= "None" then
 		lungePhase = "None"
+		lungeDestination = nil
 		lungeReadyAt = now + M.LUNGE_COOLDOWN
 		setGlow(0.8, 7)
 		if model then
@@ -499,7 +501,9 @@ local function updateLunge(now: number, h: Humanoid, r: BasePart): boolean
 			nav.stop()
 		end
 		h.WalkSpeed = M.LUNGE_SPEED
-		h:MoveTo(targetRoot.Position)
+		-- A missed lunge goes where the Engineer committed, not through walls
+		-- toward a player who moved silently during the windup.
+		h:MoveTo(lungeDestination or r.Position)
 		return true
 	end
 
@@ -525,6 +529,8 @@ local function updateLunge(now: number, h: Humanoid, r: BasePart): boolean
 	end
 	log("lunging at", target.Name)
 	lungePhase = "Windup"
+	-- Once the windup starts it cannot silently correct to a new location.
+	lungeDestination = heardAt + heading * 0.2
 	lungePhaseEnd = now + M.LUNGE_WINDUP
 	setGlow(5, 16)
 	if model then
@@ -835,6 +841,7 @@ function MonsterService.despawn()
 	route = {}
 	currentArea = nil
 	lungePhase = "None"
+	lungeDestination = nil
 	lungeReadyAt = 0
 	glows = {}
 	frenzyUntil = 0
