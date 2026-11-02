@@ -142,18 +142,32 @@ function EvidenceMemory.new(): Memory
 	end
 
 	function brain.sortSearch(center: Vector3, candidates: { Vector3 }, now: number): { Vector3 }
-		-- Prefer near, unvisited patrol points while leaving the center first.
-		-- No omniscient room/character lookup or path computation here.
-		local result = table.clone(candidates)
-		table.sort(result, function(a, b)
-			local function cost(p: Vector3): number
-				local c = flat(p - center).Magnitude
-				local last = visited[cellKey(p)]
-				if last and now - last < C.SEARCH_REVISIT_SECONDS then
-					c += C.SEARCH_REVISIT_PENALTY
-				end
-				return c
+		-- Prefer near, unvisited patrol points and likely directions of travel
+		-- inferred from successive audible fixes. Never inspect player roots.
+		local direction = Vector3.zero
+		local freshest = -math.huge
+		for player, track in tracks do
+			if player.Parent ~= nil and now - track.time < C.TRACK_SECONDS
+				and flat(track.position - center).Magnitude < M.SEARCH_RADIUS * 2
+				and track.velocity.Magnitude > 3 and track.time > freshest then
+				freshest = track.time
+				direction = track.velocity.Unit
 			end
+		end
+		local result = table.clone(candidates)
+		local function cost(p: Vector3): number
+			local relative = flat(p - center)
+			local c = relative.Magnitude
+			local last = visited[cellKey(p)]
+			if last and now - last < C.SEARCH_REVISIT_SECONDS then
+				c += C.SEARCH_REVISIT_PENALTY
+			end
+			if direction.Magnitude > 0 and relative.Magnitude > 0.5 then
+				c -= relative.Unit:Dot(direction) * C.SEARCH_DIRECTION_BONUS
+			end
+			return c
+		end
+		table.sort(result, function(a, b)
 			return cost(a) < cost(b)
 		end)
 		return result
