@@ -1,7 +1,7 @@
 # Dead Air — unified hub + recording-studio development build
 
 **Branch:** `chatgpt/integrated-v1`  
-**Shared build version:** `0.8.8-readable-lighting`  
+**Shared build version:** `0.8.9-desk-cover`  
 **Status:** Both source branches merged into one code branch. Source-level checks,
 not a Roblox Studio or published-server playtest.
 
@@ -159,7 +159,7 @@ places separately. Tool versions/installation differ by machine.
 - Do not merge this to `main` until the two-place Play/teleport
   smoke test succeeds.
 
-**Related documentation:** `docs/STUDIO_LIGHTING_READABILITY.md`,
+**Related documentation:** `docs/UNDER_DESK_HIDING.md`, `docs/STUDIO_LIGHTING_READABILITY.md`,
 `docs/CONTROL_A_HERO_CONSOLE.md`,
  `docs/STUDIO_LIGHTING_BIBLE.md`,
  `docs/ENGINEER_AI_SCRIPTED.md`,
