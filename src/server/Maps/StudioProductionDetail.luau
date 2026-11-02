@@ -197,53 +197,53 @@ local function amplifier(parent: Instance, x: number, z: number, width: number)
 	end
 end
 
+-- Smaller mastering/edit workstation: one real open-legged table with
+-- an inclined two-bus panel. Only the hero DA-16 console gets a full bridge.
 local function console(parent: Instance, x: number, z: number, width: number)
-	-- Visual desk with no collision; the existing chapter desk stays the only interaction part.
-	Kit.box(parent, "WoodConsoleStand", x, 1.4, z, width, 2.8, 3.6, C.wood, Enum.Material.Wood)
-	Kit.box(
-		parent,
-		"SlopedConsoleTop",
-		x,
-		3.1,
-		z - 0.25,
-		width - 0.3,
-		0.55,
-		3.2,
-		C.metal,
-		Enum.Material.Metal
-	)
-	for i = 1, math.floor(width / 0.7) do
-		local dx = -width / 2 + i * 0.68
-		Kit.box(parent, "FaderTrack", x + dx, 3.46, z - 0.7, 0.13, 0.12, 1.3, C.black)
-		Kit.box(
-			parent,
-			"FaderCap",
-			x + dx,
-			3.54,
-			z - 0.7 + (i % 4) * 0.22,
-			0.27,
-			0.15,
-			0.25,
-			C.cream
-		)
-		if i % 2 == 0 then
-			Kit.box(parent, "ChannelLamp", x + dx, 3.47, z + 0.42, 0.14, 0.07, 0.14, C.amber)
-		end
+	local support = Kit.table(parent, "MasteringWorktable", x, z,
+		width, 3.6, 2.8, C.wood)
+	support:SetAttribute("Purpose", "mastering")
+	Kit.block(parent, "MasteringPanel",
+		CFrame.new(x,3.24,z-0.1) * CFrame.Angles(math.rad(7),0,0),
+		Vector3.new(width-0.45,0.34,2.95),C.metal,Enum.Material.Metal)
+	for i = 1, math.floor((width-0.6)/0.72) do
+		local dx = -width/2 + 0.47 + i*0.68
+		Kit.box(parent, "MasteringSlot", x+dx,3.48,z+0.35,
+			0.12,0.035,1.24,C.black,Enum.Material.Metal)
+		Kit.box(parent, "MasteringFader", x+dx,3.57,z+0.22+(i%4)*0.16,
+			0.28,0.16,0.24,C.cream,Enum.Material.Metal)
+		local knob=Kit.box(parent,"MasteringEQ",x+dx,3.51,z-1.02,
+			0.19,0.14,0.19,C.gold,Enum.Material.Metal)
+		knob.Shape=Enum.PartType.Ball
 	end
-	Kit.box(parent, "MeterBridge", x, 4.8, z + 1.25, width, 2.7, 0.75, C.wood, Enum.Material.Wood)
-	for i = 1, math.floor(width / 1.7) do
-		local dx = -width / 2 + i * 1.5
-		Kit.box(parent, "VUDisplay", x + dx, 4.95, z + 0.8, 1, 1.1, 0.08, C.gold)
-		Kit.box(parent, "VU_Needle", x + dx - 0.1, 4.8, z + 0.74, 0.07, 0.72, 0.1, C.red)
+	-- Meters occupy a real cabinet whose footprint is on the rear table.
+	Kit.box(parent,"MasteringMeterCabinet",x,4.17,z-1.47,
+		width-0.35,1.48,0.55,C.wood,Enum.Material.Wood)
+	for i=1,math.floor(width/1.72) do
+		local dx=-width/2+0.46+i*1.52
+		Kit.box(parent,"MasteringVULens",x+dx,4.27,z-1.17,
+			1.06,0.78,0.09,C.cream,Enum.Material.Glass)
+		Kit.box(parent,"MasteringNeedle",x+dx-0.11,4.17,z-1.10,
+			0.035,0.48,0.06,C.red,Enum.Material.Metal)
 	end
 end
 
 local function reelMachineDetail(parent: Instance)
 	-- Exact TapeMachine objective is retained untouched.
-	for _, x in { -75, -72, -69 } do
+	for _, x in { -75, -71 } do
 		Kit.disc(parent, "AnodizedTapeSpool", x, 5.8, -92.18, 2.1, 0.19, C.steel)
 		Kit.disc(parent, "SpoolHub", x, 5.8, -92.04, 0.62, 0.12, C.black)
+		for angle = 0, 270, 90 do
+			local r=math.rad(angle)
+			Kit.box(parent,"SpoolCutout",x+0.51*math.cos(r),
+				5.8+0.51*math.sin(r),-91.9,0.30,0.30,0.04,
+				C.dark,Enum.Material.Metal)
+		end
 	end
+	Kit.box(parent,"TapeMachineControlFace",-73,3.15,-92.24,
+		6.65,1.25,0.13,C.metal,Enum.Material.Metal)
+	Kit.box(parent,"TapeMachineUpperRail",-73,6.56,-92.2,
+		6.75,0.16,0.18,C.steel,Enum.Material.Metal)
 	for i = 1, 5 do
 		Kit.box(
 			parent,
@@ -271,7 +271,7 @@ local function reelMachineDetail(parent: Instance)
 		parent,
 		"MagneticTapePath",
 		Vector3.new(-75, 5.45, -91.98),
-		Vector3.new(-69, 5.45, -91.98),
+		Vector3.new(-71, 5.45, -91.98),
 		0.08,
 		C.leather
 	)
@@ -342,27 +342,17 @@ function Detail.apply(map: Model)
 	-- Control B: editing, small tape and duplicate monitor chain.
 	Kit.table(edit, "EditCounter", -52, -52, 10, 3.7, 2.8, C.wood)
 	Kit.box(edit, "EditCounterBackPanel", -52, 1.35, -53.65, 8.9, 2.7, 0.26, C.wood, Enum.Material.Wood, true)
-	Kit.box(edit, "EditingDeck", -52, 3.6, -52, 5.6, 1, 2.5, C.metal, Enum.Material.Metal)
+	Kit.box(edit, "EditingDeck", -52, 3.43, -52, 5.6, 1, 2.5, C.metal, Enum.Material.Metal)
 	for _, x in { -53.5, -50.5 } do
-		Kit.disc(edit, "EditSpool", x, 4.22, -52, 1.8, 0.16, C.cream)
+		Kit.disc(edit, "EditSpool", x, 4.03, -52, 1.8, 0.16, C.cream)
 	end
 	speaker(edit, -65, 5, -54)
 	Kit.chair(edit, -52, -46, 180, C.foam)
 	Kit.poster(edit, "MIX / B / STAFF ONLY", -41, 8, -57.5, 3.4)
 	Kit.box(edit, "SafeDial", -75, 3.3, -46.4, 1.1, 1.1, 0.19, C.gold, Enum.Material.Metal)
-	for i = 1, 3 do
-		Kit.box(
-			edit,
-			"PaperFiling",
-			-62 + i * 1.5,
-			2,
-			-35,
-			1,
-			3.2,
-			0.55,
-			if i % 2 == 0 then C.cream else C.woodLight
-		)
-	end
+	-- Editing paperwork belongs in a cabinet, not three upright
+	-- paper cuboids standing in open floor space.
+	Kit.storage(edit,"ControlBSessionArchive",-60,-35.0,6,5.4,2.2,false)
 
 	-- Archival cases have exact shelf-space ownership. We no longer spawn
 	-- tapes in three arbitrary free-floating rows across an empty room.
@@ -431,14 +421,14 @@ function Detail.apply(map: Model)
 		C.steel
 	)
 	-- Visual instrument cases, easy to read at a distance; no physics or path blocks.
-	Kit.block(
-		live,
-		"GuitarCase",
-		CFrame.new(38.5, 1.6, -95) * CFrame.Angles(0, math.rad(20), 0),
-		Vector3.new(1.6, 3.2, 0.5),
-		C.black,
-		Enum.Material.Fabric
-	)
+	-- The guitar case is parked flat on the floor with a side handle,
+	-- not balanced vertically in empty space.
+	Kit.block(live,"GuitarCase",
+		CFrame.new(38.5,0.31,-95)*CFrame.Angles(0,math.rad(20),0),
+		Vector3.new(4.2,0.62,1.6),C.black,Enum.Material.Fabric,true)
+	Kit.block(live,"GuitarCaseHandle",
+		CFrame.new(38.5,0.44,-94.1)*CFrame.Angles(0,math.rad(20),0),
+		Vector3.new(1.05,0.15,0.24),C.steel,Enum.Material.Metal)
 	Kit.block(
 		live,
 		"GuitarNeck",
@@ -485,6 +475,13 @@ function Detail.apply(map: Model)
 			Enum.Material.Fabric,
 			true -- real tracking screen: blocks movement, noise and sight
 		)
+		for _, dx in {-2.0,2.0} do
+			Kit.block(live,"GoboFloorFoot",
+				CFrame.new(data[1],0.16,data[2])
+					* CFrame.Angles(0,math.rad(data[3]),0)
+					* CFrame.new(dx,0,0),
+				Vector3.new(0.45,0.32,1.65),C.woodLight,Enum.Material.Wood,true)
+		end
 		Kit.block(
 			live,
 			"GoboTrim",
@@ -509,9 +506,20 @@ function Detail.apply(map: Model)
 	end
 	mic(iso, 5, -127, 5.3)
 	Kit.disc(iso, "PopFilter", 5, 5.2, -125.7, 1.4, 0.09, C.dark)
-	Kit.box(iso, "MusicStand", 8, 3.45, -127.2, 2.7, 1.8, 0.2, C.black, Enum.Material.Metal)
+	Kit.box(iso, "MusicStandFoot", 8, 0.13, -127.2,
+		1.5,0.26,1.5,C.dark,Enum.Material.Metal,true)
+	Kit.rod(iso,"MusicStandStem",Vector3.new(8,0.26,-127.2),
+		Vector3.new(8,3.1,-127.2),0.13,C.steel)
+	Kit.box(iso, "MusicStand", 8, 3.45, -127.2,
+		2.7, 1.8, 0.2, C.black, Enum.Material.Metal)
+	Kit.box(iso,"MusicStandLip",8,2.57,-127.35,
+		2.65,0.15,0.24,C.steel,Enum.Material.Metal)
+	Kit.rod(iso,"PopFilterArm",Vector3.new(5,5,-127),
+		Vector3.new(5,5.2,-125.7),0.08,C.steel)
 	amplifier(iso, -22, -129, 4.8)
 	Kit.table(iso, "GuitarCaseShelf", -12, -129, 4, 2.2, 1.8, C.woodLight)
+	Kit.box(iso,"GuitarCaseOnShelf",-12,2.105,-129,
+		2.7,0.35,1.1,C.black,Enum.Material.Fabric)
 	drum(iso, 31, -127)
 	Kit.sign(iso, "LIVE / 1", CFrame.new(-21, 11, -133.5), Vector3.new(10, 1.1, 0.12))
 	Kit.sign(iso, "VOCAL / 2", CFrame.new(5, 11, -133.5), Vector3.new(10, 1.1, 0.12))
