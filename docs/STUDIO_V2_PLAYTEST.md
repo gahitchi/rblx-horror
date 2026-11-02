@@ -1,6 +1,6 @@
 # Studio v2 — recording house redesign / first playable
 
-Build: `0.7.5-studio-v2` on `chatgpt/studio-v2`.
+Build: `0.7.6-studio-v2` on `chatgpt/studio-v2`.
 The default match place builds `src/server/Maps/StudioGroundFloor.luau`.
 The older `MapBuilder` greybox is retained only as an error fallback.
 The contract is still **v2**: `docs/MAP_CONTRACT.md` and
@@ -61,7 +61,7 @@ exit exists through the loading bay, basement, flat or service lift.
 ## What to playtest next
 
 1. Run `rojo serve` from the match project (`default.project.json`) and
-   confirm `Config.VERSION = 0.7.5-studio-v2`.
+   confirm `Config.VERSION = 0.7.6-studio-v2`.
 2. Read every `[Map]` Output line. **Any ERROR is a stop**: an invalid generated
    map will be replaced by the fallback greybox. Confirm the `MapName` attribute
    reads Wrenmouth Recording House / Chapter 1.
@@ -112,7 +112,7 @@ some original large objective cabinets remain solid.
 
 ### Priority smoke test (before deciding the next art pass)
 
-1. Verify `0.7.5-studio-v2` in the server Output and that `Workspace.Map`
+1. Verify `0.7.6-studio-v2` in the server Output and that `Workspace.Map`
    says `Wrenmouth Recording House / Chapter 1` (not the fallback greybox).
 2. At the start, the room must be dark. Load a reel to wake dim warm lamps and
    confirm red emergency lighting after the second shock. Inspect in phone view.
@@ -173,7 +173,7 @@ low-risk improvements until a real session can identify gameplay problems:
 ### First return to Roblox Studio (quick gate)
 
 1. Open the match place on `chatgpt/studio-v2`; ensure Output reports
-   `0.7.5-studio-v2` and the new recording house (not the greybox).
+   `0.7.6-studio-v2` and the new recording house (not the greybox).
 2. From Reception, reach Control A and interact with the tape machine,
    patch bay and mixing desk. Check that prompts aren't hidden by visuals.
 3. Open a booth door and retrieve the archive reel. Confirm the shelf
@@ -184,3 +184,16 @@ low-risk improvements until a real session can identify gameplay problems:
 
 Only after this gate should new Creator Store imports, path-blocking furniture,
 or further art/detail changes be considered.
+
+
+## 0.7.6 chapter opening tension pass
+
+The new `Chapters/StudioTension.luau` adds up to four quiet, proximity-driven
+sound events in the first ten minutes, each at least 45 seconds apart. It
+never emits monster-attracting noise, resets on round change, and stops on
+first shock or Last Call. The existing 15-second Engineer arrival, handler
+radio, upstairs thumps and broadcast bleed remain unchanged.
+
+See [STUDIO_CH1_OPENING.md](STUDIO_CH1_OPENING.md) for the narrative beat
+sheet and the short audition plan. The new cues still reference placeholder
+sounds, so listen for sound balance and potential repeats in Studio.
