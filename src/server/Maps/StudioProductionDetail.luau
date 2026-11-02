@@ -444,7 +444,7 @@ function Detail.apply(map: Model)
 		CFrame.new(-12, 14, -106.5),
 		Vector3.new(15, 1.4, 0.12)
 	)
-	-- Tracking gobos, well off primary movement lanes.
+	-- Tracking gobos, well off primary movement lanes. Real visual cover, not phantoms.
 	for _, data in { { -24, -101, 25 }, { 38, -103, -25 } } do
 		local basis = CFrame.new(data[1], 3.4, data[2]) * CFrame.Angles(0, math.rad(data[3]), 0)
 		Kit.block(
@@ -453,7 +453,8 @@ function Detail.apply(map: Model)
 			basis,
 			Vector3.new(5.7, 6.8, 0.32),
 			C.foam,
-			Enum.Material.Fabric
+			Enum.Material.Fabric,
+			true -- real tracking screen: blocks movement, noise and sight
 		)
 		Kit.block(
 			live,
