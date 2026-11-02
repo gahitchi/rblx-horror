@@ -24,7 +24,7 @@ local COLOR = {
 }
 local FONT = Enum.Font.RobotoMono
 local MAX_RADIO = 16
-local MAX_PAPERS = 8
+local MAX_PAPERS = 12
 
 type Paper = { title: string, body: string }
 type RadioEntry = { sender: string, body: string }
