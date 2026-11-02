@@ -231,10 +231,30 @@ function StudioGroundFloor.build(): Model
 			if room.role == "live" then Enum.Material.WoodPlanks else Enum.Material.Concrete, true)
 		part(structure, room.name .. "_Ceiling", center + Vector3.new(0, room.height + 0.55, 0),
 			Vector3.new(width, 1.1, depth), C.ceiling, Enum.Material.SmoothPlastic, true)
+		-- Emit each shared wall only once: doubled walls over-muffle the noise AI
+		-- and waste mobile geometry. Every room owns its west/north edge;
+		-- only exposed east/south edges are also built.
+		local eastNeighbor, southNeighbor = false, false
+		for _, other in rooms do
+			if other ~= room then
+				if math.abs(room.x2 - other.x1) < 0.01
+					and math.min(room.z2, other.z2) - math.max(room.z1, other.z1) > 0.01 then
+					eastNeighbor = true
+				end
+				if math.abs(room.z2 - other.z1) < 0.01
+					and math.min(room.x2, other.x2) - math.max(room.x1, other.x1) > 0.01 then
+					southNeighbor = true
+				end
+			end
+		end
 		side(structure, room, portals, "x", room.x1, room.z1, room.z2, C.wall)
-		side(structure, room, portals, "x", room.x2, room.z1, room.z2, C.wall)
+		if not eastNeighbor then
+			side(structure, room, portals, "x", room.x2, room.z1, room.z2, C.wall)
+		end
 		side(structure, room, portals, "z", room.z1, room.x1, room.x2, C.wall)
-		side(structure, room, portals, "z", room.z2, room.x1, room.x2, C.wall)
+		if not southNeighbor then
+			side(structure, room, portals, "z", room.z2, room.x1, room.x2, C.wall)
+		end
 
 		local roomArea = folder(areas, room.name)
 		helper(roomArea, "Bounds", Vector3.new(center.X, room.height / 2, center.Z),
