@@ -84,6 +84,13 @@ is on; a beam shone at him is noticed whichever way he faces. Walls, shelves and
 his view, and hiding players are never seen. For the map this means: lamps in `Lamps` matter for
 gameplay (lit pools are dangerous), and solid cover and dark corners are where players survive.
 
+In the generated 1987 studio, hiding is now primarily **under ordinary desks**,
+not inside giant lockers. Furniture has opaque sides/back panels and a physically
+open front; the Engineer can inspect a desk when he heard a plausible cue or
+confirmed seeing someone crawl underneath. A completed occupied-desk inspection
+is a catch, not another chase. This does not grant automatic knowledge of
+hidden players. See `docs/UNDER_DESK_HIDING.md`.
+
 ## Markers
 
 Map contract v2 is in: `docs/MAP_CONTRACT.md` lists every folder, marker and objective name
