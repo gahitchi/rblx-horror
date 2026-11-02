@@ -147,7 +147,7 @@ local function side(
 	wallPiece(parent, axis, at, cursor, hi, 0, room.height, color)
 end
 
-local function door(parent: Instance, p: Portal, kind: string): Part
+local function door(parent: Instance, decor: Instance, p: Portal, kind: string): Part
 	local center = if p.axis == "x"
 		then Vector3.new(p.at, 5.08, p.along)
 		else Vector3.new(p.along, 5.08, p.at)
@@ -158,7 +158,7 @@ local function door(parent: Instance, p: Portal, kind: string): Part
 	end
 	leaf:SetAttribute("Kind", kind)
 	leaf:SetAttribute("Open", false)
-	local handle = part(parent, "DoorGrip_" .. p.name,
+	local handle = part(decor, "DoorGrip_" .. p.name,
 		center + Vector3.new(0, 0, 0), Vector3.new(0.35, 0.8, 0.14), C.mustard,
 		Enum.Material.Metal, false)
 	handle.Anchored = false
@@ -239,14 +239,48 @@ function StudioGroundFloor.build(): Model
 		local roomArea = folder(areas, room.name)
 		helper(roomArea, "Bounds", Vector3.new(center.X, room.height / 2, center.Z),
 			Vector3.new(width - 0.6, room.height, depth - 0.6))
-		helper(roomArea, "Spot", Vector3.new(center.X, 2.5, center.Z))
-		if room.role ~= "booth" then
-			helper(roomArea, "Spot", Vector3.new(center.X - math.min(width / 4, 12), 2.5, center.Z + math.min(depth / 5, 8)))
-			helper(roomArea, "Spot", Vector3.new(center.X + math.min(width / 4, 12), 2.5, center.Z - math.min(depth / 5, 8)))
-		end
-		if room.name == "LiveHall" or room.name == "ViewingGallery" then
-			helper(roomArea, "Spot", Vector3.new(center.X - 24, 2.5, center.Z - 12))
-			helper(roomArea, "Spot", Vector3.new(center.X + 24, 2.5, center.Z + 12))
+		-- Landmark rooms need hand-placed patrol points away from counters and cases.
+		local authoredSpots: { [string]: { Vector3 } } = {
+			Reception = {
+				Vector3.new(-20, 2.5, -6), Vector3.new(-38, 2.5, -20), Vector3.new(-5, 2.5, -21),
+			},
+			ControlA = {
+				Vector3.new(-88, 2.5, -98), Vector3.new(-108, 2.5, -110),
+				Vector3.new(-82, 2.5, -107),
+			},
+			BreakRoom = {
+				Vector3.new(-94, 2.5, -10), Vector3.new(-100, 2.5, -24),
+				Vector3.new(-81, 2.5, -20),
+			},
+			TapeArchive = {
+				Vector3.new(3, 2.5, -176), Vector3.new(-9, 2.5, -169),
+				Vector3.new(15, 2.5, -173),
+			},
+			LiveHall = {
+				Vector3.new(-21, 2.5, -94), Vector3.new(-33, 2.5, -86),
+				Vector3.new(-9, 2.5, -101), Vector3.new(-47, 2.5, -95),
+				Vector3.new(3, 2.5, -82),
+			},
+			Stairwell = {
+				Vector3.new(36, 2.5, -8), Vector3.new(45, 2.5, -9),
+				Vector3.new(69, 2.5, -25),
+			},
+		}
+		local authored = authoredSpots[room.name]
+		if authored then
+			for _, at in authored do
+				helper(roomArea, "Spot", at)
+			end
+		else
+			helper(roomArea, "Spot", Vector3.new(center.X, 2.5, center.Z))
+			if room.role ~= "booth" then
+				helper(roomArea, "Spot", Vector3.new(center.X - math.min(width / 4, 12), 2.5, center.Z + math.min(depth / 5, 8)))
+				helper(roomArea, "Spot", Vector3.new(center.X + math.min(width / 4, 12), 2.5, center.Z - math.min(depth / 5, 8)))
+			end
+			if room.name == "ViewingGallery" then
+				helper(roomArea, "Spot", Vector3.new(center.X - 24, 2.5, center.Z - 12))
+				helper(roomArea, "Spot", Vector3.new(center.X + 24, 2.5, center.Z + 12))
+			end
 		end
 
 		if room.role == "booth" then
@@ -278,7 +312,7 @@ function StudioGroundFloor.build(): Model
 		else
 			local kind = if p.kind == "front" then "front"
 				elseif p.kind == "booth" then "booth" else "normal"
-			door(doors, p, kind)
+			door(doors, props, p, kind)
 			if kind == "booth" then
 				local room = if byName[p.a].role == "booth" then byName[p.a] else byName[p.b]
 				local zone = helper(booths, room.name, Vector3.new(
