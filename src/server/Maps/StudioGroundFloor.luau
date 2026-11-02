@@ -9,6 +9,7 @@ local StudioServiceDetail = require(script.Parent.StudioServiceDetail)
 local StudioArchitectureDetail = require(script.Parent.StudioArchitectureDetail)
 local StudioStoryDetail = require(script.Parent.StudioStoryDetail)
 local StudioEvidenceDetail = require(script.Parent.StudioEvidenceDetail)
+local StudioLightingRig = require(script.Parent.StudioLightingRig)
 local StudioStoreAssets = require(script.Parent.StudioStoreAssets)
 
 type Room = StudioLayout.Room
@@ -563,6 +564,9 @@ function StudioGroundFloor.build(): Model
 	StudioArchitectureDetail.apply(map)
 	StudioStoryDetail.apply(map)
 	StudioEvidenceDetail.apply(map)
+	-- Lighting is a separately authored system. Apply after visual dressing so
+	-- all original ceiling and accent fixtures receive the correct room profile.
+	StudioLightingRig.apply(map)
 	-- Optional saved Creator Store geometry, with native fallbacks when nothing is staged.
 	StudioStoreAssets.apply(map)
 
