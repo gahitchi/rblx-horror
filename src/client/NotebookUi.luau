@@ -116,7 +116,7 @@ function NotebookUi.start()
 	stroke.Thickness = 2
 	stroke.Parent = panel
 
-	local header = text(panel, "FIELD NOTEBOOK   /   PRIVATE", UDim2.new(1, -124, 0, 32),
+	local header = text(panel, "FIELD NOTEBOOK", UDim2.new(1, -124, 0, 32),
 		UDim2.fromOffset(16, 12), 18, COLOR.amber)
 	header.TextWrapped = false
 	local close = button(panel, "Close", UDim2.fromOffset(90, 32),
@@ -201,6 +201,9 @@ function NotebookUi.start()
 		end
 		openPanel = visible
 		panel.Visible = visible
+		-- In first person, a Modal close control releases mouse lock while
+		-- the notebook is up; keyboard J and touch remain usable.
+		close.Modal = visible
 		if visible then
 			redraw()
 		end
