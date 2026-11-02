@@ -67,10 +67,9 @@ local COLD_ROOMS: { [string]: boolean } = {
 
 local function colorFor(room: string, role: string): Color3
 	if role == "Fault" then
-		return STYLE_RED
-	end
-	if state == "dead" and role == "Fault" then
-		return STYLE_DEAD
+		-- Before the circuit wakes, a fault indicator should be dead/pale,
+		-- not a misleading red beacon. The old branch was unreachable.
+		return if state == "dead" then STYLE_DEAD else STYLE_RED
 	end
 	if role == "Emergency" then
 		return if state == "red" then STYLE_RED else STYLE_NEUTRAL
@@ -192,7 +191,12 @@ local function applyOne(lamp: MapContract.Lamp, suppressed: boolean)
 
 	local appearance = remember(part)
 	local diffuser = part:FindFirstChild("FrostedDiffuser")
-	if diffuser and diffuser:IsA("BasePart") then
+	if role == "Bounce" then
+		-- Invisible, artistic GI approximation; unlike a practical, it must
+		-- not emit visible neon or expose a housing during power transitions.
+		part.Material = appearance.material
+		part.Color = appearance.color
+	elseif diffuser and diffuser:IsA("BasePart") then
 		-- The housing stays physically metallic; only the inset glass emits.
 		part.Material = appearance.material
 		part.Color = appearance.color
@@ -292,6 +296,7 @@ local function startFlicker(myGeneration: number)
 				local role = if p then p:GetAttribute("LightRole") else nil
 				if
 					role ~= "Guide"
+					and role ~= "Bounce"
 					and role ~= "Route"
 					and role ~= "Task"
 					and role ~= "Emergency"
