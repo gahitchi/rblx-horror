@@ -6,6 +6,7 @@
 -- interaction volume and Chapter 1's authoritative puzzle target.
 -- All new detail is noncolliding, non-queryable and designed around
 -- Control A's existing warm desk/softbox lighting.
+local ServerStorage = game:GetService("ServerStorage")
 local HeroConsole = {}
 
 local PALETTE = {
@@ -424,6 +425,57 @@ local function buildMaster(parent: Instance)
 	end
 end
 
+local IMPORTED_WIDTH = 11.01
+local IMPORTED_CENTER = Vector3.new(-56, 2.815, -77.585)
+
+local function buildImported(parent: Instance, objectives: Instance?): Model?
+	local template = ServerStorage:FindFirstChild("WrenmouthDA16", true)
+	if not template or not template:IsA("Model") then
+		return nil
+	end
+	local clone = template:Clone()
+	clone.Name = MODULE_NAME
+	clone:SetAttribute("ConsoleBuild", "DA-16/1987-imported-glb")
+	clone:SetAttribute("Channels", CHANNELS)
+	clone:SetAttribute("DetailOnly", true)
+	clone:SetAttribute("ImportedQualityMesh", true)
+	local count = 0
+	for _, item in clone:GetDescendants() do
+		if item:IsA("BasePart") then
+			count += 1
+			item.Anchored = true
+			item.CanCollide = false
+			item.CanQuery = false
+			item.CanTouch = false
+			item.CastShadow = string.find(item.Name, "DA16_WOOD", 1, true) ~= nil
+				or string.find(item.Name, "DA16_METAL", 1, true) ~= nil
+			local channelId = string.match(item.Name, "^ArmButton_(%d%d)")
+			local busId = string.match(item.Name, "^BusLamp_(%d%d)")
+			if channelId or busId then
+				local isRecord = if channelId then tonumber(channelId) <= 2
+					else tonumber(busId) == 6
+				item:SetAttribute("ConsoleIndicator", if isRecord then "record" else "signal")
+				item:SetAttribute("UseOpacityForPower", true)
+			end
+		end
+	end
+	if count < 50 then
+		warn("[DeadAir] Imported DA-16 incomplete; verify the glTF mesh hierarchy.")
+	end
+	clone.Parent = parent
+	local extents = clone:GetExtentsSize()
+	if extents.X > 0.1 then
+		clone:ScaleTo(clone:GetScale() * (IMPORTED_WIDTH / extents.X))
+	end
+	local bounds = clone:GetBoundingBox()
+	clone:PivotTo(clone:GetPivot() + (IMPORTED_CENTER - bounds.Position))
+	local log = objectives and objectives:FindFirstChild("SessionLog")
+	if log and log:IsA("BasePart") then
+		log.Transparency = 1
+	end
+	return clone
+end
+
 function HeroConsole.build(parent: Instance, map: Model): Model
 	local objectives = map:FindFirstChild("Objectives")
 	local interaction = objectives and objectives:FindFirstChild("MixingDesk")
@@ -434,6 +486,10 @@ function HeroConsole.build(parent: Instance, map: Model): Model
 	local existing = parent:FindFirstChild(MODULE_NAME)
 	if existing then
 		existing:Destroy()
+	end
+	local imported = buildImported(parent, objectives)
+	if imported then
+		return imported
 	end
 	local model = Instance.new("Model")
 	model.Name = MODULE_NAME
