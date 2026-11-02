@@ -8,7 +8,10 @@ local LightingService = require(server:WaitForChild("LightingService"))
 local map = workspace:WaitForChild("Map")
 local fixtureFolder = map:FindFirstChild("Lamps")
 assert(fixtureFolder, "[Lighting test] Map.Lamps not found")
-assert(map:GetAttribute("StudioLightingRig") == 1, "[Lighting test] authored studio rig not present")
+assert(
+	map:GetAttribute("StudioLightingRig") == 1,
+	"[Lighting test] authored studio rig not present"
+)
 assert(map:GetAttribute("StudioAddedFixtures") == 55, "[Lighting test] incorrect fixture count")
 
 local originalState = LightingService.state()
@@ -38,33 +41,65 @@ local soundLockRoute = lightFor("SoundLockRoute")
 local galleryRoute = lightFor("GalleryRoute")
 
 LightingService.set("dead")
-check(desk.Enabled and desk.Brightness > 0.3,
-	"desk must be readable from the beginning")
+-- Bounce light sources must never manufacture visible floating fixtures.
+local bounceHolder = fixtureFolder:FindFirstChild("Light_DeskToWallBounce")
+check(
+	bounceHolder ~= nil and bounceHolder:IsA("BasePart"),
+	"desk bounce source holder should exist"
+)
+if bounceHolder and bounceHolder:IsA("BasePart") then
+	check(bounceHolder.Transparency == 1, "bounce source housing must be invisible")
+	check(
+		bounceHolder:FindFirstChild("FrostedDiffuser") == nil,
+		"indirect bounce source must not have a visible glass lens"
+	)
+end
+check(
+	fault.Color == Color3.fromRGB(153, 164, 157),
+	"before the shock the fault fixture must be pale, not emergency red"
+)
+check(desk.Enabled and desk.Brightness > 0.3, "desk must be readable from the beginning")
 check(pilot.Enabled, "guide pilot must exist in early exploration")
 check(bounce.Enabled, "the desk retains restrained indirect fill from the start")
-check(receptionRoute.Enabled and soundLockRoute.Enabled and galleryRoute.Enabled,
-	"route lighting must work in reception and main transition corridors")
+check(
+	receptionRoute.Enabled and soundLockRoute.Enabled and galleryRoute.Enabled,
+	"route lighting must work in reception and main transition corridors"
+)
 local earlyDesk = desk.Brightness
 LightingService.set("woken")
-check(desk.Enabled and desk.Brightness > earlyDesk,
-	"desk task lighting must become brighter when the building wakes")
+check(
+	desk.Enabled and desk.Brightness > earlyDesk,
+	"desk task lighting must become brighter when the building wakes"
+)
 check(bounce.Enabled, "bounce proxy must track live desk power")
 check(softbox.Enabled and pulse.Enabled, "broad surface lights must activate")
-check(not fault.Enabled or fault.Brightness < 0.1,
-	"fault light must remain restrained until emergency")
+check(
+	not fault.Enabled or fault.Brightness < 0.1,
+	"fault light must remain restrained until emergency"
+)
 LightingService.set("red")
-check(emergency.Enabled and fault.Enabled,
-	"red state must be carried by visible emergency/fault fixtures")
-check(desk.Enabled and desk.Brightness > 0,
-	"task lights must remain dim but usable during red emergency")
+check(
+	emergency.Enabled and fault.Enabled,
+	"red state must be carried by visible emergency/fault fixtures"
+)
+check(
+	desk.Enabled and desk.Brightness > 0,
+	"task lights must remain dim but usable during red emergency"
+)
 LightingService.blackout(0.16)
 check(not desk.Enabled, "blackout must shut down main working practicals")
-check(pilot.Enabled and receptionRoute.Enabled and soundLockRoute.Enabled,
-	"battery-backed route and pilot lights must survive the main power trip")
+check(
+	pilot.Enabled and receptionRoute.Enabled and soundLockRoute.Enabled,
+	"battery-backed route and pilot lights must survive the main power trip"
+)
 -- Intentionally switch state during blackout to exercise the restore guard.
 LightingService.set("woken")
 task.wait(0.28)
 check(desk.Enabled and pilot.Enabled, "changing state during blackout must recover")
 LightingService.set(originalState)
-print("PASS: " .. tostring(testCount) ..
-	" lighting-state and blackout checks. Original state restored: " .. originalState)
+print(
+	"PASS: "
+		.. tostring(testCount)
+		.. " lighting-state and blackout checks. Original state restored: "
+		.. originalState
+)

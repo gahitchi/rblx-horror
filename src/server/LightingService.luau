@@ -67,10 +67,9 @@ local COLD_ROOMS: { [string]: boolean } = {
 
 local function colorFor(room: string, role: string): Color3
 	if role == "Fault" then
-		return STYLE_RED
-	end
-	if state == "dead" and role == "Fault" then
-		return STYLE_DEAD
+		-- Before the circuit wakes, a fault indicator should be dead/pale,
+		-- not a misleading red beacon. The old branch was unreachable.
+		return if state == "dead" then STYLE_DEAD else STYLE_RED
 	end
 	if role == "Emergency" then
 		return if state == "red" then STYLE_RED else STYLE_NEUTRAL
@@ -95,32 +94,51 @@ end
 -- Scaling is local per fixture; the original base brightness is not mutated.
 local function intensityFor(role: string, base: number): number
 	if state == "dead" then
-		if role == "Route" then return base * 0.95
-		elseif role == "Ceiling" then return base * 0.58
-		elseif role == "Task" then return base * 0.60
-		elseif role == "Guide" then return base * 0.87
-		elseif role == "Threshold" then return base * 0.72
-		elseif role == "Accent" then return base * 0.50
-		elseif role == "Bounce" then return base * 0.52
-		elseif role == "Emergency" then return base * 0.60
-		elseif role == "Fault" then return base * 0.10
+		if role == "Route" then
+			return base * 0.95
+		elseif role == "Ceiling" then
+			return base * 0.58
+		elseif role == "Task" then
+			return base * 0.60
+		elseif role == "Guide" then
+			return base * 0.87
+		elseif role == "Threshold" then
+			return base * 0.72
+		elseif role == "Accent" then
+			return base * 0.50
+		elseif role == "Bounce" then
+			return base * 0.52
+		elseif role == "Emergency" then
+			return base * 0.60
+		elseif role == "Fault" then
+			return base * 0.10
 		end
 		return base * 0.55
 	elseif state == "woken" then
-		if role == "Fault" then return base * 0.14
-		elseif role == "Emergency" then return base * 0.42
+		if role == "Fault" then
+			return base * 0.14
+		elseif role == "Emergency" then
+			return base * 0.42
 		end
 		return base
 	else
 		-- A red alert is a change in priorities, not a monochrome blackout.
-		if role == "Fault" or role == "Emergency" then return base * 0.90
-		elseif role == "Route" then return base * 0.88
-		elseif role == "Guide" then return base * 0.85
-		elseif role == "Task" then return base * 0.72
-		elseif role == "Ceiling" then return base * 0.58
-		elseif role == "Threshold" then return base * 0.75
-		elseif role == "Accent" then return base * 0.60
-		elseif role == "Bounce" then return base * 0.52
+		if role == "Fault" or role == "Emergency" then
+			return base * 0.90
+		elseif role == "Route" then
+			return base * 0.88
+		elseif role == "Guide" then
+			return base * 0.85
+		elseif role == "Task" then
+			return base * 0.72
+		elseif role == "Ceiling" then
+			return base * 0.58
+		elseif role == "Threshold" then
+			return base * 0.75
+		elseif role == "Accent" then
+			return base * 0.60
+		elseif role == "Bounce" then
+			return base * 0.52
 		end
 		return base * 0.60
 	end
@@ -146,8 +164,7 @@ local function applyOne(lamp: MapContract.Lamp, suppressed: boolean)
 		for _, light in lamp.lights do
 			light.Enabled = on
 			light.Color = color
-			light.Brightness = if state == "dead" then 0.42
-				elseif state == "red" then 0.65 else 0.65
+			light.Brightness = if state == "dead" then 0.42 elseif state == "red" then 0.65 else 0.65
 		end
 		if p then
 			local look = remember(p)
@@ -168,7 +185,8 @@ local function applyOne(lamp: MapContract.Lamp, suppressed: boolean)
 	if suppressed then
 		-- The main breakers trip, but battery-backed corridors, EXIT fixtures
 		-- and tiny pilots persist. Gameplay never becomes a black void.
-		intensity = if role == "Route" then nominal * 0.35
+		intensity = if role == "Route"
+			then nominal * 0.35
 			elseif role == "Guide" then nominal * 0.25
 			elseif role == "Emergency" then nominal * 0.25
 			else 0
@@ -192,7 +210,12 @@ local function applyOne(lamp: MapContract.Lamp, suppressed: boolean)
 
 	local appearance = remember(part)
 	local diffuser = part:FindFirstChild("FrostedDiffuser")
-	if diffuser and diffuser:IsA("BasePart") then
+	if role == "Bounce" then
+		-- Invisible, artistic GI approximation; unlike a practical, it must
+		-- not emit visible neon or expose a housing during power transitions.
+		part.Material = appearance.material
+		part.Color = appearance.color
+	elseif diffuser and diffuser:IsA("BasePart") then
 		-- The housing stays physically metallic; only the inset glass emits.
 		part.Material = appearance.material
 		part.Color = appearance.color
@@ -292,6 +315,7 @@ local function startFlicker(myGeneration: number)
 				local role = if p then p:GetAttribute("LightRole") else nil
 				if
 					role ~= "Guide"
+					and role ~= "Bounce"
 					and role ~= "Route"
 					and role ~= "Task"
 					and role ~= "Emergency"

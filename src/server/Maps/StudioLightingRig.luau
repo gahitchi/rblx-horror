@@ -30,10 +30,11 @@ type Fixture = {
 -- the first shock increases brightness rather than revealing the floor plan.
 local FIXTURES: { Fixture } = {
 	-- GOLD-STANDARD ROOM: Control A, the heart of the final recording.
+	-- Place the task pool in front of the bridge, over the channel strips.
 	{
 		name = "DeskWritingLamp",
 		room = "ControlA",
-		at = Vector3.new(-57, 7.8, -79),
+		at = Vector3.new(-57, 7.8, -76.5),
 		role = "Task",
 		range = 16,
 		intensity = 0.82,
@@ -49,13 +50,16 @@ local FIXTURES: { Fixture } = {
 		range = 10,
 		intensity = 0.24,
 	},
+	-- Keep the existing scale fitting above the sightline to the VU faces.
 	{
 		name = "MixingDeskScaleLight",
 		room = "ControlA",
-		at = Vector3.new(-55, 4.7, -78),
+		at = Vector3.new(-55, 6.2, -76),
 		role = "Accent",
 		range = 10,
-		intensity = 0.27,
+		intensity = 0.38,
+		kind = "Surface",
+		angle = 100,
 	},
 	{
 		name = "ControlASoftboxReturn",
@@ -394,36 +398,156 @@ local FIXTURES: { Fixture } = {
 -- ceiling, never suspend midair. Keep these near real room transitions rather
 -- than distributing little lights randomly across every empty floor.
 local ROUTE_FIXTURES: { Fixture } = {
-	{ name = "ReceptionNorthRoute", room = "Reception", at = Vector3.new(-41, 5, -2),
-		role = "Route", range = 22, intensity = 0.56, kind = "Surface", angle = 115 },
-	{ name = "ReceptionPublicRoute", room = "Reception", at = Vector3.new(-1, 5, 9),
-		role = "Route", range = 23, intensity = 0.54, kind = "Surface", angle = 115 },
-	{ name = "EntryWestRoute", room = "EntryHall", at = Vector3.new(21, 5, 8),
-		role = "Route", range = 21, intensity = 0.55, kind = "Surface", angle = 115 },
-	{ name = "EntryEastRoute", room = "EntryHall", at = Vector3.new(51, 5, 9),
-		role = "Route", range = 20, intensity = 0.52, kind = "Surface", angle = 115 },
-	{ name = "StaffPassageRoute", room = "StaffPassage", at = Vector3.new(-12, 5, -17),
-		role = "Route", range = 19, intensity = 0.54, kind = "Surface", angle = 110 },
-	{ name = "BreakRoomRoute", room = "BreakRoom", at = Vector3.new(-43, 5, -20),
-		role = "Route", range = 20, intensity = 0.53, kind = "Surface", angle = 110 },
-	{ name = "SoundLockRoute", room = "SoundLock", at = Vector3.new(-22, 5, -46),
-		role = "Route", range = 17, intensity = 0.54, kind = "Surface", angle = 110 },
-	{ name = "GalleryRoute", room = "ViewingGallery", at = Vector3.new(9, 5, -43),
-		role = "Route", range = 22, intensity = 0.55, kind = "Surface", angle = 112 },
-	{ name = "InnerHallRoute", room = "InnerHall", at = Vector3.new(25, 5, -19),
-		role = "Route", range = 20, intensity = 0.51, kind = "Surface", angle = 110 },
-	{ name = "ServiceHallRoute", room = "ServiceHall", at = Vector3.new(51, 5, -25),
-		role = "Route", range = 23, intensity = 0.53, kind = "Surface", angle = 110 },
-	{ name = "ControlACentreRoute", room = "ControlA", at = Vector3.new(-61, 5, -94),
-		role = "Route", range = 23, intensity = 0.54, kind = "Surface", angle = 115 },
-	{ name = "ArchiveAisleRoute", room = "TapeArchive", at = Vector3.new(-70, 5, -120),
-		role = "Route", range = 18, intensity = 0.50, kind = "Surface", angle = 115 },
-	{ name = "ControlBRoute", room = "ControlB", at = Vector3.new(-56, 5, -43),
-		role = "Route", range = 20, intensity = 0.52, kind = "Surface", angle = 110 },
-	{ name = "LiveHallRoute", room = "LiveHall", at = Vector3.new(5, 5, -94),
-		role = "Route", range = 24, intensity = 0.54, kind = "Surface", angle = 115 },
-	{ name = "ServicePassRoute", room = "ServicePass", at = Vector3.new(59, 5, -96),
-		role = "Route", range = 20, intensity = 0.51, kind = "Surface", angle = 110 },
+	{
+		name = "ReceptionNorthRoute",
+		room = "Reception",
+		at = Vector3.new(-41, 5, -2),
+		role = "Route",
+		range = 22,
+		intensity = 0.56,
+		kind = "Surface",
+		angle = 115,
+	},
+	{
+		name = "ReceptionPublicRoute",
+		room = "Reception",
+		at = Vector3.new(-1, 5, 9),
+		role = "Route",
+		range = 23,
+		intensity = 0.54,
+		kind = "Surface",
+		angle = 115,
+	},
+	{
+		name = "EntryWestRoute",
+		room = "EntryHall",
+		at = Vector3.new(21, 5, 8),
+		role = "Route",
+		range = 21,
+		intensity = 0.55,
+		kind = "Surface",
+		angle = 115,
+	},
+	{
+		name = "EntryEastRoute",
+		room = "EntryHall",
+		at = Vector3.new(51, 5, 9),
+		role = "Route",
+		range = 20,
+		intensity = 0.52,
+		kind = "Surface",
+		angle = 115,
+	},
+	{
+		name = "StaffPassageRoute",
+		room = "StaffPassage",
+		at = Vector3.new(-12, 5, -17),
+		role = "Route",
+		range = 19,
+		intensity = 0.54,
+		kind = "Surface",
+		angle = 110,
+	},
+	{
+		name = "BreakRoomRoute",
+		room = "BreakRoom",
+		at = Vector3.new(-43, 5, -20),
+		role = "Route",
+		range = 20,
+		intensity = 0.53,
+		kind = "Surface",
+		angle = 110,
+	},
+	{
+		name = "SoundLockRoute",
+		room = "SoundLock",
+		at = Vector3.new(-22, 5, -46),
+		role = "Route",
+		range = 17,
+		intensity = 0.54,
+		kind = "Surface",
+		angle = 110,
+	},
+	{
+		name = "GalleryRoute",
+		room = "ViewingGallery",
+		at = Vector3.new(9, 5, -43),
+		role = "Route",
+		range = 22,
+		intensity = 0.55,
+		kind = "Surface",
+		angle = 112,
+	},
+	{
+		name = "InnerHallRoute",
+		room = "InnerHall",
+		at = Vector3.new(25, 5, -19),
+		role = "Route",
+		range = 20,
+		intensity = 0.51,
+		kind = "Surface",
+		angle = 110,
+	},
+	{
+		name = "ServiceHallRoute",
+		room = "ServiceHall",
+		at = Vector3.new(51, 5, -25),
+		role = "Route",
+		range = 23,
+		intensity = 0.53,
+		kind = "Surface",
+		angle = 110,
+	},
+	{
+		name = "ControlACentreRoute",
+		room = "ControlA",
+		at = Vector3.new(-61, 5, -94),
+		role = "Route",
+		range = 23,
+		intensity = 0.54,
+		kind = "Surface",
+		angle = 115,
+	},
+	{
+		name = "ArchiveAisleRoute",
+		room = "TapeArchive",
+		at = Vector3.new(-70, 5, -120),
+		role = "Route",
+		range = 18,
+		intensity = 0.50,
+		kind = "Surface",
+		angle = 115,
+	},
+	{
+		name = "ControlBRoute",
+		room = "ControlB",
+		at = Vector3.new(-56, 5, -43),
+		role = "Route",
+		range = 20,
+		intensity = 0.52,
+		kind = "Surface",
+		angle = 110,
+	},
+	{
+		name = "LiveHallRoute",
+		room = "LiveHall",
+		at = Vector3.new(5, 5, -94),
+		role = "Route",
+		range = 24,
+		intensity = 0.54,
+		kind = "Surface",
+		angle = 115,
+	},
+	{
+		name = "ServicePassRoute",
+		room = "ServicePass",
+		at = Vector3.new(59, 5, -96),
+		role = "Route",
+		range = 20,
+		intensity = 0.51,
+		kind = "Surface",
+		angle = 110,
+	},
 }
 
 local function colorFor(role: string): Color3
@@ -453,8 +577,13 @@ local function decorate(holders: Instance, spec: Fixture, rooms: { Room })
 	anchor.CanQuery = false
 	anchor.CanTouch = false
 	anchor.CastShadow = false
-	anchor.Size = if spec.role == "Route"
-		then Vector3.new(4.5, 0.28, 1.7)
+	-- Artificial bounce sources are not new lamps in the room. Their geometry
+	-- must be completely invisible; only their soft fill contributes to light.
+	local isBounce = spec.role == "Bounce"
+	anchor.Transparency = if isBounce then 1 else 0
+	anchor.Size = if isBounce
+		then Vector3.new(0.25, 0.25, 0.25)
+		elseif spec.role == "Route" then Vector3.new(4.5, 0.28, 1.7)
 		elseif spec.kind == "Spot" then Vector3.new(2.4, 0.36, 1.5)
 		else Vector3.new(1.15, 0.3, 0.9)
 	anchor.Color = if spec.role == "Emergency" then RED else METAL
@@ -482,19 +611,21 @@ local function decorate(holders: Instance, spec: Fixture, rooms: { Room })
 	anchor:SetAttribute("LightShadow", spec.shadows == true)
 	anchor.Parent = holders
 
-	-- A discreet frosted lens means the fixture still reads in its off state.
-	-- It is not an extra Light instance, so costs only one dynamic light.
-	local lens = Instance.new("Part")
-	lens.Name = "FrostedDiffuser"
-	lens.Anchored = true
-	lens.CanCollide, lens.CanQuery, lens.CanTouch = false, false, false
-	lens.CastShadow = false
-	lens.Size = Vector3.new(anchor.Size.X * 0.75, 0.07, anchor.Size.Z * 0.67)
-	lens.CFrame = anchor.CFrame * CFrame.new(0, -anchor.Size.Y / 2 - 0.04, 0)
-	lens.Color = colorFor(spec.role)
-	lens.Material = Enum.Material.Glass
-	lens.Transparency = 0.3
-	lens.Parent = anchor
+	-- Only actual, visible fixtures receive a frosted lens. Bounce sources
+	-- are lighting-only proxies and must not look like floating hardware.
+	if not isBounce then
+		local lens = Instance.new("Part")
+		lens.Name = "FrostedDiffuser"
+		lens.Anchored = true
+		lens.CanCollide, lens.CanQuery, lens.CanTouch = false, false, false
+		lens.CastShadow = false
+		lens.Size = Vector3.new(anchor.Size.X * 0.75, 0.07, anchor.Size.Z * 0.67)
+		lens.CFrame = anchor.CFrame * CFrame.new(0, -anchor.Size.Y / 2 - 0.04, 0)
+		lens.Color = colorFor(spec.role)
+		lens.Material = Enum.Material.Glass
+		lens.Transparency = 0.3
+		lens.Parent = anchor
+	end
 
 	local light: Light
 	if spec.kind == "Spot" then
@@ -555,9 +686,13 @@ function StudioLightingRig.apply(map: Model)
 		end
 		assert(bounds ~= nil, "Missing route-light room " .. route.room)
 		local room = bounds :: Room
-		assert(route.at.X > room.x1 + 0.5 and route.at.X < room.x2 - 0.5
-			and route.at.Z > room.z1 + 0.5 and route.at.Z < room.z2 - 0.5,
-			"Route light outside plan: " .. route.name)
+		assert(
+			route.at.X > room.x1 + 0.5
+				and route.at.X < room.x2 - 0.5
+				and route.at.Z > room.z1 + 0.5
+				and route.at.Z < room.z2 - 0.5,
+			"Route light outside plan: " .. route.name
+		)
 		decorate(holders, route, rooms)
 	end
 	for _, fixture in FIXTURES do

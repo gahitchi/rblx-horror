@@ -473,8 +473,14 @@ local function buildImported(parent: Instance, objectives: Instance?): Model?
 	if extents.X > 0.1 then
 		clone:ScaleTo(clone:GetScale() * (IMPORTED_WIDTH / extents.X))
 	end
+	-- The glTF import faces away from the operator at +Z. Rotate about
+	-- its bounds center so the bridge sits behind the faders and the paper
+	-- shelf aligns with the existing SessionLog interaction.
 	local bounds = clone:GetBoundingBox()
-	clone:PivotTo(clone:GetPivot() + (IMPORTED_CENTER - bounds.Position))
+	local placement = CFrame.new(IMPORTED_CENTER)
+		* CFrame.Angles(0, math.pi, 0)
+		* CFrame.new(-bounds.Position)
+	clone:PivotTo(placement * clone:GetPivot())
 	local log = objectives and objectives:FindFirstChild("SessionLog")
 	if log and log:IsA("BasePart") then
 		log.Transparency = 1
