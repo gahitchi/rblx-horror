@@ -84,7 +84,15 @@ if not map then
 		copy.Parent = Workspace
 		map = copy
 	else
-		map = StudioGroundFloor.build()
+		-- Keep the first playtest bootable if the authored studio generator errors.
+		-- This protects the match server independently of the hub's fallback.
+		local ok, built = pcall(StudioGroundFloor.build)
+		if ok and built and built:IsA("Model") then
+			map = built
+		else
+			warn("[Map] studio generator failed: " .. tostring(built) .. "; using greybox")
+			map = MapBuilder.build()
+		end
 	end
 end
 local loaded, problems = MapContract.read(map :: Instance, lobbySpawn)
