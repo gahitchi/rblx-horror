@@ -9,7 +9,7 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: integrated 0.8.5 — hub, studio and scripted Engineer (not playtested)
+## Status: integrated 0.8.6 — advanced studio lighting (not playtested)
 
 **Use branch `chatgpt/integrated-v1`.** It includes both the playable-code Wrenmouth
 cliff-top hub and the detailed 23-room recording house in **two distinct Roblox places**.
@@ -42,6 +42,13 @@ studio-equipment inspections, fair closed-locker detection, bounded
 pathfinding and per-round cleanup. The AI is behavior-complete **in source**;
 it still needs engine and multiplayer validation before release.
 See [the Engineer's complete behavior and acceptance plan](docs/ENGINEER_AI_SCRIPTED.md).
+
+**0.8.6 lighting milestone:** The studio now uses Roblox's Realistic renderer
+configuration and a 40-fixture, room-specific lighting system with simulated
+indirect light bounce, two broad SurfaceLights, three total planned dynamic
+shadow sources, and distinct exploration/shock states. This is **not true
+path tracing**; lighting is untested in Studio. Read the complete
+[studio lighting bible](docs/STUDIO_LIGHTING_BIBLE.md) before refining assets.
 More playtest details: [studio](docs/STUDIO_V2_PLAYTEST.md) and
 [hub](docs/HUB_V1_PLAYTEST.md).
 
