@@ -12,6 +12,7 @@ local StudioEvidenceDetail = require(script.Parent.StudioEvidenceDetail)
 local StudioLightingRig = require(script.Parent.StudioLightingRig)
 local StudioStoreAssets = require(script.Parent.StudioStoreAssets)
 local StudioPhysicalAssets = require(script.Parent.StudioPhysicalAssets)
+local StudioFurnitureAsset = require(script.Parent.StudioFurnitureAsset)
 
 type Room = StudioLayout.Room
 type Portal = {
@@ -830,15 +831,9 @@ function StudioGroundFloor.build(): Model
 
 	-- Load-in for instruments (no extra exterior escape) and dedicated machine racks.
 	for _, x in { 51, 61, 71 } do
-		part(
-			props,
-			"MachineRack",
-			Vector3.new(x, 4, -127),
-			Vector3.new(4, 8, 2),
-			C.dark,
-			Enum.Material.Metal,
-			true
-		)
+		-- Actual rack assemblies with aligned controls and one defined
+		-- solid chassis, rather than featureless standing cuboids.
+		StudioFurnitureAsset.rack(props, "MachineRack_" .. tostring(x), x, -127, 4, 8, 0)
 	end
 	-- Physical 4-wheel flight case in the loading zone, away from the
 	-- Last Call path. Wheels turn with HingeConstraints when players push it.
