@@ -29,7 +29,7 @@ local Tension = {}
 local SCENES: { Scene } = {
 	{
 		room = "Reception", earliest = 25,
-		sourceArea = "EntryHall", sound = Sounds.DOOR,
+		sourceArea = "Reception", sound = Sounds.DOOR,
 		volume = 0.22, range = 46, speed = 0.68,
 	},
 	{
@@ -54,7 +54,7 @@ local SCENES: { Scene } = {
 	},
 	{
 		room = "ServiceHall", earliest = 190,
-		sourceArea = "MachineRoom", sound = Sounds.BUZZ,
+		sourceArea = "ServiceHall", sound = Sounds.BUZZ,
 		volume = 0.2, range = 55, speed = 0.55,
 	},
 }
