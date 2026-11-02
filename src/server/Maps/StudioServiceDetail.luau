@@ -564,7 +564,7 @@ function Detail.apply(map: Model)
 	-- Three grounded storage cases sit in an accessible loading-wall row,
 	-- not an unsupported diagonal stack at arbitrary heights.
 	for i = 1, 3 do
-		boxLabel(tech, 104, 1.25, -87 - i * 5, "WRENMOUTH / GEAR")
+		boxLabel(tech, 104, 1.25, -84 - i * 5, "WRENMOUTH / GEAR")
 	end
 	for _, x in { 86, 107 } do
 		safetyStripe(tech, x, 4, -105.7, false)
