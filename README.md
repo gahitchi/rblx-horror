@@ -9,12 +9,20 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: prototype 0.7.0 (untested)
+## Status: integrated 0.8.0 — hub and studio (not playtested)
 
-The design is in the design doc (link in `CLAUDE.md`) and `docs/DIRECTION.md`. 0.7.0 rebuilds the
-round as **chapter 1, The Last Session**, set in the engineer's studio in Wrenmouth: greybox map,
-placeholder sounds, no round timer. Before a playtest, see [docs/PLAYTEST.md](docs/PLAYTEST.md).
-What's built and what's next: [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md).
+**Use branch `chatgpt/integrated-v1`.** It includes both the playable-code Wrenmouth
+cliff-top hub and the detailed 23-room recording house in **two distinct Roblox places**.
+See [the complete integration guide](docs/INTEGRATED_BUILD.md) for setup, checks, required
+published place IDs and what is still untested. This branch leaves `main`,
+`chatgpt/studio-v2` and `chatgpt/hub-v1` intact.
+
+The original Chapter 1 game systems remain authoritative, with full story
+objectives, horror pacing and Last Call; the 1987 studio is built procedurally
+when no hand-made map is supplied. Placeholder audio and Roblox Studio
+playtesting are still outstanding. The design is in `docs/DIRECTION.md`.
+More playtest details: [studio](docs/STUDIO_V2_PLAYTEST.md) and
+[hub](docs/HUB_V1_PLAYTEST.md).
 
 What a round looks like (about 20 to 25 minutes):
 1. The front doors' quarantine locks slam behind the crew. The handler talks on the walkies.
@@ -56,8 +64,12 @@ Tools are pinned in `rokit.toml` (Rojo, StyLua, Selene).
 ```sh
 git clone https://github.com/gahitchi/rblx-horror.git
 cd rblx-horror
+git switch chatgpt/integrated-v1
 rokit install
-rojo serve
+# For the MATCH place:
+rojo serve default.project.json
+# For the HUB place instead, stop that server and run:
+# rojo serve hub.project.json
 ```
 
 In Roblox Studio: open a new Baseplate, click **Connect** in the Rojo plugin, then **Play**. The
@@ -80,13 +92,20 @@ voice chat for the experience (Game Settings > Communication) and use an account
 
 ## Places
 
-Two places: the hub (`hub.project.json`, `src/hub/`) where players make lobbies, and the match
-place (`default.project.json`) where rounds are played. Setup and publishing: [docs/HUB.md](docs/HUB.md).
+Two places in one Roblox experience: the **hub/start place** (`hub.project.json`,
+`src/hub/`) and the **reserved match place** (`default.project.json`,
+`src/server/` and `src/client/`). Each project uses the same `src/shared/`.
+
+**Before published teleports work:** set the actual nonzero
+`Config.PLACES.HUB` and `Config.PLACES.MATCH` IDs. Until then, crew Start
+is intentionally blocked rather than sending players somewhere they cannot
+return from. Exact steps: [docs/INTEGRATED_BUILD.md](docs/INTEGRATED_BUILD.md).
 
 ## Maps
 
 A map is a `Workspace.Map` laid out as [docs/MAP_CONTRACT.md](docs/MAP_CONTRACT.md) describes. Without
-one, the game builds the greybox studio, which follows the same rules.
+one, this integration branch builds the detailed `StudioGroundFloor` studio.
+An old greybox remains only as the last-resort fallback if a map contract fails.
 
 ## Layout
 
@@ -100,8 +119,11 @@ src/client   Movement, Flashlight, Voice, Items, Spectate, Hud, DangerEffect, Ma
 ## Checks before pushing
 
 ```sh
-stylua src
-rojo sourcemap default.project.json -o sourcemap.json
-luau-lsp analyze --platform=roblox --sourcemap=sourcemap.json src
-rojo build -o build.rbxl
+python3 tools/integration/check_integration.py
+stylua --check src
+rojo build default.project.json -o match.rbxl
+rojo build hub.project.json -o hub.rbxl
 ```
+
+Also run Luau-LSP analysis against each Rojo project's own sourcemap;
+only a Roblox Studio/published-server test can verify actual multiplayer teleports.
