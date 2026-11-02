@@ -1,9 +1,9 @@
 --!strict
--- Wardrobes and lockers. Step in and your noise is muffled (Config.HIDE.MUFFLE). The monster is
--- blind, so a hiding spot works by sound alone: with it close, your breathing grows loud. Hold
--- your breath (Space) for a few seconds; run out and you gasp. Breathing draws it over to listen,
--- and when it searches nearby it opens hiding spots it walks past. Open one with you inside and
--- it has you.
+-- Contextual furniture hiding: the authored studio uses hollow, open-front
+-- desks instead of seven oversized lockers. Legacy hand-authored maps still
+-- support lockers/wardrobes. The Engineer has sight and hearing: witnessing
+-- someone crawl under cover or hearing breathing can prompt an inspection.
+-- Only an inspection actually reveals/catches the occupant.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -32,6 +32,7 @@ local hiddenAt: { [Player]: number } = {}
 local promptOf: { [BasePart]: ProximityPrompt } = {}
 local occupant: { [BasePart]: Player } = {}
 local breath: { [Player]: Breath } = {}
+local originalAutoRotate: { [Player]: boolean } = {}
 
 local function rootOf(player: Player): BasePart?
 	local character = player.Character
@@ -68,6 +69,14 @@ function HideService.leave(player: Player)
 	occupant[spot] = nil
 	breath[player] = nil
 	setAttributes(player, false)
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.Sit = false
+		humanoid.AutoRotate = if originalAutoRotate[player] ~= nil
+			then originalAutoRotate[player] else true
+	end
+	originalAutoRotate[player] = nil
 	-- The spot's prompt is off while someone is inside (see hide()); it's free again.
 	local prompt = promptOf[spot]
 	if prompt then
@@ -76,7 +85,9 @@ function HideService.leave(player: Player)
 	local r = rootOf(player)
 	if r and r.Parent then
 		local floorY = spot.Position.Y - spot.Size.Y / 2
-		local front = spot.CFrame * CFrame.new(0, 0, -(spot.Size.Z / 2 + 2))
+		local clearance = spot:GetAttribute("ExitClearance")
+		local front = spot.CFrame * CFrame.new(0, 0,
+			-(spot.Size.Z / 2 + (if type(clearance) == "number" then clearance else 2)))
 		r.CFrame = CFrame.lookAt(
 			Vector3.new(front.X, floorY + 3, front.Z),
 			Vector3.new(front.X, floorY + 3, front.Z) + spot.CFrame.LookVector
@@ -93,27 +104,47 @@ local function hide(player: Player, spot: BasePart)
 	hiddenIn[player] = spot
 	hiddenAt[player] = os.clock()
 	occupant[spot] = player
-	-- Stepping out has its own key (LeaveHiding, bound by the client while hiding), so the
-	-- "Hide" prompt is switched off: from inside it was the only way out and it never showed.
+	-- E / touch Step out is bound only while hiding. Disable the enter
+	-- prompt until the player leaves or the Engineer discovers this cover.
 	local prompt = promptOf[spot]
 	if prompt then
 		prompt.Enabled = false
 	end
 	breath[player] = { holding = false, left = HIDE.HOLD_SECONDS, nextBreath = 0 }
 	setAttributes(player, true)
+	local underDesk = spot:GetAttribute("Kind") == "underdesk"
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		originalAutoRotate[player] = humanoid.AutoRotate
+		humanoid.AutoRotate = false
+		if underDesk then
+			-- Temporary seated/crouched pose. The exact posture must still be
+			-- verified in Studio with the player avatar rig.
+			humanoid.Sit = true
+		end
+	end
 	r.Anchored = true
 	local floorY = spot.Position.Y - spot.Size.Y / 2
+	local hiddenY = if underDesk then floorY + 1.45 else floorY + 3
 	r.CFrame = CFrame.lookAt(
-		Vector3.new(spot.Position.X, floorY + 3, spot.Position.Z),
-		Vector3.new(spot.Position.X, floorY + 3, spot.Position.Z) + spot.CFrame.LookVector
+		Vector3.new(spot.Position.X, hiddenY, spot.Position.Z),
+		Vector3.new(spot.Position.X, hiddenY, spot.Position.Z) + spot.CFrame.LookVector
 	)
-	Sounds.playAt(Sounds.DOOR, spot.Position, 0.4, 40, 1.3)
+	if not underDesk then
+		Sounds.playAt(Sounds.DOOR, spot.Position, 0.4, 40, 1.3)
+	end
+	-- The Engineer may connect a recent visual sighting to someone crawling
+	-- under this desk; the monster validates what it actually saw.
+	MonsterService.reportHide(player, spot)
 end
 
 -- The monster opens a hiding spot. Returns whoever was inside (now pulled out), if anyone.
 function HideService.check(spot: BasePart): Player?
 	local found = occupant[spot]
-	Sounds.playAt(Sounds.DOOR, spot.Position, 0.9, 80, 0.8)
+	if spot:GetAttribute("Kind") ~= "underdesk" then
+		Sounds.playAt(Sounds.DOOR, spot.Position, 0.9, 80, 0.8)
+	end
 	if found and isTarget(found) then
 		HideService.leave(found)
 		return found
@@ -170,8 +201,10 @@ function HideService.reset()
 		HideService.leave(player)
 	end
 	hiddenIn = {}
+	hiddenAt = {}
 	occupant = {}
 	breath = {}
+	originalAutoRotate = {}
 end
 
 function HideService.init(layout: MapContract.Layout, targetCheck: (Player) -> boolean)
@@ -179,9 +212,10 @@ function HideService.init(layout: MapContract.Layout, targetCheck: (Player) -> b
 	for _, spot in layout.hidingSpots do
 		local kind = spot:GetAttribute("Kind")
 		local prompt = Instance.new("ProximityPrompt")
-		prompt.ActionText = "Hide"
-		prompt.ObjectText = if kind == "locker" then "Locker" else "Wardrobe"
-		prompt.HoldDuration = 0.3
+		prompt.ActionText = if kind == "underdesk" then "Get under" else "Hide"
+		prompt.ObjectText = if kind == "underdesk" then "Desk"
+			elseif kind == "locker" then "Locker" else "Wardrobe"
+		prompt.HoldDuration = 0.35
 		prompt.MaxActivationDistance = 6
 		prompt.RequiresLineOfSight = false
 		prompt.Parent = spot
@@ -216,6 +250,7 @@ function HideService.init(layout: MapContract.Layout, targetCheck: (Player) -> b
 		hiddenIn[player] = nil
 		hiddenAt[player] = nil
 		breath[player] = nil
+		originalAutoRotate[player] = nil
 	end)
 	local last = os.clock()
 	task.spawn(function()
