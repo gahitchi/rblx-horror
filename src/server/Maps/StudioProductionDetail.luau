@@ -325,16 +325,8 @@ function Detail.apply(map: Model)
 	-- original gameplay collision/interaction. No duplicate boxy fader layer.
 	StudioHeroConsole.build(ctrl, map)
 	Kit.chair(ctrl, -56, -71, 180, C.leather)
-	for _, x in { -49, -44, -39.8 } do
-		Kit.rod(
-			ctrl,
-			"PatchCable",
-			Vector3.new(x, 4.5, -95.5),
-			Vector3.new(x - 0.5, 2.5, -95.5),
-			0.07,
-			C.gold
-		)
-	end
+	-- StudioCriticalFixtures connects short, drooping patch cords between
+	-- actual sockets on the exact Puzzle PatchBay. No disconnected wires.
 	wallAward(ctrl, -77, 11, -106.45, "WRENMOUTH / 1986")
 	Kit.poster(ctrl, "THE LAST SESSION / 2 NOV 1987", -69, 9, -106.5, 4.2)
 	Kit.sign(ctrl, "STUDIO A / RECORD", CFrame.new(-45, 12, -106.5), Vector3.new(15, 1.2, 0.1))
@@ -349,7 +341,7 @@ function Detail.apply(map: Model)
 	speaker(edit, -65, 5, -54)
 	Kit.chair(edit, -52, -46, 180, C.foam)
 	Kit.poster(edit, "MIX / B / STAFF ONLY", -41, 8, -57.5, 3.4)
-	Kit.box(edit, "SafeDial", -75, 3.3, -46.4, 1.1, 1.1, 0.19, C.gold, Enum.Material.Metal)
+	-- Safe face, combination dial and hinges are finished by StudioCriticalFixtures.
 	-- Editing paperwork belongs in a cabinet, not three upright
 	-- paper cuboids standing in open floor space.
 	Kit.storage(edit,"ControlBSessionArchive",-60,-35.0,6,5.4,2.2,false)
