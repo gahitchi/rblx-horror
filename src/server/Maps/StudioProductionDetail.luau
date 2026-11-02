@@ -163,7 +163,7 @@ function Detail.apply(map: Model)
 			Vector3.new(x - 0.5, 2.5, -95.5), 0.07, C.gold)
 	end
 	wallAward(ctrl, -77, 11, -106.45, "WRENMOUTH / 1986")
-	Kit.poster(ctrl, "THE LAST SESSION / 15 OCT 1987", -69, 9, -106.5, 4.2)
+	Kit.poster(ctrl, "THE LAST SESSION / 2 NOV 1987", -69, 9, -106.5, 4.2)
 	Kit.sign(ctrl, "STUDIO A / RECORD", CFrame.new(-45, 12, -106.5),
 		Vector3.new(15, 1.2, 0.1))
 
