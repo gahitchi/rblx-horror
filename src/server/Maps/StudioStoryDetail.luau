@@ -68,7 +68,7 @@ function Story.apply(map: Model)
 		2.6, 0.35, 1.6, C.woodLight)
 	Kit.sign(root, "STUDIO BOOKINGS / 1987", CFrame.new(-34, 10.7, 23.6),
 		Vector3.new(16, 1.25, 0.15), Enum.NormalId.Front, C.cream)
-	incidentClue(root, -31, 7, -6.48, "STAFF NOTE / OCT 15",
+	incidentClue(root, -31, 7, -6.48, "STAFF NOTE / NOV 2",
 		"FINAL CHOIR SESSION\nDO NOT ERASE THE MASTER")
 	-- Break room: Eleanor's remembrance beside a household routine abandoned in haste.
 	Kit.box(root, "MemorialVase", -61, 3.45, -17.5, 0.9, 1.1, 0.9, C.teal)
@@ -89,7 +89,7 @@ function Story.apply(map: Model)
 		"THE ROOM DID NOT GO SILENT\nTHE TAPE KEPT TURNING")
 	incidentClue(root, 74, 9, -133.5, "MAINTENANCE",
 		"RACK 03 TUNED TO SEA TRAFFIC\nORDER: KEEP LISTENING")
-	Kit.sign(root, "WRENMOUTH HARBOUR / 15 OCTOBER 1987",
+	Kit.sign(root, "WRENMOUTH HARBOUR / 3 NOVEMBER 1987",
 		CFrame.new(99, 9.5, -106.44), Vector3.new(21, 1.4, 0.12),
 		Enum.NormalId.Front, C.cream)
 	for _, x in { 85, 96, 105 } do
