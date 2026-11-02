@@ -693,7 +693,7 @@ local function think(now: number)
 			return
 		end
 		local silence = now - lastHeard
-		local known = lastKnown or targetRoot.Position
+		local known = lastKnown or r.Position -- never acquire hidden coordinates by fallback
 		if silence > M.CHASE_MEMORY then
 			-- Lost them: search where they were heading, not where they were.
 			endLunge(now)
