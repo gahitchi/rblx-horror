@@ -108,6 +108,9 @@ local hidingSpots: { BasePart } = {}
 local checkSpot: (BasePart) -> Player? = function()
 	return nil
 end
+-- Sight is evidence, not omniscience. Only an actual confirmed view of a
+-- player can make him connect that player to cover they enter moments later.
+local lastVisual: { [Player]: { position: Vector3, time: number } } = {}
 local spotFronts: { [Vector3]: BasePart } = {}
 local inspectionPoints: { [Vector3]: string } = {} -- route points that are a hiding spot's door
 
@@ -711,16 +714,30 @@ local function think(now: number)
 		-- At a hiding spot's door: it opens it.
 		local nextPoint = route[1]
 		local spot = if nextPoint then spotFronts[nextPoint] else nil
-		if spot and nextPoint and flat(nextPoint - r.Position).Magnitude < 3.2 then
+		if spot and nextPoint
+			and (flat(nextPoint - r.Position).Magnitude < 4.5
+				or (n.status() == "Arrived"
+					and flat(nextPoint - r.Position).Magnitude < 6)) then
 			table.remove(route, 1)
 			spotFronts[nextPoint] = nil
 			memory.visited(nextPoint, now)
 			n.stop()
 			local found = checkSpot(spot)
-			local foundRoot = if found then rootOf(found) else nil
-			if found and foundRoot then
-				log("found", found.Name, "hiding")
-				startHunt(found, foundRoot.Position)
+			if found and isTarget(found) then
+				-- A confirmed search of occupied cover is the catch. Do NOT
+				-- pull someone out and restart pursuit; that allowed escaping
+				-- despite the Engineer physically inspecting their hiding spot.
+				log("caught", found.Name, "under cover")
+				local foundRoot = rootOf(found)
+				Sounds.playAt(Sounds.CATCH, if foundRoot then foundRoot.Position else spot.Position, 1)
+				onCatch(found)
+				endLunge(now)
+				if frenzied() then
+					huntTarget = nil
+					startSearch(r.Position)
+				else
+					startRetreat()
+				end
 				return
 			end
 			pauseUntil = now + 1.2
@@ -870,6 +887,9 @@ local function lookAround(now: number, dt: number)
 	if not seen then
 		return
 	end
+	if seen.sure then
+		lastVisual[seen.player] = { position = seen.position, time = now }
+	end
 	if state == "Hunt" then
 		if seen.player == huntTarget then
 			updateTrack(seen.position, now)
@@ -957,6 +977,7 @@ function MonsterService.despawn()
 	model, humanoid, root, nav = nil, nil, nil, nil
 	searchCenter = nil
 	spotFronts = {}
+	lastVisual = {}
 	inspectionPoints = {}
 	investigateKind = ""
 	investigateTarget = nil
@@ -1026,6 +1047,40 @@ end
 function MonsterService.setHidingSpots(spots: { BasePart }, check: (BasePart) -> Player?)
 	hidingSpots = spots
 	checkSpot = check
+end
+
+-- Called ONLY when a player actually enters cover. The Engineer never
+-- queries occupancy to decide where to search. A recently confirmed sight
+-- at that same location is the sole guaranteed reason to check that desk.
+function MonsterService.reportHide(player: Player, spot: BasePart)
+	local record = lastVisual[player]
+	local r = root
+	if not record or not r or not isTarget(player)
+		or (state == "Retreat" and not frenzied()) or state == "Dormant" then
+		return
+	end
+	local now = os.clock()
+	if now - record.time > 2.5 or flat(record.position - spot.Position).Magnitude > 9
+		or not table.find(hidingSpots, spot) then
+		return
+	end
+	local front = spot.CFrame * CFrame.new(0, 0, -(spot.Size.Z / 2 + 2.5))
+	local floorY = spot.Position.Y - spot.Size.Y / 2
+	local point = Vector3.new(front.X, floorY + 3, front.Z)
+	if nav then
+		nav.stop()
+	end
+	endLunge(now)
+	huntTarget = nil
+	spotFronts = { [point] = spot }
+	inspectionPoints = {}
+	route = { point }
+	searchCenter = spot.Position
+	searchUntil = now + math.max(10, M.SEARCH_TIME)
+	pauseUntil = 0
+	setState("Search")
+	lastVisual[player] = nil
+	log("watched", player.Name, "get under cover; checking", spot.Name)
 end
 
 -- The map's lamps: he sees people standing in their light.
