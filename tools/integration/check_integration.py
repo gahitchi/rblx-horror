@@ -149,6 +149,8 @@ def main() -> int:
     furniture_assets = require_text("src/server/Maps/StudioFurnitureAsset.luau")
     physical_assets = require_text("src/server/Maps/StudioPhysicalAssets.luau")
     physical_assets_test = require_text("tools/studio/PhysicalAssetsSelfTest.server.luau")
+    world_placement_test = require_text("tools/studio/WorldPlacementSelfTest.server.luau")
+    studio_story = require_text("src/server/Maps/StudioStoryDetail.luau")
     studio_service = require_text("src/server/Maps/StudioServiceDetail.luau")
     hero_console = require_text("src/server/Maps/StudioHeroConsole.luau")
     studio_lighting = require_text("src/server/Maps/StudioLightingRig.luau")
@@ -321,7 +323,39 @@ def main() -> int:
     for token in ('assert(#foundCases == 2', 'hinges == 4',
                   'body:GetNetworkOwner() == nil', 'furniture.AnalogueRack'):
         must_have(physical_assets_test, token, "tools/studio/PhysicalAssetsSelfTest")
-    must_have(config, 'Config.VERSION = "0.9.0-physical-assets"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.9.1-grounded-interiors"', "shared/Config")
+
+    # Purposeful placement regression: these coordinates were demonstrably
+    # unsupported in the previous build; tables, shelves and instruments must
+    # have actual support rather than arbitrary world positions.
+    for token in ("function Furniture.archiveShelf(", '"TapeArchiveShelf"',
+                  '"SolidEndPanel"', '"SolidShelfDeck"', '"BackPanel"',
+                  '"TurnedLeg"', '"SteelCrossSupport"'):
+        must_have(furniture_assets, token, "match/StudioFurnitureAsset")
+    for token in ('StudioFurnitureAsset.archiveShelf(', 'Vector3.new(x, 5.3, -130.5)',
+                  '"ArchiveShelf_"', '"ReceptionCounter"', '"BreakTable"'):
+        must_have(studio, token, "match/StudioGroundFloor")
+    for token in ('for _, shelfX in { -77, -72, -67, -62 }',
+                  'for _, level in { 1.7, 3.55, 5.4 }',
+                  'topY + 0.415', 'z + 0.15', '"BassDrumLeg"',
+                  '"GuitarStandBase"', '"PianoLeg"', '"CymbalTripodFoot"'):
+        must_have(studio_production, token, "match/StudioProductionDetail")
+    for token in ('"ReceptionWritingMat"', '"RecordDisplayShelf"',
+                  '"ShelfWallBracket"', '"ShelfFramePost"',
+                  '"BreakCounter"', '"CoffeeMachine"'):
+        must_have(studio_service, token, "match/StudioServiceDetail")
+    for token in ('"MemorialVase"', 'setOfTapes(root, -56.1',
+                  '"CoffeeMug"'):
+        must_have(studio_story, token, "match/StudioStoryDetail")
+    for token in ("check(cases == 48", "check(#decks == 12",
+                  '"ReceptionCounterTop"', '"MemorialVase"',
+                  '"CoffeeMug"', '"RecordDisplayShelf"', '"ReelSpot"'):
+        must_have(world_placement_test, token, "tools/studio/WorldPlacementSelfTest")
+    if '"ReceptionCounterGlass"' in studio_service:
+        fail("Floating reception desk glass should have been removed")
+    if '"ArchiveShelf_" .. tostring(i)' not in studio:
+        fail("Archive gameplay shelf labels disappeared")
+    must_have(config, 'Config.VERSION = "0.9.1-grounded-interiors"', "shared/Config")
 
     # High-detail console is authored visual geometry, not a second puzzle.
     for token in ("StudioHeroConsole.build(ctrl, map)", "ProductionDressing",
@@ -348,7 +382,7 @@ def main() -> int:
               "match/StudioGroundFloor")
     must_have(studio, 'objective(objectives, "SessionLog", Vector3.new(-57, 3.68, -75.65)',
               "match/StudioGroundFloor")
-    must_have(config, 'Config.VERSION = "0.9.0-physical-assets"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.9.1-grounded-interiors"', "shared/Config")
 
     for objective in ("BookingDiary", "SessionLog", "TapeMachine", "Spares",
                       "CardIndex", "RoadCase", "Safe", "MemorialProgramme",
@@ -482,7 +516,7 @@ def main() -> int:
     must_have(studio_production, '"EditCounterBackPanel"', "match/StudioProductionDetail")
     must_have(config, "DESK_MUFFLE = 0.72", "shared/Config")
     must_have(desk_cover_test, "assert(count == 6", "tools/studio/DeskCoverSelfTest")
-    must_have(config, 'Config.VERSION = "0.9.0-physical-assets"', "shared/Config")
+    must_have(config, 'Config.VERSION = "0.9.1-grounded-interiors"', "shared/Config")
 
     must_have(chapter, "StudioTension.start(myRound)", "match/Studio1")
     for guard in ("MAX_CUES_PER_ROUND", "MIN_CUE_GAP", "OPENING_END",
