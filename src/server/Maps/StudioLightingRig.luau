@@ -444,7 +444,7 @@ local function roomFor(rooms: { Room }, pos: Vector3): Room?
 	return nil
 end
 
-local function decorate(holders: Instance, spec: Fixture)
+local function decorate(holders: Instance, spec: Fixture, rooms: { Room })
 	local anchor = Instance.new("Part")
 	anchor.Name = "Light_" .. spec.name
 	anchor.Anchored = true
@@ -463,7 +463,7 @@ local function decorate(holders: Instance, spec: Fixture)
 	local installedAt = spec.at
 	if spec.role == "Route" then
 		local room: Room? = nil
-		for _, candidate in StudioLayout.make() do
+		for _, candidate in rooms do
 			if candidate.name == spec.room then
 				room = candidate
 				break
@@ -557,7 +557,7 @@ function StudioLightingRig.apply(map: Model)
 		assert(route.at.X > room.x1 + 0.5 and route.at.X < room.x2 - 0.5
 			and route.at.Z > room.z1 + 0.5 and route.at.Z < room.z2 - 0.5,
 			"Route light outside plan: " .. route.name)
-		decorate(holders, route)
+		decorate(holders, route, rooms)
 	end
 	for _, fixture in FIXTURES do
 		local room: Room? = nil
@@ -581,7 +581,7 @@ function StudioLightingRig.apply(map: Model)
 		if fixture.shadows then
 			shadows += 1
 		end
-		decorate(holders, fixture)
+		decorate(holders, fixture, rooms)
 	end
 	assert(shadows <= 1, "Lighting art budget: only the Control A desk casts an added shadow")
 	map:SetAttribute("StudioLightingRig", 1)
