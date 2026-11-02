@@ -26,14 +26,23 @@
 		},
 		"Lighting": {
 			"$properties": {
-				"Technology": "Future",
 				"Brightness": 0,
 				"ClockTime": 0,
-				"Ambient": [0, 0, 0],
-				"OutdoorAmbient": [0.02, 0.02, 0.025],
+				"Ambient": [
+					0,
+					0,
+					0
+				],
+				"OutdoorAmbient": [
+					0.02,
+					0.02,
+					0.025
+				],
 				"EnvironmentDiffuseScale": 0,
 				"EnvironmentSpecularScale": 0,
-				"GlobalShadows": true
+				"GlobalShadows": true,
+				"LightingStyle": "Realistic",
+				"PrioritizeLightingQuality": true
 			}
 		},
 		"VoiceChatService": {
