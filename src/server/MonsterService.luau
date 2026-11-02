@@ -63,6 +63,7 @@ local nav: Navigator.Navigator? = nil
 local motion: Motion.Controller? = nil
 local glows: { PointLight } = {}
 local loopId = 0
+local spawnedAt = 0 -- ignore asynchronous sound events from the previous round
 local rng = Random.new()
 local memory = EvidenceMemory.new() -- sound estimates, never actual unseen positions
 
@@ -473,7 +474,7 @@ local function react(stimulus: Perception.Stimulus)
 end
 
 local function onNoise(noise: NoiseService.Noise)
-	if state == "Dormant" or not root then
+	if state == "Dormant" or not root or noise.time < spawnedAt then
 		return
 	end
 	local stimulus = Perception.hear(noise, ear(), hearing())
@@ -776,7 +777,7 @@ local function updateDebug()
 		local head = m:FindFirstChild("Head")
 		if head then
 			local board = Instance.new("BillboardGui")
-			board.Size = UDim2.fromOffset(230, 60)
+			board.Size = UDim2.fromOffset(270, 84)
 			board.StudsOffset = Vector3.new(0, 2.5, 0)
 			board.AlwaysOnTop = true
 			board.Parent = head
@@ -793,10 +794,12 @@ local function updateDebug()
 	end
 	if debugLabel then
 		debugLabel.Text = string.format(
-			"%s  aware %d  focus %.0f\ndirector %s  menace %.2f\nnav %s",
+			"%s  aware %d  focus %.0f\n%s  inspect %s\ndirector %s  menace %.2f\nnav %s",
 			state,
 			Perception.awareness(),
 			memory.interest(),
+			tostring(m:GetAttribute("Intent") or "Still"),
+			tostring(m:GetAttribute("Inspecting") or "-"),
 			Director.mode(),
 			Director.menace(),
 			n.status()
@@ -928,6 +931,7 @@ end
 function MonsterService.spawn(position: Vector3)
 	MonsterService.despawn()
 	local m, h, r, lights = EngineerModel.build(position)
+	spawnedAt = os.clock()
 	glows = lights
 	model, humanoid, root = m, h, r
 	nav = Navigator.new(h, r, { m }, DoorService.isClosedInnerDoor, DoorService.monsterOpen)
