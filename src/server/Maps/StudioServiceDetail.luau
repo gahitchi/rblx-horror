@@ -3,6 +3,7 @@
 -- All dress-up parts sit in Props/ServiceDressing (except the state's accent lamps).
 -- Route centers, restroom doors, chapter prompts and the flat/basement seals stay clear.
 local Kit = require(script.Parent.StudioDecorKit)
+local StudioPhysicalAssets = require(script.Parent.StudioPhysicalAssets)
 local C = Kit.palette
 local Detail = {}
 
@@ -579,11 +580,9 @@ function Detail.apply(map: Model)
 			Enum.Material.Metal
 		)
 	end
-	Kit.box(tech, "FreightTrolley", 92, 1.35, -99, 5, 0.7, 4, C.dark, Enum.Material.Metal)
-	for _, x in { 90.3, 93.7 } do
-		Kit.box(tech, "TrolleyWheel", x, 0.5, -99, 0.8, 0.8, 0.8, C.metal, Enum.Material.Metal)
-	end
-	Kit.box(tech, "UnopenedRoadCase", 92, 3.1, -99, 4.5, 2.8, 3.7, C.leather, Enum.Material.Metal)
+	-- Load-in staging: real wheeled cases instead of a box stacked on a
+	-- fake trolley. The two movable cases stay away from chapter triggers.
+	StudioPhysicalAssets.roadCase(tech, "UnopenedRoadCase", 92, -99, 0)
 
 	-- Route reading at phone size, with understated story about the navy closure.
 	for _, spec in
