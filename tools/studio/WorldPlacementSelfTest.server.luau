@@ -92,7 +92,11 @@ supported(partNamed("PencilCup"), partNamed("ReceptionCounterTop"))
 supported(partNamed("MemorialVase"), partNamed("BreakTableTop"))
 supported(partNamed("CoffeeMug"), partNamed("BreakCounter"))
 supported(partNamed("RecordSleeve"), partNamed("RecordDisplayShelf"))
-supported(partNamed("VisitorMagazine"), partNamed("HardwoodTopCollider"), 0.14)
+local coffeeTable = props:FindFirstChild("ReceptionCoffeeTable", true)
+assert(coffeeTable and coffeeTable:IsA("Model"), "Reception coffee table model is missing")
+local coffeeTop = coffeeTable:FindFirstChild("HardwoodTopCollider")
+assert(coffeeTop and coffeeTop:IsA("BasePart"), "Reception coffee table top is missing")
+supported(partNamed("VisitorMagazine"), coffeeTop :: BasePart, 0.14)
 
 local foundReels = 0
 for _, marker in markers:GetChildren() do
