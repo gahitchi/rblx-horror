@@ -34,6 +34,7 @@ local Director = require(script.Parent.Monster.Director)
 local EvidenceMemory = require(script.Parent.Monster.EvidenceMemory)
 local EngineerModel = require(script.Parent.Monster.EngineerModel)
 local Mimicry = require(script.Parent.Monster.Mimicry)
+local Motion = require(script.Parent.Monster.Motion)
 local Navigator = require(script.Parent.Monster.Navigator)
 local Perception = require(script.Parent.Monster.Perception)
 
@@ -58,6 +59,7 @@ local model: Model? = nil
 local humanoid: Humanoid? = nil
 local root: BasePart? = nil
 local nav: Navigator.Navigator? = nil
+local motion: Motion.Controller? = nil
 local glows: { PointLight } = {}
 local loopId = 0
 local rng = Random.new()
@@ -74,6 +76,7 @@ local listenToward: Vector3? = nil
 local investigateTarget: Vector3? = nil
 local investigateUrgent = false
 local searchUntil = 0
+local searchCenter: Vector3? = nil
 
 -- The hunt
 local huntTarget: Player? = nil
@@ -251,6 +254,8 @@ end
 
 local function startRoam()
 	route = {}
+	spotFronts = {}
+	searchCenter = nil
 	pauseUntil = 0
 	setState("Roam")
 end
@@ -287,14 +292,19 @@ local function startListen(toward: Vector3, duration: number?)
 end
 
 local function startInvestigate(target: Vector3, urgent: boolean)
+	-- A new audible clue can replace the previous goal, but not carry a
+	-- previously stale route or pause into a fresh investigation.
 	investigateUrgent = urgent or (state == "Investigate" and investigateUrgent)
 	investigateTarget = target
+	route = {}
+	pauseUntil = 0
 	setState("Investigate")
 end
 
 -- Search the spots around `center`: the nearest patrol spots of its room and the rooms next to it,
 -- closest first, listening at each.
 local function startSearch(center: Vector3)
+	searchCenter = center
 	local spots: { Vector3 } = { center }
 	local nearby: { Vector3 } = {}
 	for _, area in areas do
@@ -462,7 +472,7 @@ local function feelAround()
 		return
 	end
 	for _, player in Players:GetPlayers() do
-		if isTarget(player) then
+		if isTarget(player) and player:GetAttribute("Hiding") ~= true then
 			local targetRoot = rootOf(player)
 			if targetRoot then
 				local offset = targetRoot.Position - r.Position
@@ -485,6 +495,10 @@ end
 local function updateLunge(now: number, h: Humanoid, r: BasePart): boolean
 	local target = huntTarget
 	local targetRoot = if target then rootOf(target) else nil
+	if target and target:GetAttribute("Hiding") == true then
+		endLunge(now)
+		return false
+	end
 	if lungePhase == "Windup" then
 		if now >= lungePhaseEnd then
 			lungePhase = "Lunge"
@@ -547,7 +561,7 @@ local function tryCatch(now: number)
 		return
 	end
 	for _, player in Players:GetPlayers() do
-		if isTarget(player) then
+		if isTarget(player) and player:GetAttribute("Hiding") ~= true then
 			local targetRoot = rootOf(player)
 			if targetRoot then
 				local offset = targetRoot.Position - r.Position
@@ -645,8 +659,12 @@ local function think(now: number)
 		h.WalkSpeed = if investigateUrgent then M.HURRY_SPEED else M.INVESTIGATE_SPEED
 		n.moveTo(target)
 		local status = n.status()
-		if status == "Arrived" or status == "Failed" or flat(target - r.Position).Magnitude < 4 then
+		if status == "Arrived" or flat(target - r.Position).Magnitude < 4 then
 			startSearch(target)
+		elseif status == "Failed" then
+			-- An unreachable sound is not evidence of a player behind the wall.
+			-- Inspect the *reachable* side instead of searching a distant point.
+			startSearch(r.Position)
 		end
 	elseif state == "Search" then
 		-- At a hiding spot's door: it opens it.
@@ -803,6 +821,20 @@ local function step(now: number, dt: number)
 	end
 	think(now)
 	n.update(now)
+	local pose = motion
+	if pose then
+		local focus: Vector3? = nil
+		if state == "Listen" then
+			focus = listenToward
+		elseif state == "Investigate" then
+			focus = investigateTarget
+		elseif state == "Search" then
+			focus = route[1] or searchCenter
+		elseif state == "Hunt" then
+			focus = lastKnown
+		end
+		pose.update(state, focus, state == "Search" and now < pauseUntil, now, dt)
+	end
 	updateFootsteps(dt)
 	tryCatch(now)
 	updateDebug()
@@ -827,6 +859,10 @@ function MonsterService.despawn()
 	if nav then
 		nav.destroy()
 	end
+	if motion then
+		motion.destroy()
+		motion = nil
+	end
 	if model then
 		model:Destroy()
 	end
@@ -834,6 +870,13 @@ function MonsterService.despawn()
 		debugFolder:Destroy()
 	end
 	model, humanoid, root, nav = nil, nil, nil, nil
+	searchCenter = nil
+	spotFronts = {}
+	investigateTarget = nil
+	pauseUntil, listenUntil, searchUntil = 0, 0, 0
+	heading = Vector3.zero
+	lastHeard = 0
+	investigateUrgent = false
 	debugLabel, debugFolder, debugPath = nil, nil, nil
 	state = "Dormant"
 	huntTarget = nil
@@ -858,6 +901,7 @@ function MonsterService.spawn(position: Vector3)
 	glows = lights
 	model, humanoid, root = m, h, r
 	nav = Navigator.new(h, r, { m }, DoorService.isClosedInnerDoor, DoorService.monsterOpen)
+	motion = Motion.new(m, r)
 	NoiseService.setIgnoreList({ m })
 	Director.reset(os.clock())
 	Perception.reset()
