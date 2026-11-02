@@ -141,14 +141,14 @@ function Furniture.archiveShelf(parent: Instance, name: string, x: number, z: nu
 		piece(m,"SolidEndPanel",basis,Vector3.new(sx*(width/2-0.12),3.6,0),
 			Vector3.new(0.24,7.2,depth),C.wood,wood,true)
 	end
-	piece(m,"BackPanel",basis,Vector3.new(0,3.6,depth/2-0.10),
+	piece(m,"BackPanel",basis,Vector3.new(0,3.6,-depth/2+0.10),
 		Vector3.new(width-0.25,7.2,0.20),C.woodDark,wood,true)
 	for _, level in { 1.7, 3.55, 5.4 } do
 		piece(m,"SolidShelfDeck",basis,Vector3.new(0,level,0),
 			Vector3.new(width-0.22,0.23,depth-0.12),C.wood,wood,true)
-		piece(m,"ShelfFrontLip",basis,Vector3.new(0,level+0.04,-depth/2+0.03),
+		piece(m,"ShelfFrontLip",basis,Vector3.new(0,level+0.04,depth/2-0.03),
 			Vector3.new(width-0.26,0.17,0.09),C.woodEdge,wood,false)
-		piece(m,"RearShelfBracket",basis,Vector3.new(0,level-0.22,depth/2-0.17),
+		piece(m,"RearShelfBracket",basis,Vector3.new(0,level-0.22,-depth/2+0.17),
 			Vector3.new(width-0.32,0.26,0.20),C.metal,Enum.Material.Metal,false)
 	end
 	piece(m,"Crown",basis,Vector3.new(0,7.14,0),
