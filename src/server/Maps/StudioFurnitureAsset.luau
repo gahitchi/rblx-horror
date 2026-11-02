@@ -226,8 +226,14 @@ function Furniture.rack(
 			Vector3.new(width-0.5,0.79,0.12),
 			if j%3==0 then C.metal else C.dark,metal,false)
 		-- One large knob and a justified signal meter per module.
-		cylinder(m,"Potentiometer",basis*CFrame.Angles(math.rad(90),0,0),
-			Vector3.new(-width/2+0.8,1.13,y),0.16,0.15,C.steel,false)
+		-- Turn a cylinder toward the face; keep it flush with the unit
+		-- rather than accidentally rotating its position below the floor.
+		local control = piece(m, "Potentiometer",
+			basis * CFrame.new(-width/2+0.8,y,-1.14)
+				* CFrame.Angles(0,math.rad(90),0),
+			Vector3.zero,Vector3.new(0.16,0.32,0.32),
+			C.steel,metal,false,Enum.PartType.Cylinder)
+		control.CastShadow = false
 		piece(m,"SignalWindow",basis,Vector3.new(width*0.18,y,-1.077),
 			Vector3.new(0.52,0.16,0.04),
 			if j%4==0 then C.brass else C.glow,
