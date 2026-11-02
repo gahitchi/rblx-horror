@@ -80,7 +80,7 @@ local function acoustic(
 end
 
 local function mic(parent: Instance, x: number, z: number, height: number)
-	Kit.rod(parent, "MicStand", Vector3.new(x, 0.3, z), Vector3.new(x, height, z), 0.2, C.metal)
+	Kit.rod(parent, "MicStand", Vector3.new(x, 0.16, z), Vector3.new(x, height, z), 0.2, C.metal)
 	Kit.box(parent, "MicCapsule", x, height + 0.3, z, 0.72, 0.95, 0.7, C.steel, Enum.Material.Metal)
 	Kit.box(
 		parent,
@@ -94,15 +94,34 @@ local function mic(parent: Instance, x: number, z: number, height: number)
 		C.dark,
 		Enum.Material.Metal
 	)
-	Kit.box(parent, "MicFoot", x, 0.11, z, 1.3, 0.16, 1.3, C.dark, Enum.Material.Metal)
+	Kit.box(parent, "MicFoot", x, 0.09, z, 1.3, 0.18, 1.3, C.dark, Enum.Material.Metal, true)
 end
 
 local function drum(parent: Instance, x: number, z: number)
 	Kit.box(parent, "DrumKitRug", x, 0.06, z, 10, 0.09, 8.5, C.leather, Enum.Material.Fabric)
 	Kit.disc(parent, "BassDrumSkin", x, 2, z - 1.3, 3.4, 1.8, C.wood)
 	Kit.disc(parent, "BassFront", x, 2, z - 2.3, 3.1, 0.1, C.cream)
+	-- The drum shell is held by a real bass-drum cradle on the rug;
+	-- the cymbal and rack tom hardware is physically connected.
+	for _, dx in { -1.18, 1.18 } do
+		Kit.rod(parent, "BassDrumLeg",
+			Vector3.new(x + dx, 0.10, z - 1.3),
+			Vector3.new(x + dx * 0.85, 1.45, z - 1.2), 0.14, C.steel)
+		Kit.box(parent, "BassLegFoot",
+			x + dx, 0.10, z - 1.3, 0.54, 0.20, 0.72,
+			C.dark, Enum.Material.Rubber, true)
+	end
+	Kit.rod(parent, "TomSupportBar",
+		Vector3.new(x, 2.55, z - 1.3),
+		Vector3.new(x, 3.45, z + 0.4), 0.18, C.steel)
 	for _, dx in { -2.8, 2.8 } do
 		Kit.disc(parent, "RackTom", x + dx, 3.4, z + 0.4, 1.6, 1.3, C.wood)
+		Kit.rod(parent, "RackTomMount",
+			Vector3.new(x, 3.35, z + 0.4),
+			Vector3.new(x + dx, 3.35, z + 0.4), 0.14, C.steel)
+		Kit.box(parent, "CymbalTripodFoot",
+			x + dx * 1.4, 0.10, z, 1.5, 0.20, 1.5,
+			C.dark, Enum.Material.Metal, true)
 		Kit.rod(
 			parent,
 			"CymbalPost",
@@ -128,14 +147,14 @@ local function drum(parent: Instance, x: number, z: number)
 end
 
 local function keyboard(parent: Instance, x: number, z: number)
-	Kit.box(parent, "ElectricPianoCase", x, 3, z, 7.7, 1.2, 3.1, C.wood, Enum.Material.Wood)
-	Kit.box(parent, "PianoKeys", x, 3.67, z - 0.75, 7, 0.08, 1.4, C.cream)
+	Kit.box(parent, "ElectricPianoCase", x, 3, z, 7.7, 1.2, 3.1, C.wood, Enum.Material.Wood, true)
+	Kit.box(parent, "PianoKeys", x, 3.63, z - 0.75, 7, 0.08, 1.4, C.cream)
 	for i = 1, 10 do
 		Kit.box(
 			parent,
 			"PianoBlackKey",
 			x - 3.05 + i * 0.56,
-			3.75,
+			3.72,
 			z - 0.95,
 			0.27,
 			0.13,
@@ -144,12 +163,12 @@ local function keyboard(parent: Instance, x: number, z: number)
 		)
 	end
 	for _, dx in { -3.3, 3.3 } do
-		Kit.box(parent, "PianoLeg", x + dx, 1.1, z + 0.65, 0.4, 2.3, 0.4, C.dark)
+		Kit.box(parent, "PianoLeg", x + dx, 1.2, z + 0.65, 0.4, 2.4, 0.4, C.dark, Enum.Material.Metal, true)
 	end
 end
 
 local function amplifier(parent: Instance, x: number, z: number, width: number)
-	Kit.box(parent, "GuitarAmplifier", x, 2.3, z, width, 4.6, 2, C.dark, Enum.Material.Fabric)
+	Kit.box(parent, "GuitarAmplifier", x, 2.3, z, width, 4.6, 2, C.dark, Enum.Material.Fabric, true)
 	Kit.box(
 		parent,
 		"AmpCloth",
@@ -429,6 +448,15 @@ function Detail.apply(map: Model)
 		Enum.Material.Wood
 	)
 	Kit.disc(live, "GuitarBody", 36, 1.4, -101, 2.1, 0.45, C.woodLight)
+	-- Purposeful stage equipment: the guitar is actually in a floor stand,
+	-- rather than propped against the air or the open circulation route.
+	Kit.box(live, "GuitarStandBase", 36, 0.11, -101,
+		1.8, 0.22, 1.2, C.dark, Enum.Material.Metal, true)
+	for _, sx in { -0.62, 0.62 } do
+		Kit.rod(live, "GuitarStandFork",
+			Vector3.new(36 + sx, 0.22, -101),
+			Vector3.new(36 + sx * 0.6, 1.25, -101), 0.13, C.steel)
+	end
 	for _, data in
 		{
 			{ -30, 10, -78, 90 },
