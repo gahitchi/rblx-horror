@@ -7,6 +7,7 @@ local StudioLayout = require(script.Parent.StudioLayout)
 local StudioProductionDetail = require(script.Parent.StudioProductionDetail)
 local StudioServiceDetail = require(script.Parent.StudioServiceDetail)
 local StudioArchitectureDetail = require(script.Parent.StudioArchitectureDetail)
+local StudioStoryDetail = require(script.Parent.StudioStoryDetail)
 
 type Room = StudioLayout.Room
 type Portal = {
@@ -556,6 +557,7 @@ function StudioGroundFloor.build(): Model
 	StudioProductionDetail.apply(map)
 	StudioServiceDetail.apply(map)
 	StudioArchitectureDetail.apply(map)
+	StudioStoryDetail.apply(map)
 
 	map.Parent = game:GetService("Workspace")
 	return map
