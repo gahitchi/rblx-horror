@@ -1,7 +1,7 @@
 # Dead Air — unified hub + recording-studio development build
 
 **Branch:** `chatgpt/integrated-v1`  
-**Shared build version:** `0.8.0-integrated-v1`  
+**Shared build version:** `0.8.1-integrated-pretest`  
 **Status:** Both source branches merged into one code branch. Source-level checks,
 not a Roblox Studio or published-server playtest.
 
@@ -84,6 +84,22 @@ Important: manually imported approved Creator Store visuals, if any,
 remain place-file assets under `ServerStorage/StudioApprovedAssets`
 in the Match place. They are not added to Git by this merge. The native
 code-drawn visual fallbacks always work without them.
+
+## Offline stability pass — 0.8.1
+
+This pass hardens startup and return flow without adding new gameplay
+or changing either map's geometry:
+
+- The match server now tries `StudioGroundFloor.build()` inside a protected
+  call. If it errors, the server logs the failure and constructs the existing
+  greybox instead of aborting initialization. A greybox means **the studio
+  needs debugging**, not that the detailed map was validated.
+- Match replay navigation now rejects a missing or identical Hub/Match
+  place ID, matching the hub's outbound start validation.
+- The source preflight checks for both protections to prevent regressions.
+
+**Still unverified:** whether the built studio, hub UI, and teleports
+operate correctly under Roblox Studio and in published servers.
 
 ## Offline checks — available now
 
