@@ -151,11 +151,21 @@ leaves a lamp off when the current state changes.
 - `tools/integration/check_integration.py` — static validation of 40
   unique fixtures, bounded intensity/range, room coordinates and renderer
   configuration.
+- `tools/studio/StudioLightingSelfTest.server.luau` — developer-only
+  Roblox Studio **Server Command Bar** state test; never run in a live public
+  game and never ship it under ServerScriptService.
 
 The script does not change map objectives, doorways, collision, the monster,
 tapes or hub-place lighting.
 
 ## Required visual / performance acceptance before assets
+
+After syncing the Match project, run the developer-only
+`tools/studio/StudioLightingSelfTest.server.luau` from the Roblox Studio
+**server Command Bar** during a private Play test. It deliberately switches
+the match through `dead`, `woken`, `red` and a short blackout,
+asserts the main practicals behave correctly, and restores the previous
+state. Never run this in a public server.
 
 Run both desktop and mobile Roblox Studio sessions:
 
