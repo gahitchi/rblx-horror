@@ -291,7 +291,7 @@ function Detail.apply(map: Model)
 		Kit.box(transit, "SoundLockAbsorber", -33.5, 7, z, 0.24, 8, 4.4,
 			C.foam, Enum.Material.Fabric)
 	end
-	for _, x in { -9, 4, 17, 30, 43 } do
+	for _, x in { -3, 8, 19, 30 } do
 		Kit.box(transit, "GalleryBench", x, 1, -35.5, 4.5, 1.7, 2.2,
 			C.wood, Enum.Material.Wood)
 	end
