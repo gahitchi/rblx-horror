@@ -11,6 +11,7 @@ local StudioStoryDetail = require(script.Parent.StudioStoryDetail)
 local StudioEvidenceDetail = require(script.Parent.StudioEvidenceDetail)
 local StudioLightingRig = require(script.Parent.StudioLightingRig)
 local StudioStoreAssets = require(script.Parent.StudioStoreAssets)
+local StudioPhysicalAssets = require(script.Parent.StudioPhysicalAssets)
 
 type Room = StudioLayout.Room
 type Portal = {
@@ -731,7 +732,7 @@ function StudioGroundFloor.build(): Model
 		)
 	end
 	-- Studio live hall: central playable tracking space, not an obstacle field.
-	objective(
+	local storyCase = objective(
 		objectives,
 		"RoadCase",
 		Vector3.new(19, 1.6, -81),
@@ -739,6 +740,9 @@ function StudioGroundFloor.build(): Model
 		C.dark,
 		true
 	)
+	-- The original objective remains anchored and interactable, but its
+	-- metal body now has real fitted trim, latches and visible handles.
+	StudioPhysicalAssets.finishObjectiveRoadCase(props, storyCase)
 	part(
 		props,
 		"InstrumentRiser",
@@ -836,15 +840,9 @@ function StudioGroundFloor.build(): Model
 			true
 		)
 	end
-	part(
-		props,
-		"LoadingFlightCase",
-		Vector3.new(97, 1.8, -96),
-		Vector3.new(5, 3.6, 4),
-		C.dark,
-		Enum.Material.Metal,
-		true
-	)
+	-- Physical 4-wheel flight case in the loading zone, away from the
+	-- Last Call path. Wheels turn with HingeConstraints when players push it.
+	StudioPhysicalAssets.roadCase(props, "LoadingFlightCase", 97, -96, 0)
 
 	-- Existing furniture becomes the hiding space: small under-desk bays,
 	-- not a line of gigantic wardrobes randomly blocking room circulation.
