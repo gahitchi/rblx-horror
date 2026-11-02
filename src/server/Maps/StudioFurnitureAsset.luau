@@ -401,4 +401,26 @@ function Furniture.objectiveCabinet(parent: Instance, body: BasePart, label: str
 	return m
 end
 
+-- Card index is a functional archive tool, not a solid teal monolith.
+-- Its four visible pull-out faces are decorative: the original chapter
+-- collider and click target are kept intact.
+function Furniture.cardIndex(parent: Instance, body: BasePart): Model
+	local m=assembly(parent,"CardIndexDrawerFinish","CardIndex")
+	local basis=body.CFrame
+	local front=-body.Size.Z/2-0.06
+	piece(m,"OuterRim",basis,Vector3.new(0,0,front),
+		Vector3.new(body.Size.X-0.1,body.Size.Y-0.16,0.09),C.wood,Enum.Material.Wood,false)
+	local drawerH=(body.Size.Y-0.65)/4
+	for i=1,4 do
+		local y=-body.Size.Y/2+0.32+(i-0.5)*drawerH
+		piece(m,"DrawerFace",basis,Vector3.new(0,y,front-0.10),
+			Vector3.new(body.Size.X-0.4,drawerH-0.12,0.12),C.woodDark,Enum.Material.Wood,false)
+		piece(m,"LabelHolder",basis,Vector3.new(0,y+0.10,front-0.19),
+			Vector3.new(1.08,0.24,0.08),C.brass,Enum.Material.Metal,false)
+		piece(m,"DrawerPull",basis,Vector3.new(0,y-0.16,front-0.23),
+			Vector3.new(0.86,0.12,0.16),C.steel,Enum.Material.Metal,false)
+	end
+	return m
+end
+
 return Furniture
