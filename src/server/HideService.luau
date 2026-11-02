@@ -154,7 +154,9 @@ end
 
 -- How much of a player's noise gets out (muffled while hiding).
 function HideService.muffle(player: Player): number
-	return if hiddenIn[player] then HIDE.MUFFLE else 1
+	local spot = hiddenIn[player]
+	if not spot then return 1 end
+	return if spot:GetAttribute("Kind") == "underdesk" then HIDE.DESK_MUFFLE else HIDE.MUFFLE
 end
 
 local function onHoldBreath(player: Player, holding: unknown)
