@@ -24,9 +24,11 @@ local Mimicry = {}
 
 local memory: { string } = {} -- kinds of sound heard, newest last
 local nextAt = 0
+local generation = 0
 local rng = Random.new()
 
 function Mimicry.reset(now: number)
+	generation += 1 -- cancel delayed mimic footsteps from the previous round
 	memory = {}
 	nextAt = now + rng:NextNumber(MIMIC.MIN_INTERVAL, MIMIC.MAX_INTERVAL)
 end
@@ -42,6 +44,7 @@ function Mimicry.remember(kind: string, fromPlayer: boolean)
 end
 
 local function play(kind: string, spot: Vector3)
+	local myGeneration = generation
 	local soundId, speed = Sounds.forKind(kind)
 	if kind == "footsteps" then
 		-- A few steps walking away from the spot, like someone moving.
@@ -49,6 +52,9 @@ local function play(kind: string, spot: Vector3)
 		local direction = Vector3.new(math.cos(angle), 0, math.sin(angle))
 		for i = 0, 5 do
 			task.delay(i * 0.42, function()
+				if generation ~= myGeneration then
+					return
+				end
 				Sounds.playAt(
 					soundId,
 					spot + direction * i * 1.6 - Vector3.new(0, 2.5, 0),
@@ -61,6 +67,9 @@ local function play(kind: string, spot: Vector3)
 	elseif kind == "walkie" then
 		for i = 0, 2 do
 			task.delay(i * 0.6, function()
+				if generation ~= myGeneration then
+					return
+				end
 				Sounds.playAt(soundId, spot, 0.35, 45, speed)
 			end)
 		end
