@@ -129,6 +129,7 @@ Config.MONSTER = table.freeze({
 		HIDE_EVIDENCE_RADIUS = 12,
 		SEARCH_REVISIT_SECONDS = 48,
 		SEARCH_REVISIT_PENALTY = 22,
+		SEARCH_DIRECTION_BONUS = 8, -- a recent moving source guides nearby search routes
 		SEARCH_CELL = 6,
 		MAX_VISITED = 48,
 		GENERIC_HIDE_CHECK = 0.08, -- occasionally searches a wardrobe without certainty
