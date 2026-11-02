@@ -132,6 +132,11 @@ def main() -> int:
     chapter_ui = require_text("src/client/ChapterUi.luau")
     chapter = require_text("src/server/Chapters/Studio1.luau")
     tension = require_text("src/server/Chapters/StudioTension.luau")
+    engineer = require_text("src/server/MonsterService.luau")
+    engineer_memory = require_text("src/server/Monster/EvidenceMemory.luau")
+    engineer_director = require_text("src/server/Monster/Director.luau")
+    engineer_senses = require_text("src/server/Monster/Perception.luau")
+    hiding = require_text("src/server/HideService.luau")
     notebook = require_text("src/client/NotebookUi.luau")
     client_main = require_text("src/client/Main.client.luau")
     config = require_text("src/shared/Config.luau")
@@ -209,6 +214,36 @@ def main() -> int:
     for token in ("if not state.diaryRead then", "if not state.logRead then",
                   'table.insert(lines, "Read the session log (control A)")'):
         must_have(chapter, token, "match/Studio1")
+
+    # The blind Engineer may consult actual player position only on physical
+    # contact or LOS-verified catch, not to steer ordinary audio-only chases.
+    for token in ("EvidenceMemory.new()", "memory.observe(stimulus, now)",
+                  "memory.attend(stimulus, now, busy)",
+                  "memory.predicted(target, now)", "memory.sortSearch",
+                  "memory.confidentNear", "memory.visited",
+                  "memory.reset()", "lungeDestination = heardAt"):
+        must_have(engineer, token, "match/MonsterService")
+    for forbidden in ("n.moveTo(targetRoot.Position",
+                      "h:MoveTo(targetRoot.Position",
+                      "then targetRoot.Position"):
+        if forbidden in engineer:
+            fail("Blind Engineer cannot navigate directly to an unheard target: " + forbidden)
+    for token in ("anonymousBreath", "STATIC_MIN_INTEREST",
+                  "staticRepeats >= C.STATIC_REPEATS",
+                  "SEARCH_REVISIT_SECONDS", "SEARCH_DIRECTION_BONUS",
+                  "player.Parent ~= nil", "C.TRACK_SECONDS"):
+        must_have(engineer_memory, token, "match/Monster/EvidenceMemory")
+    for token in ("Config.MONSTER = table.freeze(", "COGNITION = table.freeze(",
+                  "STATIC_MIN_INTEREST = 26", "SEARCH_DIRECTION_BONUS = 8",
+                  "GENERIC_HIDE_CHECK = 0.08", "SWITCH_HUNT_AFTER = 1.3"):
+        must_have(config, token, "shared/Config")
+    for token in ("Director.startRetreat", "Director.pickArea", "Director.wantsRetreat"):
+        must_have(engineer, token, "match/MonsterService")
+    must_have(engineer_director, "function Director.update", "match/Director")
+    must_have(engineer_senses, "NoiseService.effectiveLoudness", "match/Perception")
+    for token in ("NoiseService.emit(spot.Position, Config.NOISE.GASP",
+                  "NoiseService.emit(spot.Position, Config.NOISE.BREATH"):
+        must_have(hiding, token, "match/HideService")
 
     must_have(chapter, "StudioTension.start(myRound)", "match/Studio1")
     for guard in ("MAX_CUES_PER_ROUND", "MIN_CUE_GAP", "OPENING_END",
