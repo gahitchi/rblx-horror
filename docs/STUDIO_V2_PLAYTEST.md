@@ -1,6 +1,6 @@
 # Studio v2 — recording house redesign / first playable
 
-Build: `0.7.3-studio-v2` on `chatgpt/studio-v2`.
+Build: `0.7.4-studio-v2` on `chatgpt/studio-v2`.
 The default match place builds `src/server/Maps/StudioGroundFloor.luau`.
 The older `MapBuilder` greybox is retained only as an error fallback.
 The contract is still **v2**: `docs/MAP_CONTRACT.md` and
@@ -61,7 +61,7 @@ exit exists through the loading bay, basement, flat or service lift.
 ## What to playtest next
 
 1. Run `rojo serve` from the match project (`default.project.json`) and
-   confirm `Config.VERSION = 0.7.3-studio-v2`.
+   confirm `Config.VERSION = 0.7.4-studio-v2`.
 2. Read every `[Map]` Output line. **Any ERROR is a stop**: an invalid generated
    map will be replaced by the fallback greybox. Confirm the `MapName` attribute
    reads Wrenmouth Recording House / Chapter 1.
@@ -112,7 +112,7 @@ some original large objective cabinets remain solid.
 
 ### Priority smoke test (before deciding the next art pass)
 
-1. Verify `0.7.3-studio-v2` in the server Output and that `Workspace.Map`
+1. Verify `0.7.4-studio-v2` in the server Output and that `Workspace.Map`
    says `Wrenmouth Recording House / Chapter 1` (not the fallback greybox).
 2. At the start, the room must be dark. Load a reel to wake dim warm lamps and
    confirm red emergency lighting after the second shock. Inspect in phone view.
@@ -131,3 +131,25 @@ some original large objective cabinets remain solid.
 
 **Not run here:** Roblox Studio simulation, Rojo build, Luau language-server
 analysis and device profiling. These must be done on Gabriel's machine.
+
+
+## 0.7.4 optional Creator Store asset upgrades
+
+The default map and earlier visual dressing are unchanged. The build now
+supports **approved** static geometry stored in
+`ServerStorage/StudioApprovedAssets`. None is bundled with GitHub or
+fetched from the Store at runtime. Empty or unavailable slots keep the
+native visual version.
+
+Full sourcing, model-review and Studio staging steps: [STUDIO_V2_ASSETS.md](STUDIO_V2_ASSETS.md).
+The edit-mode helper is `tools/studio/StageApprovedStudioAsset.luau`.
+
+For every staged upgrade: verify the 1987 look, model dimensions,
+script stripping, collision, contact prompts, two lighting states and
+phone FPS. In particular, `MixingDesk` and `TapeMachine` remain invisible
+collision/prompt proxies when replacement art exists. Check that all reel
+interactions and the dubbing desk are still usable. Delete a staged asset
+from ServerStorage to restore its native fallback immediately.
+
+No actual third-party Creator Store models are preinstalled on this branch;
+Studio visual and playability checks remain outstanding.
