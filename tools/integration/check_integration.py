@@ -155,10 +155,11 @@ def main() -> int:
     must_have(cosmetics, "Progress_v1", "hub/HubLoadout")
     must_have(cosmetics, "UpdateAsync", "hub/HubLoadout")
 
-    for token in ("StudioGroundFloor.build", "MapContract.read",
-                  "RoundService.init", "ReplayService.init"):
+    for token in ("pcall(StudioGroundFloor.build)", "MapBuilder.build()",
+                  "MapContract.read", "RoundService.init", "ReplayService.init"):
         must_have(match, token, "match/Main")
     for token in ("Config.PLACES.HUB", "Config.PLACES.MATCH",
+                  "Config.PLACES.HUB ~= Config.PLACES.MATCH",
                   "fromMatch = true"):
         must_have(replay, token, "match/ReplayService")
     for token in ("StudioProductionDetail.apply", "StudioServiceDetail.apply",
