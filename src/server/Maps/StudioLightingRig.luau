@@ -25,8 +25,9 @@ type Fixture = {
 }
 
 -- Every fixture below must remain inside its named room, not on a doorway.
--- A "Guide" is an unexplained residual glow, not a full-powered lamp.
--- Work lights do not activate until the building wakes with shock one.
+-- A "Guide" is a localized low-energy equipment pilot, not a room fill.
+-- Partial power already illuminates routes and task areas from the start;
+-- the first shock increases brightness rather than revealing the floor plan.
 local FIXTURES: { Fixture } = {
 	-- GOLD-STANDARD ROOM: Control A, the heart of the final recording.
 	{
