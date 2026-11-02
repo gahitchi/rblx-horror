@@ -9,7 +9,7 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: integrated 0.9.0 — physical asset foundation (awaiting playtest)
+## Status: integrated 0.9.1 — grounded interiors and realistic placements (awaiting playtest)
 
 **Use branch `chatgpt/integrated-v1`.** It includes both the playable-code Wrenmouth
 cliff-top hub and the detailed 23-room recording house in **two distinct Roblox places**.
@@ -77,6 +77,8 @@ server-owned, non-anchored wheeled flight cases with genuine hinge axles and
 physics. The story RoadCase remains fixed and interactive. See
 [docs/PHYSICAL_ASSET_FOUNDATION.md](docs/PHYSICAL_ASSET_FOUNDATION.md).
 The assets are not final AAA meshes and need real Studio/collision testing.
+
+**0.9.1 purposeful interiors:** Four grounded open archive cabinets replace featureless blocks. All 48 tape cases sit on twelve load-bearing decks. Reception and break-room contents now sit on real worktops; the vinyl display and cleaning shelves have physical supports; and stage instruments have actual mounts and stands. Reusable tables also have more coherent joinery. See [docs/GROUNDED_INTERIORS.md](docs/GROUNDED_INTERIORS.md). This is a placement repair, not a claim of final custom-mesh quality.
 More playtest details: [studio](docs/STUDIO_V2_PLAYTEST.md) and
 [hub](docs/HUB_V1_PLAYTEST.md).
 
