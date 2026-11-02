@@ -297,7 +297,7 @@ function Detail.apply(map: Model)
 	end
 	Kit.sign(transit, "DO NOT DISTURB A LIVE SESSION", CFrame.new(17, 11, -30.55),
 		Vector3.new(22, 1.2, 0.1), Enum.NormalId.Front, C.gold)
-	Kit.sign(transit, "US NAVY / SEALED OCT 1987", CFrame.new(71, 11.3, 6.58),
+	Kit.sign(transit, "US NAVY / SEALED NOV 1987", CFrame.new(71, 11.3, 6.58),
 		Vector3.new(13, 1.3, 0.12), Enum.NormalId.Front, C.red, C.cream)
 	Kit.sign(transit, "UP: FAMILY FLAT / NO ENTRY", CFrame.new(71, 17.7, 23.5),
 		Vector3.new(12, 1.2, 0.12), Enum.NormalId.Front, C.gold)
