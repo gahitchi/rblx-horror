@@ -88,6 +88,13 @@ local function onBreath(_: string, state: Enum.UserInputState): Enum.ContextActi
 	return Enum.ContextActionResult.Sink
 end
 
+local function onLeaveHiding(_: string, state: Enum.UserInputState): Enum.ContextActionResult
+	if state == Enum.UserInputState.Begin then
+		Remotes.LeaveHiding:FireServer()
+	end
+	return Enum.ContextActionResult.Sink
+end
+
 function ItemController.start()
 	-- Throw: only shown (on touch screens) while holding something throwable.
 	-- Hold breath: only bound while hiding, so Space is a jump again outside.
@@ -125,8 +132,18 @@ function ItemController.start()
 				)
 				ContextActionService:SetTitle("DeadAirHoldBreath", "Hold breath")
 				ContextActionService:SetPosition("DeadAirHoldBreath", UDim2.new(1, -170, 1, -170))
+				ContextActionService:BindAction(
+					"DeadAirLeaveHiding",
+					onLeaveHiding,
+					true,
+					Enum.KeyCode.E,
+					Enum.KeyCode.ButtonX
+				)
+				ContextActionService:SetTitle("DeadAirLeaveHiding", "Step out")
+				ContextActionService:SetPosition("DeadAirLeaveHiding", UDim2.new(1, -250, 1, -110))
 			else
 				ContextActionService:UnbindAction("DeadAirHoldBreath")
+				ContextActionService:UnbindAction("DeadAirLeaveHiding")
 				if holdingBreath then
 					holdingBreath = false
 					Remotes.HoldBreath:FireServer(false)
