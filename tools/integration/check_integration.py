@@ -180,7 +180,7 @@ def main() -> int:
     for token in ("Remotes.Document.OnClientEvent", "Remotes.Radio.OnClientEvent",
                   'state:GetAttributeChangedSignal("Phase")', "table.clear(papers)",
                   "table.clear(radio)", "ChapterUi.isOpen()", "Enum.KeyCode.J",
-                  "MAX_RADIO = 16", "MAX_PAPERS = 8"):
+                  "MAX_RADIO = 16", "MAX_PAPERS = 12"):
         must_have(notebook, token, "match/client/NotebookUi")
     # The optional sheets are actually in the authored map and are
     # server-delivered through the normal, round-owned read prompts.
