@@ -44,8 +44,10 @@ local function speaker(parent: Instance, x: number, y: number, z: number)
 end
 
 local function tape(parent: Instance, x: number, y: number, z: number, color: Color3)
+	-- Archival cassette on a physical, load-bearing shelf, label facing the
+	-- aisle (+Z). Separate cases are clustered only where there is a real deck.
 	Kit.box(parent, "CassetteBox", x, y, z, 0.55, 0.83, 0.24, color, Enum.Material.SmoothPlastic)
-	Kit.box(parent, "CassetteLabel", x, y, z - 0.14, 0.44, 0.48, 0.07, C.paper)
+	Kit.box(parent, "CassetteLabel", x, y, z + 0.15, 0.44, 0.48, 0.07, C.paper)
 end
 
 local function acoustic(
@@ -343,22 +345,19 @@ function Detail.apply(map: Model)
 		)
 	end
 
-	-- Archive: shelves, labelled cassette spines and dust covers, without reel prompt occlusion.
-	for j = 1, 3 do
-		local z = -131.6 + j * 4
-		for i = 1, 9 do
-			tape(
-				archive,
-				-83 + i * 0.55,
-				2.2 + (j % 2) * 1.7,
-				z,
-				if i % 3 == 0 then C.teal elseif i % 2 == 0 then C.woodLight else C.leather
-			)
+	-- Archival cases have exact shelf-space ownership. We no longer spawn
+	-- tapes in three arbitrary free-floating rows across an empty room.
+	-- GroundFloor installs four rear-wall cabinets with solid shelves at
+	-- y = 1.7, 3.55 and 5.4 (top surfaces 1.815, 3.665, 5.515).
+	for _, shelfX in { -77, -72, -67, -62 } do
+		for _, level in { 1.7, 3.55, 5.4 } do
+			local topY = level + 0.115
+			for i = 1, 4 do
+				local x = shelfX + (i - 2.5) * 0.68
+				tape(archive, x, topY + 0.415, -131.35,
+					if i == 4 then C.teal elseif i % 2 == 0 then C.woodLight else C.leather)
+			end
 		end
-	end
-	for _, x in { -77, -72, -67, -62 } do
-		Kit.box(archive, "ShelfLedge", x, 3.8, -128.1, 4, 0.13, 0.45, C.gold, Enum.Material.Metal)
-		Kit.box(archive, "ShelfClip", x, 4.45, -128.09, 1.1, 0.5, 0.09, C.paper)
 	end
 	Kit.sign(
 		archive,
@@ -369,7 +368,8 @@ function Detail.apply(map: Model)
 		C.gold,
 		C.dark
 	)
-	Kit.poster(archive, "SESSION CARDS / OCT 1987", -60.5, 8, -116, 3.5)
+	-- No free-standing archive poster: inventory text belongs on the
+	-- existing wall and shelf plaques, not in the middle of the aisle.
 
 	-- Mastering suite: a smaller technical workstation tucked beside the archive.
 	console(mastering, -45.5, -129, 8.7)
