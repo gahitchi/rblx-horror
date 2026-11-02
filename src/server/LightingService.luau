@@ -305,8 +305,8 @@ end
 local function configureGlobal()
 	-- Roblox's current unified lighting API. The deprecated Technology
 	-- property is deliberately not used here.
-	Lighting.LightingStyle = Enum.LightingStyle.Realistic
-	Lighting.PrioritizeLightingQuality = true
+	-- LightingStyle and PrioritizeLightingQuality cannot be set by normal
+	-- game scripts. They are authored in default.project.json / Studio.
 	Lighting.GlobalShadows = true
 	Lighting.ShadowSoftness = 0.43
 	Lighting.ClockTime = 0
