@@ -132,9 +132,10 @@ local function toilet(parent: Instance, x: number, z: number)
 		2.2,
 		0.9,
 		C.cream,
-		Enum.Material.SmoothPlastic
+		Enum.Material.SmoothPlastic,
+		true
 	)
-	Kit.box(
+	local bowl = Kit.box(
 		parent,
 		"CeramicBase",
 		x,
@@ -144,9 +145,13 @@ local function toilet(parent: Instance, x: number, z: number)
 		1.4,
 		2.3,
 		C.cream,
-		Enum.Material.SmoothPlastic
+		Enum.Material.SmoothPlastic,
+		true
 	)
-	Kit.box(parent, "ToiletSeat", x, 1.5, z - 0.35, 2, 0.17, 2.3, C.paper)
+	bowl.Shape = Enum.PartType.Ball
+	local seat = Kit.box(parent, "ToiletSeat", x, 1.5, z - 0.35, 2, 0.17, 2.3, C.paper)
+	seat.Shape = Enum.PartType.Cylinder
+	seat.CFrame = CFrame.new(x, 1.5, z - 0.35) * CFrame.Angles(0, 0, math.rad(90))
 	Kit.box(
 		parent,
 		"FlushLever",
@@ -162,7 +167,9 @@ local function toilet(parent: Instance, x: number, z: number)
 end
 
 local function sink(parent: Instance, x: number, z: number, mirrorZ: number)
-	Kit.box(parent, "SinkBasin", x, 2.4, z, 3.3, 0.5, 1.9, C.cream, Enum.Material.SmoothPlastic)
+	local basin = Kit.box(parent, "SinkBasin", x, 2.4, z, 3.3, 0.5, 1.9,
+		C.cream, Enum.Material.SmoothPlastic, true)
+	basin:SetAttribute("FixturePurpose", "washroom")
 	Kit.box(
 		parent,
 		"SinkPedestal",
@@ -173,8 +180,15 @@ local function sink(parent: Instance, x: number, z: number, mirrorZ: number)
 		2.2,
 		0.75,
 		C.cream,
-		Enum.Material.SmoothPlastic
+		Enum.Material.SmoothPlastic,
+		true
 	)
+	Kit.box(parent, "SinkDrain", x, 2.672, z - 0.1, 0.24, 0.045, 0.24,
+		C.dark, Enum.Material.Metal)
+	for _, dx in {-0.63, 0.63} do
+		Kit.box(parent, "TapHandle", x + dx, 2.8, z + 0.53,
+			0.31, 0.15, 0.31, C.steel, Enum.Material.Metal)
+	end
 	Kit.rod(
 		parent,
 		"FaucetSpout",
@@ -183,7 +197,9 @@ local function sink(parent: Instance, x: number, z: number, mirrorZ: number)
 		0.16,
 		C.steel
 	)
-	Kit.box(parent, "MirrorFrame", x, 6.4, mirrorZ, 3.7, 4.3, 0.18, C.metal, Enum.Material.Metal)
+	-- The mirror is wall-mounted; the basin is in front of the same wall.
+	Kit.box(parent, "MirrorFrame", x, 6.4, mirrorZ, 3.7, 4.3, 0.18,
+		C.metal, Enum.Material.Metal)
 	local glass = Kit.box(
 		parent,
 		"WashroomMirror",
@@ -234,7 +250,8 @@ local function broom(parent: Instance, x: number, z: number, red: boolean)
 end
 
 local function boxLabel(parent: Instance, x: number, y: number, z: number, text: string)
-	Kit.box(parent, "ShippingCase", x, y, z, 5.3, 2.5, 3.1, C.dark, Enum.Material.Metal)
+	Kit.box(parent, "ShippingCase", x, y, z, 5.3, 2.5, 3.1,
+		C.dark, Enum.Material.Metal, true)
 	Kit.box(
 		parent,
 		"RoadCaseCorner",
@@ -404,7 +421,7 @@ function Detail.apply(map: Model)
 	tileFloor(bathrooms, 63.5, 78.8, -5.7, 4.9)
 	toilet(bathrooms, 74, -49)
 	toilet(bathrooms, 75, -4)
-	sink(bathrooms, 65, -42, -40.65)
+	sink(bathrooms, 65, -34.5, -31.45)
 	sink(bathrooms, 66, 3, 5.55)
 	Kit.box(
 		bathrooms,
@@ -495,33 +512,8 @@ function Detail.apply(map: Model)
 	for _, z in { -124, -113 } do
 		Kit.rod(tech, "CableConduit", Vector3.new(46, 11, z), Vector3.new(79, 11, z), 0.19, C.steel)
 	end
-	for _, x in { 51, 61, 71 } do
-		Kit.box(
-			tech,
-			"MachineRackFace",
-			x,
-			5,
-			-125.89,
-			3.5,
-			6.2,
-			0.12,
-			C.metal,
-			Enum.Material.Metal
-		)
-		for i = 1, 5 do
-			Kit.box(
-				tech,
-				"TapeStatusMeter",
-				x,
-				2.3 + i * 0.88,
-				-125.94,
-				2.7,
-				0.33,
-				0.1,
-				if i % 2 == 0 then C.gold else C.dark
-			)
-		end
-	end
+	-- StudioFurnitureAsset.rack already provides complete solid racks with
+	-- mounted meters. Duplicate floating MachineRackFace skins removed.
 	Kit.sign(
 		tech,
 		"TAPE TRANSPORTS / MAINTENANCE ONLY",
@@ -538,7 +530,12 @@ function Detail.apply(map: Model)
 			C.steel
 		)
 	end
-	Kit.box(tech, "FireHoseCabinet", 78.9, 5, -91, 0.45, 6.4, 3.6, C.red, Enum.Material.Metal)
+	-- Wall-mounted fire hose is at service height; fixings anchor it to
+	-- the wall rather than leaving a high cuboid unattached.
+	Kit.box(tech, "FireHoseCabinet", 78.9, 5, -91, 0.45, 6.4, 3.6, C.red, Enum.Material.Metal, true)
+	for _, z in {-92.2, -89.8} do
+		Kit.box(tech,"HoseWallBracket",78.7,5,z,0.65,0.22,0.24,C.steel,Enum.Material.Metal)
+	end
 	Kit.sign(
 		tech,
 		"FIRE HOSE",
@@ -547,8 +544,10 @@ function Detail.apply(map: Model)
 		Enum.NormalId.Front,
 		C.cream
 	)
+	-- Three grounded storage cases sit in an accessible loading-wall row,
+	-- not an unsupported diagonal stack at arbitrary heights.
 	for i = 1, 3 do
-		boxLabel(tech, 104, 1.6 + (i - 1) * 2.7, -88 - i * 4, "WRENMOUTH / GEAR")
+		boxLabel(tech, 104, 1.25, -87 - i * 5, "WRENMOUTH / GEAR")
 	end
 	for _, x in { 86, 107 } do
 		safetyStripe(tech, x, 4, -105.7, false)
@@ -565,7 +564,7 @@ function Detail.apply(map: Model)
 		tech,
 		"ClosedLoadingRollerDoor",
 		109.65,
-		7.4,
+		6.25,
 		-80,
 		0.21,
 		12.5,
@@ -624,7 +623,7 @@ function Detail.apply(map: Model)
 		)
 	end
 	for _, x in { -3, 8, 19, 30 } do
-		Kit.box(transit, "GalleryBench", x, 1, -35.5, 4.5, 1.7, 2.2, C.wood, Enum.Material.Wood)
+		Kit.bench(transit, "GalleryBench_" .. tostring(x), x, -35.5, 4.5, 0)
 	end
 	Kit.sign(
 		transit,
