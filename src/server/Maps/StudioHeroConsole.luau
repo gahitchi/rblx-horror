@@ -452,8 +452,7 @@ local function buildImported(parent: Instance, objectives: Instance?): Model?
 			local channelId = string.match(item.Name, "^ArmButton_(%d%d)")
 			local busId = string.match(item.Name, "^BusLamp_(%d%d)")
 			if channelId or busId then
-				local isRecord = if channelId then tonumber(channelId) <= 2
-					else tonumber(busId) == 6
+				local isRecord = channelId == "01" or channelId == "02" or busId == "06"
 				item:SetAttribute("ConsoleIndicator", if isRecord then "record" else "signal")
 				item:SetAttribute("UseOpacityForPower", true)
 			end
