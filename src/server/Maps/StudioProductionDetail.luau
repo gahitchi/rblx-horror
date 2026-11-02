@@ -13,7 +13,7 @@ local function speaker(parent: Instance, x: number, y: number, z: number)
 	local standTop = y - 2.2
 	local standHeight = math.max(0.9, standTop - 0.3)
 	Kit.box(parent, "MonitorStandFoot", x, 0.15, z,
-		1.75, 0.3, 1.75, C.dark, Enum.Material.Metal)
+		1.75, 0.3, 1.75, C.dark, Enum.Material.Metal, true)
 	Kit.box(parent, "MonitorStandColumn", x, 0.3 + standHeight / 2, z,
 		0.34, standHeight, 0.34, C.metal, Enum.Material.Metal)
 	Kit.box(parent, "MonitorStandIsolator", x, standTop - 0.08, z,
