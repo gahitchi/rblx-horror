@@ -76,8 +76,9 @@ function Story.apply(map: Model)
 		Kit.rod(root, "MemorialFlowerStem",
 			Vector3.new(-61, 4.1, -17.5),
 			Vector3.new(-61 + dx, 5.1, -17.5), 0.07, C.green)
-		Kit.box(root, "WhiteFlower", -61 + dx, 5.15, -17.5,
-			0.6, 0.5, 0.6, C.cream).Shape = Enum.PartType.Ball
+		local flower = Kit.box(root, "WhiteFlower", -61 + dx, 5.15, -17.5,
+			0.6, 0.5, 0.6, C.cream)
+		flower.Shape = Enum.PartType.Ball
 	end
 	Kit.box(root, "CoffeeMug", -49, 3.42, -28,
 		0.8, 0.75, 0.75, C.cream)
