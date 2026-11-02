@@ -1,7 +1,8 @@
 --!strict
--- Compact, untextured 1987 studio dressing primitives.
--- Decorative pieces do not collide or block rays: only deliberately large furniture
--- blocks navigation. This protects mobile movement, acoustic occlusion and patrol spots.
+-- Shared 1987 studio construction kit. Small details remain cheap,
+-- while chairs, tables, sofas and outboard racks use reusable authored
+-- geometric assemblies with deliberate real collision and visual silhouette.
+local Furniture = require(script.Parent.StudioFurnitureAsset)
 local Kit = {}
 
 Kit.palette = {
@@ -162,164 +163,29 @@ function Kit.stripe(parent: Instance, x: number, y: number, z: number, width: nu
 	Kit.box(parent, "InlaidTrim", x, y, z, width, 0.08, 0.12, color, Enum.Material.Metal)
 end
 
+-- Structured furniture is authored as its own reusable grouped model;
+-- structural parts have precise collisions rather than a giant invisible
+-- rectangular collider. Props remain anchored if permanently installed.
 function Kit.table(
-	parent: Instance,
-	name: string,
-	x: number,
-	z: number,
-	w: number,
-	d: number,
-	h: number,
-	topColor: Color3
+	parent: Instance, name: string, x: number, z: number,
+	w: number, d: number, h: number, topColor: Color3
 )
-	local c = Kit.palette
-	Kit.box(parent, name .. "Top", x, h, z, w, 0.32, d, topColor, Enum.Material.Wood, true)
-	for _, dx in { -w / 2 + 0.5, w / 2 - 0.5 } do
-		for _, dz in { -d / 2 + 0.5, d / 2 - 0.5 } do
-			Kit.box(
-				parent,
-				name .. "Leg",
-				x + dx,
-				h / 2,
-				z + dz,
-				0.45,
-				h - 0.3,
-				0.45,
-				c.metal,
-				Enum.Material.Metal
-			)
-		end
-	end
+	return Furniture.table(parent, name, x, z, w, d, h, topColor)
 end
 
 function Kit.chair(parent: Instance, x: number, z: number, yaw: number, fabric: Color3?)
-	local c = Kit.palette
-	local basis = CFrame.new(x, 0, z) * CFrame.Angles(0, math.rad(yaw), 0)
-	Kit.block(
-		parent,
-		"StudioChairSeat",
-		basis * CFrame.new(0, 2, 0),
-		Vector3.new(2.9, 0.4, 2.8),
-		fabric or c.leather,
-		Enum.Material.Fabric
-	)
-	Kit.block(
-		parent,
-		"StudioChairBack",
-		basis * CFrame.new(0, 3.5, 1.25),
-		Vector3.new(2.9, 2.8, 0.4),
-		fabric or c.leather,
-		Enum.Material.Fabric
-	)
-	Kit.block(
-		parent,
-		"ChairStem",
-		basis * CFrame.new(0, 1, 0),
-		Vector3.new(0.35, 1.7, 0.35),
-		c.metal,
-		Enum.Material.Metal
-	)
-	for _, dx in { -1, 1 } do
-		Kit.block(
-			parent,
-			"ChairFoot",
-			basis * CFrame.new(dx * 0.85, 0.18, 0),
-			Vector3.new(1.8, 0.25, 0.35),
-			c.dark,
-			Enum.Material.Metal
-		)
-	end
+	return Furniture.chair(parent, x, z, yaw, fabric)
 end
 
 function Kit.rack(
-	parent: Instance,
-	name: string,
-	x: number,
-	z: number,
-	width: number,
-	height: number,
-	yaw: number
+	parent: Instance, name: string, x: number, z: number,
+	width: number, height: number, yaw: number
 )
-	local c = Kit.palette
-	local basis = CFrame.new(x, 0, z) * CFrame.Angles(0, math.rad(yaw), 0)
-	Kit.block(
-		parent,
-		name .. "Body",
-		basis * CFrame.new(0, height / 2, 0),
-		Vector3.new(width, height, 1.75),
-		c.black,
-		Enum.Material.Metal,
-		true
-	)
-	Kit.block(
-		parent,
-		"RackFace",
-		basis * CFrame.new(0, height / 2, -0.9),
-		Vector3.new(width - 0.35, height - 0.4, 0.12),
-		c.metal,
-		Enum.Material.Metal
-	)
-	for j = 1, math.floor((height - 0.5) / 1.1) do
-		local y = 0.28 + j * 1.05
-		Kit.block(
-			parent,
-			"RackUnit",
-			basis * CFrame.new(0, y, -0.99),
-			Vector3.new(width - 0.5, 0.77, 0.09),
-			c.dark,
-			Enum.Material.Metal
-		)
-		for i = 1, 3 do
-			Kit.block(
-				parent,
-				"RackIndicator",
-				basis * CFrame.new(-width / 2 + 0.4 + i * 0.28, y, -1.06),
-				Vector3.new(0.09, 0.12, 0.07),
-				if i == 1 then c.amber else c.green,
-				Enum.Material.Neon
-			)
-		end
-	end
+	return Furniture.rack(parent, name, x, z, width, height, yaw)
 end
 
 function Kit.sofa(parent: Instance, x: number, z: number, width: number, yaw: number)
-	local c = Kit.palette
-	local basis = CFrame.new(x, 0, z) * CFrame.Angles(0, math.rad(yaw), 0)
-	Kit.block(
-		parent,
-		"SofaBase",
-		basis * CFrame.new(0, 1.1, 0),
-		Vector3.new(width, 1.6, 3.2),
-		c.wood,
-		Enum.Material.Wood,
-		true
-	)
-	Kit.block(
-		parent,
-		"SofaCushion",
-		basis * CFrame.new(0, 2, -0.35),
-		Vector3.new(width - 0.6, 0.55, 2.3),
-		c.leather,
-		Enum.Material.Fabric
-	)
-	Kit.block(
-		parent,
-		"SofaBack",
-		basis * CFrame.new(0, 3.1, 1.45),
-		Vector3.new(width, 2.9, 0.6),
-		c.leather,
-		Enum.Material.Fabric
-	)
-	for _, dx in { -width / 2 + 0.45, width / 2 - 0.45 } do
-		Kit.block(
-			parent,
-			"SofaArm",
-			basis * CFrame.new(dx, 2.2, 0),
-			Vector3.new(0.8, 2, 3.2),
-			c.wood,
-			Enum.Material.Wood
-		)
-	end
+	return Furniture.sofa(parent, x, z, width, yaw)
 end
 
 function Kit.vent(parent: Instance, x: number, y: number, z: number, width: number)
