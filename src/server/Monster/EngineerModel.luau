@@ -44,7 +44,9 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 		size: Vector3,
 		offset: Vector3,
 		color: Color3?,
-		material: Enum.Material?
+		material: Enum.Material?,
+		animated: boolean?,
+		attachedTo: BasePart?
 	): Part
 		local p = Instance.new("Part")
 		p.Name = name
@@ -55,22 +57,36 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 		p.CanCollide = false
 		p.Massless = true
 		p.Parent = m
-		weld(p, hrp)
+		if animated then
+			-- Exposed joints allow believable listening, searching and recoils
+			-- without a heavy animation asset; move them from the server.
+			local joint = Instance.new("Motor6D")
+			joint.Name = name .. "Joint"
+			joint.Part0 = hrp
+			joint.Part1 = p
+			joint.C0 = CFrame.new(offset)
+			joint.C1 = CFrame.identity
+			joint.Parent = hrp
+		else
+			weld(p, attachedTo or hrp)
+		end
 		return p
 	end
 
 	limb("Torso", Vector3.new(2.2, 3.6, 1.1), Vector3.new(0, 1, 0))
-	local head = limb("Head", Vector3.new(1.4, 1.6, 1.4), Vector3.new(0, 3.6, 0))
-	limb("LeftLeg", Vector3.new(0.7, 4, 0.7), Vector3.new(-0.6, -2, 0))
-	limb("RightLeg", Vector3.new(0.7, 4, 0.7), Vector3.new(0.6, -2, 0))
-	limb("LeftArm", Vector3.new(0.5, 4.8, 0.5), Vector3.new(-1.45, 0.4, 0))
-	limb("RightArm", Vector3.new(0.5, 4.8, 0.5), Vector3.new(1.45, 0.4, 0))
+	local head = limb("Head", Vector3.new(1.4, 1.6, 1.4), Vector3.new(0, 3.6, 0), nil, nil, true)
+	limb("LeftLeg", Vector3.new(0.7, 4, 0.7), Vector3.new(-0.6, -2, 0), nil, nil, true)
+	limb("RightLeg", Vector3.new(0.7, 4, 0.7), Vector3.new(0.6, -2, 0), nil, nil, true)
+	limb("LeftArm", Vector3.new(0.5, 4.8, 0.5), Vector3.new(-1.45, 0.4, 0), nil, nil, true)
+	limb("RightArm", Vector3.new(0.5, 4.8, 0.5), Vector3.new(1.45, 0.4, 0), nil, nil, true)
 	limb(
 		"HeadphoneBand",
 		Vector3.new(1.9, 0.3, 0.4),
 		Vector3.new(0, 4.55, 0),
 		Color3.fromRGB(20, 20, 20),
-		Enum.Material.Metal
+		Enum.Material.Metal,
+		false,
+		head
 	)
 	for _, side in { -1, 1 } do
 		local cup = limb(
@@ -78,7 +94,9 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 			Vector3.new(0.5, 1, 1),
 			Vector3.new(side * 0.95, 3.6, 0),
 			Color3.fromRGB(18, 18, 18),
-			Enum.Material.Metal
+			Enum.Material.Metal,
+			false,
+			head
 		)
 		-- A faint red glow from the earcups: just enough to glimpse it in the dark.
 		local glow = Instance.new("PointLight")
@@ -90,6 +108,8 @@ function EngineerModel.build(position: Vector3): (Model, Humanoid, BasePart, { P
 	end
 	head:SetAttribute("Blind", true)
 
+	-- Weld the headphone pieces to Head, not the invisible root:
+	-- head turns now carry both earcups and the band with them.
 	local h = Instance.new("Humanoid")
 	h.RigType = Enum.HumanoidRigType.R15
 	h.HipHeight = 3
