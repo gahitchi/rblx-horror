@@ -197,7 +197,7 @@ def main() -> int:
     if "Technology" in lighting_preset:
         fail("Match still uses deprecated Technology setting")
     for setting in ("LightingStyle", "PrioritizeLightingQuality"):
-        if re.search(r"Lighting\\." + setting + r"\\s*=", studio_lighting_service):
+        if re.search(r"Lighting\." + setting + r"\s*=", studio_lighting_service):
             fail(f"LightingService tries to write a Studio-authored property: {setting}")
 
     for token in ("StudioLightingRig.apply(map)", "StudioEvidenceDetail.apply(map)"):
@@ -215,16 +215,16 @@ def main() -> int:
 
     positions = {}
     for room in re.finditer(
-        r'\\{ name = "(\\w+)", role = "(\\w+)", x1 = (-?\\d+), x2 = (-?\\d+), '
-        r'z1 = (-?\\d+), z2 = (-?\\d+), height = (\\d+) \\}', studio_rooms
+        r'\{ name = "(\w+)", role = "(\w+)", x1 = (-?\d+), x2 = (-?\d+), '
+        r'z1 = (-?\d+), z2 = (-?\d+), height = (\d+) \}', studio_rooms
     ):
         name, _role, x1, x2, z1, z2, h = room.groups()
         positions[name] = tuple(map(int, (x1, x2, z1, z2, h)))
     fixture_pattern = re.compile(
-        r'\\{ name = "([^"]+)", room = "([^"]+)", at = Vector3\\.new\\('
-        r'(-?\\d+(?:\\.\\d+)?), (-?\\d+(?:\\.\\d+)?), '
-        r'(-?\\d+(?:\\.\\d+)?)\\),\\s*role = "([^"]+)", '
-        r'range = (\\d+(?:\\.\\d+)?), intensity = (\\d+(?:\\.\\d+)?)'
+        r'\{ name = "([^"]+)", room = "([^"]+)", at = Vector3\.new\('
+        r'(-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), '
+        r'(-?\d+(?:\.\d+)?)\),\s*role = "([^"]+)", '
+        r'range = (\d+(?:\.\d+)?), intensity = (\d+(?:\.\d+)?)'
     )
     fixtures = fixture_pattern.findall(studio_lighting)
     names = {f[0] for f in fixtures}
