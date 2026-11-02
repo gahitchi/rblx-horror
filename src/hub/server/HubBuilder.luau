@@ -264,8 +264,14 @@ local function makeVan(hub: Model, markers: Folder, ground: Folder)
 		C.cream, Enum.Material.Metal, true)
 	box(van, "Windscreen", -10.4, 6.55, -25, 0.18, 3.45, 9,
 		C.glass, Enum.Material.Glass).Transparency = 0.34
-	box(van, "RearOpenDarkInterior", -37.55, 4.65, -25,
-		0.2, 7.7, 11.4, C.black, Enum.Material.SmoothPlastic)
+	-- No opaque wall at the open rear: the tape deck and filter electronics
+	-- must remain visible when players approach the van from the lay-by.
+	for _, z in { -30.9, -19.1 } do
+		box(van, "RearDoorframeJamb", -37.6, 4.5, z,
+			0.34, 7.7, 0.4, C.darkWood, Enum.Material.Wood)
+	end
+	box(van, "RearDoorframeLintel", -37.6, 8.35, -25,
+		0.34, 0.3, 12, C.darkWood, Enum.Material.Wood)
 	for _, z in { -29.8, -20.2 } do
 		local doorPanel = box(van, "RearDoorOpen", -39, 4.8, z,
 			0.46, 7.0, 3.2, C.cream, Enum.Material.Metal)
@@ -274,11 +280,11 @@ local function makeVan(hub: Model, markers: Folder, ground: Folder)
 	for _, x in { -32.8, -15.2 } do
 		for _, z in { -31, -19 } do
 			local tyre = cylinder(van, "Tyre", CFrame.new(x, 1.5, z)
-				* CFrame.Angles(0, 0, math.rad(90)),
+				* CFrame.Angles(0, math.rad(90), 0),
 				Vector3.new(1.15, 3.65, 3.65), C.black)
 			tyre.CanCollide = false
 			cylinder(van, "SteelHubcap", CFrame.new(x, 1.5, z + (if z < -25 then -0.65 else 0.65))
-				* CFrame.Angles(0, 0, math.rad(90)),
+				* CFrame.Angles(0, math.rad(90), 0),
 				Vector3.new(0.2, 1.9, 1.9), C.navy)
 		end
 	end
@@ -383,8 +389,9 @@ local function makeLookout(hub: Model, markers: Folder)
 		Vector3.new(5, 0.9, 0.9), C.navy)
 	scope.CanCollide = false
 	local look = CFrame.lookAt(Vector3.new(-48, 5.2, -50), Vector3.new(155, -18, -10))
-	cylinder(lookout, "BrassLookoutTelescope", look,
-		Vector3.new(2.1, 2.1, 6.2), C.wood)
+	cylinder(lookout, "BrassLookoutTelescope",
+		look * CFrame.Angles(0, math.rad(90), 0),
+		Vector3.new(6.2, 2.1, 2.1), C.wood)
 	cylinder(lookout, "Eyepiece", look * CFrame.new(0, 0, 3.4),
 		Vector3.new(1.2, 1.2, 1.2), C.black)
 	helper(markers, "Telescope", CFrame.lookAt(Vector3.new(-50, 3.2, -47),
