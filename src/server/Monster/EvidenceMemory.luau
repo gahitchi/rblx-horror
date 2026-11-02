@@ -123,6 +123,10 @@ function EvidenceMemory.new(): Memory
 		-- to a player's real footstep / voice track.
 		if not stimulus.source and staticRepeats >= C.STATIC_REPEATS then
 			score *= C.STATIC_DISCOUNT
+			if score < C.STATIC_MIN_INTEREST then
+				lastScore = score
+				return false -- repeatedly triggering the same distant prop loses its novelty
+			end
 		end
 		lastScore = score
 		if busy and now < attentionUntil and score < attentionScore * C.SWITCH_RATIO then
