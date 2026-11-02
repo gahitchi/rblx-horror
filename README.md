@@ -9,7 +9,7 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: integrated 0.8.9 — under-desk hiding and cover inspection (awaiting playtest)
+## Status: integrated 0.9.0 — physical asset foundation (awaiting playtest)
 
 **Use branch `chatgpt/integrated-v1`.** It includes both the playable-code Wrenmouth
 cliff-top hub and the detailed 23-room recording house in **two distinct Roblox places**.
@@ -70,6 +70,13 @@ reception, break room and archive worktables. The Engineer now catches a
 player after a confirmed cover inspection and may intentionally inspect a
 recently witnessed entry. E / touch Step out remains available. See
 [docs/UNDER_DESK_HIDING.md](docs/UNDER_DESK_HIDING.md).
+
+**0.9.0 physical asset pass:** Reusable collidable studio furniture, grounded
+monitor speakers, three detailed machine-room equipment racks and two
+server-owned, non-anchored wheeled flight cases with genuine hinge axles and
+physics. The story RoadCase remains fixed and interactive. See
+[docs/PHYSICAL_ASSET_FOUNDATION.md](docs/PHYSICAL_ASSET_FOUNDATION.md).
+The assets are not final AAA meshes and need real Studio/collision testing.
 More playtest details: [studio](docs/STUDIO_V2_PLAYTEST.md) and
 [hub](docs/HUB_V1_PLAYTEST.md).
 
