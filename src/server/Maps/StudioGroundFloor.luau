@@ -189,13 +189,14 @@ local function objective(
 	return part(parent, name, at, size, color, Enum.Material.SmoothPlastic, solid)
 end
 
-local function ceilingLamp(parent: Instance, at: Vector3)
+local function ceilingLamp(parent: Instance, at: Vector3, castShadows: boolean?)
 	local fitting = part(parent, "Practical", at, Vector3.new(4, 0.3, 2), C.pale, nil, false)
 	local light = Instance.new("PointLight")
 	light.Enabled = false
 	light.Range = 30
 	light.Brightness = 0.55
-	light.Shadows = true
+	-- Reserve expensive dynamic shadows for only a couple of landmark fixtures.
+	light.Shadows = castShadows == true
 	light.Parent = fitting
 end
 
@@ -335,7 +336,8 @@ function StudioGroundFloor.build(): Model
 		for _, at in points do
 			helper(roomArea, "Spot", at)
 		end
-		ceilingLamp(lamps, Vector3.new(center.X, room.height - 0.6, center.Z))
+		ceilingLamp(lamps, Vector3.new(center.X, room.height - 0.6, center.Z),
+			room.name == "LiveHall" or room.name == "Reception")
 		if room.name == "LiveHall" then
 			ceilingLamp(lamps, Vector3.new(center.X - 20, room.height - 0.6, center.Z + 12))
 			ceilingLamp(lamps, Vector3.new(center.X + 20, room.height - 0.6, center.Z - 12))
