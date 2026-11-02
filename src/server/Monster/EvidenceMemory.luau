@@ -48,6 +48,7 @@ function EvidenceMemory.new(): Memory
 	local staticAt: Vector3? = nil
 	local staticTime = -math.huge
 	local staticRepeats = 0
+	local anonymousBreath: { position: Vector3, time: number, clarity: number }? = nil
 	local lastScore = 0
 
 	local brain = {} :: Memory
@@ -57,6 +58,7 @@ function EvidenceMemory.new(): Memory
 		table.clear(visited)
 		attentionScore, attentionUntil = 0, 0
 		staticKind, staticAt, staticTime, staticRepeats = "", nil, -math.huge, 0
+		anonymousBreath = nil
 		lastScore = 0
 	end
 
@@ -78,6 +80,16 @@ function EvidenceMemory.new(): Memory
 				position = stimulus.estimate,
 				time = now,
 				velocity = velocity,
+				clarity = stimulus.clarity,
+			}
+			staticRepeats = 0
+		elseif stimulus.kind == "breath" or stimulus.kind == "gasp" then
+			-- HideService emits these anonymously to protect player identity.
+			-- Hearing breath still provides a rough bearing toward a locker,
+			-- never the occupant or a perfect coordinate.
+			anonymousBreath = {
+				position = stimulus.estimate,
+				time = now,
 				clarity = stimulus.clarity,
 			}
 			staticRepeats = 0
@@ -137,6 +149,11 @@ function EvidenceMemory.new(): Memory
 				and flat(track.position - point).Magnitude <= C.HIDE_EVIDENCE_RADIUS then
 				return true
 			end
+		end
+		if anonymousBreath and now - anonymousBreath.time <= C.HIDE_EVIDENCE_SECONDS
+			and anonymousBreath.clarity >= C.HIDE_EVIDENCE_CLARITY
+			and flat(anonymousBreath.position - point).Magnitude <= C.HIDE_EVIDENCE_RADIUS then
+			return true
 		end
 		return false
 	end
