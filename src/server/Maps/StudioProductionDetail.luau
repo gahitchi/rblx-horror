@@ -6,10 +6,41 @@ local StudioHeroConsole = require(script.Parent.StudioHeroConsole)
 local C = Kit.palette
 local Detail = {}
 
+-- Monitors are a coherent assembly, not floating, featureless blocks.
+-- Their drivers face the studio operator (+Z), with stands grounded on the
+-- floor. Only the large cabinet participates in the Engineer's sight rays.
 local function speaker(parent: Instance, x: number, y: number, z: number)
-	Kit.box(parent, "MonitorSpeakerCabinet", x, y, z, 2.7, 4.4, 1.3, C.wood, Enum.Material.Wood)
-	Kit.disc(parent, "MonitorWoofer", x, y - 0.65, z - 0.73, 1.7, 0.15, C.black)
-	Kit.disc(parent, "MonitorTweeter", x, y + 1.2, z - 0.73, 0.65, 0.13, C.dark)
+	local standTop = y - 2.2
+	local standHeight = math.max(0.9, standTop - 0.3)
+	Kit.box(parent, "MonitorStandFoot", x, 0.15, z,
+		1.75, 0.3, 1.75, C.dark, Enum.Material.Metal)
+	Kit.box(parent, "MonitorStandColumn", x, 0.3 + standHeight / 2, z,
+		0.34, standHeight, 0.34, C.metal, Enum.Material.Metal)
+	Kit.box(parent, "MonitorStandIsolator", x, standTop - 0.08, z,
+		2.35, 0.18, 1.5, C.foam, Enum.Material.Fabric)
+	local cabinet = Kit.box(parent, "MonitorSpeakerCabinet", x, y, z,
+		2.7, 4.4, 1.3, C.wood, Enum.Material.Wood)
+	cabinet.CanQuery = true -- credible opaque furniture, even without collision
+	Kit.box(parent, "MonitorFrontBaffle", x, y, z + 0.69,
+		2.38, 4.04, 0.11, C.black, Enum.Material.Metal)
+	for _, dx in { -1.02, 1.02 } do
+		for _, dy in { -1.77, 1.77 } do
+			Kit.disc(parent, "MonitorBaffleScrew", x + dx, y + dy, z + 0.77,
+				0.09, 0.07, C.steel)
+		end
+	end
+	Kit.disc(parent, "MonitorWooferSurround", x, y - 0.66, z + 0.80,
+		1.98, 0.14, C.dark)
+	Kit.disc(parent, "MonitorWooferCone", x, y - 0.66, z + 0.88,
+		1.53, 0.13, C.foam)
+	Kit.disc(parent, "MonitorWooferDustcap", x, y - 0.66, z + 0.97,
+		0.63, 0.12, C.black)
+	Kit.disc(parent, "MonitorTweeterTrim", x, y + 1.20, z + 0.81,
+		0.92, 0.14, C.steel)
+	Kit.disc(parent, "MonitorTweeterDome", x, y + 1.20, z + 0.90,
+		0.46, 0.11, C.dark)
+	Kit.box(parent, "MonitorBadge", x, y - 1.76, z + 0.77,
+		0.52, 0.12, 0.07, C.gold, Enum.Material.Metal)
 end
 
 local function tape(parent: Instance, x: number, y: number, z: number, color: Color3)
