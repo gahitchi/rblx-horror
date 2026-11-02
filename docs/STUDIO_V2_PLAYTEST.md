@@ -1,44 +1,85 @@
-# Studio v2 — first playable blockout
+# Studio v2 — recording house redesign / first playable
 
-Branch: `chatgpt/studio-v2`. The default match-place fallback now builds
-`src/server/Maps/StudioGroundFloor.luau`; the previous `MapBuilder` greybox is kept
-only if a supplied map fails its contract or its chapter requirements.
-`MapContract.luau` and `docs/MAP_CONTRACT.md` are **unchanged**.
+Build: `0.7.2-studio-v2` on `chatgpt/studio-v2`.
+The default match place builds `src/server/Maps/StudioGroundFloor.luau`.
+The older `MapBuilder` greybox is retained only as an error fallback.
+The contract is still **v2**: `docs/MAP_CONTRACT.md` and
+`src/server/MapContract.luau` are unchanged.
 
-## What is implemented
+## Why this is a recording house, not a grid of level rooms
 
-- 19 connected, purpose-shaped rooms based on Blackline, including the larger 24-stud
-  live hall, archive, both controls, reception, break room, service and staff loops.
-- Three booth doors with acoustic volumes, seven wardrobes/lockers, four signed archive
-  reel shelves, five optional tape spots, five throwables, multiple PA markers.
-- All twelve named chapter-1 objective parts in their authored rooms, including the
-  mail slot attached to the front door and the exit volume outside it.
-- Two quarantine shutters: `Route = "short"` at ControlB–StaffPassage drops in Last Call;
-  `Route = "production"` guards the other wing but stays raised. The alternate path
-  ControlA → LiveHall → StaffGallery → Reception remains open.
-- Basement quarantine seal, an upper landing/ramp ending at a barricaded flat door,
-  and reserved service-lift location. **No basement or flat play spaces** are created.
-- Warm beige/wood/teal/mustard studio palette against navy-grey closures. Existing
-  `LightingService` controls dead, woken and red states on grouped `Lamps`.
+The 1987 engineer ran a working town recording house, not a corporate research complex.
+A guest could arrive, visit reception, sit or use a bathroom without crossing tracking.
+Musicians go from reception and lounge into a sound-lock/recording wing. The live hall
+is where musicians play; three isolation booths open directly off its back wall.
+Control A is alongside it and looks through a substantial tracking window. Control B
+is the editing / backup desk down the production side. The archive is behind Control A
+near its adjoining mastering suite. Loud machine racks, instrument storage and load-in
+sit on the east service spine; staff have a separate WC and janitor closet. The
+navy's quarantined stairwell remains visible from the front hall, while a sealed lift
+shaft is reserved at the back loading bay.
 
-## Playtest on Gabriel's laptop
+Reference logic (not a copy of any plan):
 
-1. Check out `chatgpt/studio-v2` and run the match place with `rojo serve`
-   (use `default.project.json`, not the hub place). Confirm the in-game build version
-   is `0.7.1-studio-v2`.
-2. In Output, look for `[Map]`. **Any ERROR is a stop:** the runtime may have loaded the
-   original greybox instead. Confirm the map name is Wrenmouth Recording Studio.
-3. Walk from Reception through ControlA, TapeArchive, every booth, ControlB, LiveHall,
-   BreakRoom, Stairwell and LoadingBay. Check all portal openings and slopes.
-4. Complete the chapter objectives. Verify prompts are within eight studs, reels can be
-   picked from all four signed shelves, the desk/machine/reception mail slot are usable.
-5. With `Config.DEBUG_AI = true`, watch the Engineer reach the archive, side rooms,
-   hiding containers and the live hall without `nav Failed` or clipping.
-6. Trigger Last Call. The short shutter must close, the live-hall route must remain
-   possible, and escape must register only after crossing the front threshold.
-7. Check dead/woken/red lighting on a phone-size viewport and listen for false
-   acoustic leaks through a closed booth.
+- Red Rock Recording floor plan: public lounge/baths alongside the control room
+  and a sound lock between public and live/iso spaces:
+  https://redrockrecording.com/studio/floor-plan
+- Miloco, Dock Street Studio floorplan: reception, kitchen, control, live and booth
+  arranged around a compact studio circulation:
+  https://milocostudios.com/studios/dock-street-studio/floorplan/
+- Creative Victoria technical design guide: live room, booths, machine room and
+  carefully separated acoustic/service uses:
+  https://creative.vic.gov.au/__data/assets/pdf_file/0005/2244803/Creative-Space-Design-Guides-PART-3-Sound-recording-studio.pdf
 
-This commit is **source-reviewed, not Studio-playtested**. No new validators or
-realism/mesh pipelines were added. Fix first-play navigation and objective issues
-before another art-detail pass.
+This is **functional architectural realism**, not the parked PBR/anatomy pipeline.
+The rooms remain stylized, low-part-count, phone-readable Roblox geometry.
+
+## Floor programming
+
+| Wing | Rooms | Purpose |
+| --- | --- | --- |
+| Public (south) | Reception, EntryHall, PublicWC, BreakRoom, Stairwell | Arrival, waiting, guest bathroom; sealed naval route seen from entry |
+| Production (west/centre) | ControlA, ControlB, MasteringSuite, TapeArchive, LiveHall | Engineer workflow, dubbing and chapter objective landmarks |
+| Acoustic | IsolationWest, IsolationVocal, IsolationDrums, SoundLock, ViewingGallery | Three directly linked booths, buffered entrance, studio sightlines |
+| Service (east/back) | MachineRoom, ServicePass, ServiceHall, LoadingBay, StaffWC, JanitorCloset, InnerHall, StaffPassage | Instrument delivery, racks, staff needs, service circulation |
+
+**23 Areas / 30 authored links.** All 12 chapter 1 objective markers, four reel shelves,
+at least six hiding spots, optional tapes, speakers, and throwables are kept.
+
+## Last Call topology
+
+**Short path (before closure):**
+Control A → Control B → [short shutter] → Break Room → Reception → front doors.
+
+**Surviving escape path:**
+Control A → Live Hall → Sound Lock → Viewing Gallery → Inner Hall →
+Entry Hall → Reception → front doors.
+
+A second raised quarantine shutter guards the Loading Bay service connection. No
+exit exists through the loading bay, basement, flat or service lift.
+
+## What to playtest next
+
+1. Run `rojo serve` from the match project (`default.project.json`) and
+   confirm `Config.VERSION = 0.7.2-studio-v2`.
+2. Read every `[Map]` Output line. **Any ERROR is a stop**: an invalid generated
+   map will be replaced by the fallback greybox. Confirm the `MapName` attribute
+   reads Wrenmouth Recording House / Chapter 1.
+3. Walk public paths: Reception → Entry Hall → Public WC and Stairwell;
+   Break Room → Staff Passage → Staff WC; Service Hall → Janitor Closet.
+4. Walk the control/live workflow and each booth. Confirm door prompts,
+   acoustic booth noise isolation, and clear views through the glass.
+5. Confirm every chapter 1 objective is interactable (8 studs), all four
+   signed reels can be picked up and all hiding containers can be used.
+6. With `Config.DEBUG_AI = true`, watch the Engineer navigate control rooms,
+   archive aisle, toilets, sound lock, service spine and each hiding Spot.
+7. Trigger Last Call: the short shutter must drop, Control A must still have
+   a navigable route through Live Hall to Reception, and the Exit Zone must work.
+8. Check that the upper stair ramp can be navigated without snagging on
+   decorative no-collision treads; basement and flat doors should remain shut.
+9. Test dead/woken/red lighting and speaker sound from a phone-size viewport.
+
+The graph and objective names were **source-reviewed**; Studio build, Luau
+language-server, and Roblox gameplay/playfinding tests have **not** run in this
+environment. Report actual geometry or navigation failures before any
+large-scale prop-dressing pass.
