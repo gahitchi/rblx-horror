@@ -1,89 +1,108 @@
 --!strict
--- Hub entry point: a place to gather, and the lobbies that send groups into matches.
--- The hub room here is a plain placeholder; a hand-made one can replace it (a Model named "Hub" in
--- Workspace with a part named "HubSpawn" is used as it is).
-
+-- Wrenmouth coast checkpoint: a warm, playable safe-zone above the sealed town.
+-- If a hand-built Workspace.Hub already exists it takes precedence over this source map.
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
-
+local HubBuilder = require(script.Parent.HubBuilder)
+local HubDynamics = require(script.Parent.HubDynamics)
 local LobbyService = require(script.Parent.LobbyService)
+local HubLoadout = require(script.Parent.HubLoadout)
 
-local function part(
-	name: string,
-	size: Vector3,
-	cframe: CFrame,
-	color: Color3,
-	parent: Instance
-): Part
-	local p = Instance.new("Part")
-	p.Name = name
-	p.Size = size
-	p.CFrame = cframe
-	p.Color = color
-	p.Anchored = true
-	p.Material = Enum.Material.Concrete
-	p.Parent = parent
-	return p
-end
-
--- A dim, quiet waiting room: the calm before the studio.
-local function buildHub(): BasePart
-	local hub = Instance.new("Model")
-	hub.Name = "Hub"
-	local floor = Color3.fromRGB(52, 48, 46)
-	local wall = Color3.fromRGB(70, 66, 62)
-	part("Floor", Vector3.new(80, 1, 80), CFrame.new(0, -0.5, 0), floor, hub)
-	part("Ceiling", Vector3.new(80, 1, 80), CFrame.new(0, 16.5, 0), Color3.fromRGB(30, 30, 32), hub)
-	for _, side in { -1, 1 } do
-		part("Wall", Vector3.new(1, 16, 80), CFrame.new(side * 40, 8, 0), wall, hub)
-		part("Wall", Vector3.new(80, 16, 1), CFrame.new(0, 8, side * 40), wall, hub)
-	end
-	for _, x in { -20, 20 } do
-		for _, z in { -20, 20 } do
-			local lamp = part(
-				"Lamp",
-				Vector3.new(3, 0.3, 3),
-				CFrame.new(x, 16, z),
-				Color3.fromRGB(255, 214, 160),
-				hub
-			)
-			lamp.Material = Enum.Material.Neon
-			local light = Instance.new("PointLight")
-			light.Color = Color3.fromRGB(255, 200, 150)
-			light.Range = 30
-			light.Brightness = 1.2
-			light.Parent = lamp
-		end
-	end
-	local spawn = part("HubSpawn", Vector3.new(4, 1, 4), CFrame.new(0, 0.5, 20), floor, hub)
+local function fallback(): Model
+	local model = Instance.new("Model")
+	model.Name = "Hub"
+	local floor = Instance.new("Part")
+	floor.Name = "TemporaryCoastPlatform"
+	floor.Size = Vector3.new(110, 1, 100)
+	floor.Position = Vector3.new(0, -0.5, 0)
+	floor.Anchored = true
+	floor.Color = Color3.fromRGB(65, 64, 63)
+	floor.Parent = model
+	local spawn = Instance.new("Part")
+	spawn.Name = "HubSpawn"
+	spawn.Size = Vector3.new(4, 1, 4)
+	spawn.CFrame = CFrame.new(-20, 3, 0)
 	spawn.Transparency = 1
 	spawn.CanCollide = false
-	hub.Parent = Workspace
-	return spawn
+	spawn.Anchored = true
+	spawn.Parent = model
+	model.Parent = Workspace
+	return model
 end
 
 local existing = Workspace:FindFirstChild("Hub")
-local spawnPart = existing and existing:FindFirstChild("HubSpawn", true)
-local spawnAt: BasePart = if spawnPart and spawnPart:IsA("BasePart") then spawnPart else buildHub()
+local hub: Model
+if existing and existing:IsA("Model") and existing:FindFirstChild("HubSpawn", true) then
+	hub = existing
+else
+	if existing then
+		warn("[Hub] existing Hub has no HubSpawn; replacing with generated scene")
+		existing:Destroy()
+	end
+	local ok, result = pcall(HubBuilder.build)
+	if ok then
+		hub = result :: Model
+	else
+		warn("[Hub] generated Wrenmouth scene failed: " .. tostring(result))
+		hub = fallback()
+	end
+end
 
-Lighting.Brightness = 0.5
+-- A warm last safe place. The town and sea remain blue-grey and fogged.
 Lighting.ClockTime = 0
-Lighting.Ambient = Color3.fromRGB(20, 18, 18)
-Lighting.OutdoorAmbient = Color3.fromRGB(20, 18, 18)
+Lighting.Brightness = 1.4
+Lighting.Ambient = Color3.fromRGB(31, 39, 48)
+Lighting.OutdoorAmbient = Color3.fromRGB(19, 26, 35)
+Lighting.FogColor = Color3.fromRGB(36, 49, 61)
+Lighting.FogStart = 60
+Lighting.FogEnd = 240
+Lighting.EnvironmentDiffuseScale = 0.28
+Lighting.EnvironmentSpecularScale = 0.16
+Lighting.GlobalShadows = true
 
-Players.PlayerAdded:Connect(function(player)
+-- Default Baseplate/SpawnLocations are from the Studio template, not the hub.
+for _, child in Workspace:GetChildren() do
+	if child.Name == "Baseplate" and child:IsA("BasePart") then
+		child:Destroy()
+	elseif child:IsA("SpawnLocation") then
+		child:Destroy()
+	end
+end
+
+local spawn = hub:FindFirstChild("HubSpawn", true)
+assert(spawn and spawn:IsA("BasePart"), "Hub must contain HubSpawn")
+local spawnPart = spawn :: BasePart
+local function attachPlayer(player: Player)
 	player.CharacterAdded:Connect(function(character)
 		task.defer(function()
-			character:PivotTo(
-				spawnAt.CFrame + Vector3.new(math.random(-6, 6), 3, math.random(-4, 4))
-			)
+			if character.Parent then
+				character:PivotTo(spawnPart.CFrame
+					+ Vector3.new(math.random(-2, 2), 2.6, math.random(-2, 2)))
+			end
 		end)
 	end)
-end)
+	if player.Character then
+		task.defer(function()
+			local character = player.Character
+			if character and character.Parent then
+				character:PivotTo(spawnPart.CFrame + Vector3.new(0, 2.6, 0))
+			end
+		end)
+	end
+end
+Players.PlayerAdded:Connect(attachPlayer)
+for _, player in Players:GetPlayers() do
+	attachPlayer(player)
+end
 
+HubDynamics.init(hub)
+LobbyService.onDeparture(function()
+	HubDynamics.departure(hub)
+end)
 LobbyService.init()
-print(string.format("[%s] hub running, v%s", Config.GAME_NAME, Config.VERSION))
+HubLoadout.init()
+print(string.format("[%s] Wrenmouth hub running, v%s", Config.GAME_NAME, Config.VERSION))
