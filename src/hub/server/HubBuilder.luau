@@ -229,6 +229,12 @@ local function makeGate(hub: Model, ground: Folder, markers: Folder)
 	blocker.CanQuery = false
 	-- The gate's physical gap is enough for four players side by side once lifted.
 	helper(markers, "GatePath", CFrame.new(60, 3.8, 0), Vector3.new(9, 7.6, 24))
+	-- Even during the short crew-departure animation, the distant town is
+	-- scenery rather than a playable level. Nobody can run off the ledge.
+	local safety = box(ground, "FarSideSafetyBoundary", 78, 5, 0,
+		1.5, 15, 128, C.night, nil, true)
+	safety.Transparency = 1
+	safety.CanQuery = false
 	-- The road on the far side runs downhill and disappears into fog.
 	for i = 0, 4 do
 		local x = 72 + i * 20
