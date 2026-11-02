@@ -198,6 +198,24 @@ local function makeGate(hub: Model, ground: Folder, markers: Folder)
 			rod(fence, "FenceRail", Vector3.new(fenceX, y, span.from),
 				Vector3.new(fenceX, y, span.to), 0.18, C.navy)
 		end
+		-- A sparse diagonal wire weave gives the sheet a chain-link read at
+		-- gameplay distance without hundreds of collidable mesh pieces.
+		for z = span.from + 2, span.to - 1, 6 do
+			for _, pair in {
+				{ from = 1.6, to = 5.5 }, { from = 6.2, to = 10.1 },
+			} do
+				local left = rod(fence, "ChainLinkDiagonal",
+					Vector3.new(fenceX - 0.13, pair.from, z - 2),
+					Vector3.new(fenceX - 0.13, pair.to, z + 2), 0.07, C.navy)
+				left.CanCollide = false
+				left.CanQuery = false
+				local right = rod(fence, "ChainLinkDiagonal",
+					Vector3.new(fenceX - 0.13, pair.from, z + 2),
+					Vector3.new(fenceX - 0.13, pair.to, z - 2), 0.07, C.navy)
+				right.CanCollide = false
+				right.CanQuery = false
+			end
+		end
 	end
 	for _, z in { -13, 13 } do
 		box(fence, "QuarantineGatePost", fenceX, 7.3, z,
@@ -313,8 +331,36 @@ local function makeVan(hub: Model, markers: Folder, ground: Folder)
 			led.CastShadow = false
 		end
 	end
-	sign(van, "WRENMOUTH  /  PINS & STRINGS", CFrame.new(-28, 6.4, -18.1),
-		Vector3.new(12, 2.0, 0.12), C.darkWood, C.cream, Enum.NormalId.Back)
+	-- An actual pinned working map; the family home, studio and navy
+	-- listening station have been marked by the handler's hand.
+	box(van, "WrenmouthMapBacking", -27.5, 5.6, -18.04,
+		12.4, 5.5, 0.13, C.darkWood, Enum.Material.Wood)
+	box(van, "WrenmouthChartPaper", -27.5, 5.6, -17.94,
+		11.7, 4.9, 0.07, C.cream, Enum.Material.SmoothPlastic)
+	for _, point in {
+		{ x = -31.8, y = 6.3 }, { x = -29.2, y = 6.2 },
+		{ x = -27.8, y = 5.2 }, { x = -25.1, y = 4.9 },
+		{ x = -23.2, y = 6.6 },
+	} do
+		local pin = box(van, "SurveyPin", point.x, point.y, -17.82,
+			0.23, 0.23, 0.12, C.rust, Enum.Material.Metal)
+		pin.CastShadow = false
+	end
+	for _, path in {
+		{ ax = -32, ay = 6.0, bx = -28, by = 5.2 },
+		{ ax = -28, ay = 5.2, bx = -23.4, by = 6.4 },
+		{ ax = -29.2, ay = 6.2, bx = -25.1, by = 4.9 },
+	} do
+		-- Strips are entirely decorative and flush to the chart paper.
+		local centerX, centerY = (path.ax + path.bx) / 2, (path.ay + path.by) / 2
+		local angle = math.atan2(path.by - path.ay, path.bx - path.ax)
+		local length = math.sqrt((path.bx - path.ax) ^ 2 + (path.by - path.ay) ^ 2)
+		local stringLine = box(van, "HarbourRouteString", centerX, centerY, -17.83,
+			length, 0.07, 0.07, C.rust)
+		stringLine.CFrame *= CFrame.Angles(0, 0, angle)
+	end
+	sign(van, "WRENMOUTH  /  COASTAL SURVEY", CFrame.new(-27.6, 7.8, -17.79),
+		Vector3.new(11.3, 0.55, 0.08), C.darkWood, C.cream, Enum.NormalId.Front)
 	-- The deck is an interactable visual marker, not a usable audio source yet.
 	box(van, "TapeDeckBody", -34.1, 2.7, -23.0, 4.0, 1.4, 3.0,
 		C.navyDark, Enum.Material.Metal)
