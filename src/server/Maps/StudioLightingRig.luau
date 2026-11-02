@@ -36,6 +36,18 @@ local FIXTURES: { Fixture } = {
 	{ name = "ControlACircuitFault", room = "ControlA", at = Vector3.new(-77, 11, -73),
 		role = "Fault", range = 12, intensity = 0.36 },
 
+	-- Fixed secondary reflections emulate *some* bounced tungsten light:
+	-- narrow range + low intensity, no dynamic shadows or expensive tracers.
+	-- These are artistic bounce proxies, not actual ray/path tracing.
+	{ name = "DeskToWallBounce", room = "ControlA", at = Vector3.new(-61, 4.4, -83),
+		role = "Bounce", range = 11, intensity = 0.15 },
+	{ name = "DeskToCeilingBounce", room = "ControlA", at = Vector3.new(-57, 11.8, -79),
+		role = "Bounce", range = 12, intensity = 0.10 },
+	{ name = "TapeMetalReflection", room = "ControlA", at = Vector3.new(-72, 4.0, -89),
+		role = "Bounce", range = 9, intensity = 0.09 },
+	{ name = "TrackingGlassReturn", room = "ControlA", at = Vector3.new(-38, 7.1, -97),
+		role = "Bounce", range = 12, intensity = 0.11 },
+
 	-- Authentic work areas, limited to a readable local pool rather than bright fill.
 	{ name = "MasteringDeskPool", room = "MasteringSuite", at = Vector3.new(-48, 8.4, -122),
 		role = "Task", range = 14, intensity = 0.58, kind = "Spot", angle = 80 },
@@ -43,6 +55,8 @@ local FIXTURES: { Fixture } = {
 		role = "Guide", range = 11, intensity = 0.23 },
 	{ name = "ArchiveShelfRim", room = "TapeArchive", at = Vector3.new(-69, 10.2, -128),
 		role = "Task", range = 14, intensity = 0.32, kind = "Spot", angle = 88 },
+	{ name = "ArchivePaperBounce", room = "TapeArchive", at = Vector3.new(-76, 3.3, -117),
+		role = "Bounce", range = 10, intensity = 0.10 },
 	{ name = "ControlBSafePilot", room = "ControlB", at = Vector3.new(-75, 6.6, -48),
 		role = "Guide", range = 11, intensity = 0.22 },
 	{ name = "ControlBDeskPool", room = "ControlB", at = Vector3.new(-59, 8.6, -43),
@@ -51,6 +65,8 @@ local FIXTURES: { Fixture } = {
 		role = "Task", range = 20, intensity = 0.45, kind = "Spot", angle = 92 },
 	{ name = "LiveRoomLowMarker", room = "LiveHall", at = Vector3.new(18, 6.6, -81),
 		role = "Guide", range = 9, intensity = 0.20 },
+	{ name = "TrackingWindowSpill", room = "LiveHall", at = Vector3.new(-31, 7.2, -98),
+		role = "Bounce", range = 14, intensity = 0.13 },
 	{ name = "BoothWestSessionLamp", room = "IsolationWest", at = Vector3.new(-21, 9, -119),
 		role = "Task", range = 13, intensity = 0.43, kind = "Spot", angle = 82 },
 	{ name = "BoothVocalSessionLamp", room = "IsolationVocal", at = Vector3.new(4, 9, -119),
@@ -63,6 +79,8 @@ local FIXTURES: { Fixture } = {
 		role = "Guide", range = 11, intensity = 0.22 },
 	{ name = "ReceptionCounterShade", room = "Reception", at = Vector3.new(-52, 10.5, 9),
 		role = "Task", range = 17, intensity = 0.55, kind = "Spot", angle = 95 },
+	{ name = "ReceptionCounterReturn", room = "Reception", at = Vector3.new(-53, 4.6, 8),
+		role = "Bounce", range = 12, intensity = 0.13 },
 	{ name = "FrontDoorSecurity", room = "Reception", at = Vector3.new(-43, 11, 21),
 		role = "Emergency", range = 13, intensity = 0.36 },
 	{ name = "ReceptionToStairway", room = "EntryHall", at = Vector3.new(35, 11.2, 9),
@@ -79,6 +97,8 @@ local FIXTURES: { Fixture } = {
 	-- Later navy retrofit: colder, sharper and visibly less welcoming.
 	{ name = "ServicePassCaution", room = "ServicePass", at = Vector3.new(61, 10, -84),
 		role = "Emergency", range = 13, intensity = 0.39 },
+	{ name = "ServiceConcreteReturn", room = "ServicePass", at = Vector3.new(64, 4.1, -80),
+		role = "Bounce", range = 11, intensity = 0.10 },
 	{ name = "ServiceHallCaution", room = "ServiceHall", at = Vector3.new(51, 10, -37),
 		role = "Emergency", range = 13, intensity = 0.36 },
 	{ name = "MachineRoomFault", room = "MachineRoom", at = Vector3.new(60, 10, -119),
