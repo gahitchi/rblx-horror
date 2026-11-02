@@ -14,6 +14,7 @@ local DoorService = require(script.Parent.DoorService)
 local HideService = require(script.Parent.HideService)
 local LightingService = require(script.Parent.LightingService)
 local MapBuilder = require(script.Parent.MapBuilder)
+local StudioGroundFloor = require(script.Parent.Maps.StudioGroundFloor)
 local MapContract = require(script.Parent.MapContract)
 local MonsterService = require(script.Parent.MonsterService)
 local NoiseService = require(script.Parent.NoiseService)
@@ -71,7 +72,7 @@ local mapId = chosenMap()
 local chapterId = ChapterService.pick(mapId, if sent then sent.chapter else nil)
 
 -- A hand-made map: Workspace.Map (testing in Studio), or ServerStorage.Maps.<id> for that map.
--- Otherwise the code-built greybox (the recording studio).
+-- Otherwise build the playable stylized chapter 1 studio. The greybox remains our contract fallback.
 local lobbySpawn = MapBuilder.buildLobby()
 local map = Workspace:FindFirstChild("Map")
 if not map then
@@ -83,7 +84,7 @@ if not map then
 		copy.Parent = Workspace
 		map = copy
 	else
-		map = MapBuilder.build()
+		map = StudioGroundFloor.build()
 	end
 end
 local loaded, problems = MapContract.read(map :: Instance, lobbySpawn)
