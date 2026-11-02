@@ -57,6 +57,16 @@ readable shelf. Its status LEDs follow the chapter's lighting. Source-derived
 offline previews are *not* Roblox screenshots. See
 [docs/CONTROL_A_HERO_CONSOLE.md](docs/CONTROL_A_HERO_CONSOLE.md).
 
+**Actual imported-asset option:** A new, real PBR-textured DA-16 glTF mesh
+has been generated as a downloadable asset package. It contains 66 actual
+mesh elements, independent faders and dials, a detailed meter bridge, and
+original wood/metal textures. After the user imports the GLB into
+`ServerStorage.WrenmouthDA16`, the studio map clones and positions
+this imported mesh *instead* of the old Parts-built fallback. The previous
+gameplay objectives and lighting controls remain authoritative. The binary
+is distributed separately from GitHub; it is **not installed in Studio yet**.
+See [mesh import instructions](docs/IMPORTABLE_DA16_MESH.md).
+
 **0.8.8 playtest-driven lighting:** The studio now starts with partial working
 power and a coherent, ceiling-mounted navigation circuit rather than an
 almost unlit map. Main lighting brightens on shock one; emergency wayfinding
