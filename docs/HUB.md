@@ -45,3 +45,14 @@ Every time code changes, republish the place(s) it touches: `src/hub` = hub only
   the published game: join it from the Roblox app, with a friend or a second account.
 - Each map can be a hand-made model stored in the match place at `ServerStorage.Maps.<map id>`
   (see `Config.MAPS` and `docs/MAP_CONTRACT.md`); without one, the studio greybox is built.
+
+## New generated environment (hub-v1 branch)
+
+The **chatgpt/hub-v1** branch replaces the placeholder waiting room in the
+hub place with Wrenmouth Coast Checkpoint. This is a native-part environment
+with named hub markers; the existing lobby/teleport system remains authoritative.
+It is intentionally independent of the match-place studio redesign, which
+lives on **chatgpt/studio-v2** until changes are merged together.
+
+Read [HUB_V1_PLAYTEST.md](HUB_V1_PLAYTEST.md) for the map, marker contract,
+crew-board/van/loadout/telescope interactions, and the later Studio test gate.
