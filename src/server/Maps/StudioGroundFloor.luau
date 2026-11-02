@@ -108,6 +108,29 @@ local function underDesk(
 		width - 0.6, height - 0.24, 0.28, Enum.Material.Wood)
 	board("FrontLip", 0, height - 0.25, -depth / 2 + 0.12,
 		width - 0.65, 0.42, 0.20, Enum.Material.Wood)
+	-- The furniture has a mechanical reason to stand: a real floor-mounted
+	-- back screen and edge rails, not a rectangular phantom floating over
+	-- an invisible hiding volume. Everything follows the exact local basis.
+	local function trim(id: string, dx: number, y: number, dz: number,
+		w: number, h: number, d: number, tint: Color3)
+		local p = part(props, name .. id,
+			(cf * CFrame.new(dx, y, dz)).Position, Vector3.new(w, h, d),
+			tint, Enum.Material.Wood, false)
+		p.CFrame = cf * CFrame.new(dx, y, dz)
+	end
+	for _, side in { -1, 1 } do
+		trim("TopEdgeRail", side * (width/2 - 0.10), height + 0.075, 0,
+			0.14, 0.07, depth - 0.18, C.mustard)
+		trim("ToeKick", 0, 0.22, depth/2 - 0.26,
+			width - 0.65, 0.23, 0.14, C.navy)
+		trim("SidePanelInset", side * (width/2 - 0.47),
+			(height - 0.32)/2, 0,
+			0.035, height - 0.62, depth - 0.62, C.mustard)
+	end
+	trim("LongEdgeRail", 0, height + 0.075, -depth/2 + 0.095,
+		width - 0.23, 0.07, 0.14, C.mustard)
+	trim("BackTopRail", 0, height + 0.075, depth/2 - 0.095,
+		width - 0.23, 0.07, 0.14, C.mustard)
 	local marker = part(hiding, name .. "Cover", (cf * CFrame.new(0, 1.2, 0)).Position,
 		Vector3.new(math.min(width - 1.2, 3.6), 2.4, math.min(depth - 0.6, 2.6)),
 		C.mustard, nil, false)
@@ -714,22 +737,16 @@ function StudioGroundFloor.build(): Model
 		true
 	)
 	for i, x in { -77, -72, -67, -62 } do
-		part(
-			props,
-			"ArchiveShelf_" .. tostring(i),
-			Vector3.new(x, 3.1, -129.2),
-			Vector3.new(4.1, 6.2, 1.4),
-			C.floor,
-			Enum.Material.Wood,
-			true
-		)
-		local mark = helper(markers, "ReelSpot", Vector3.new(x, 5.3, -128.3))
+		-- Rear-wall shelves stand on the floor, with real open bays and
+		-- three solid decks; no solid, featureless monolithic crate.
+		StudioFurnitureAsset.archiveShelf(props, "ArchiveShelf_" .. tostring(i), x, -132)
+		-- Chapter's ReelSpot remains an actual reachable prompt from aisle.
+		local mark = helper(markers, "ReelSpot", Vector3.new(x, 5.3, -130.5))
 		mark:SetAttribute("Shelf", tostring(i))
 		plaque(
-			props,
-			"SHELF " .. tostring(i),
-			Vector3.new(x, 7, -128.25),
-			Vector3.new(3.8, 0.9, 0.12)
+			props, "SHELF " .. tostring(i),
+			Vector3.new(x, 7.7, -131.02),
+			Vector3.new(3.65, 0.64, 0.12)
 		)
 	end
 	-- Studio live hall: central playable tracking space, not an obstacle field.
