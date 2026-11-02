@@ -61,7 +61,7 @@ with the existing Chapter UI. Controls: **J** on keyboard, a small
    transcription of machine noises, footfalls, voice chat or teammates.
 3. The current objective is taken from the authoritative
    `RoundState.ObjectiveText`, not inferred by a local hint system.
-4. At most **8** discovered papers and the latest **16** received
+4. At most **12** discovered papers and the latest **16** received
    radio messages are retained. The client keeps them **in memory
    only** for the current round. No DataStore, RemoteEvent or
    networking changes were introduced.
