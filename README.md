@@ -1,7 +1,7 @@
 # Dead Air (working title)
 
 A co-op horror escape for Roblox. One to four players are trapped in a dark place with a monster that
-hunts by sound: footsteps, doors, objectives and, for players who have voice chat, their actual voices.
+hunts using hearing and sight: footsteps, doors, objectives, lighting and, when available, player voices.
 Every objective is loud. Getting out means making noise; staying alive means keeping quiet.
 
 Map 1 is an abandoned recording studio, hunted by **the Engineer**. Its soundproof booths are the
@@ -9,7 +9,7 @@ one place you can talk freely, as long as the door is shut and it didn't see you
 
 Proprietary, all rights reserved (see `LICENSE`).
 
-## Status: integrated 0.8.8 — coherent readable studio lighting (awaiting playtest)
+## Status: integrated 0.8.9 — under-desk hiding and cover inspection (awaiting playtest)
 
 **Use branch `chatgpt/integrated-v1`.** It includes both the playable-code Wrenmouth
 cliff-top hub and the detailed 23-room recording house in **two distinct Roblox places**.
@@ -63,6 +63,13 @@ almost unlit map. Main lighting brightens on shock one; emergency wayfinding
 remains during the blackout. Fallback greybox lighting is also readable.
 See [docs/STUDIO_LIGHTING_READABILITY.md](docs/STUDIO_LIGHTING_READABILITY.md).
 Asset work is paused until lighting is reviewed in Roblox Studio.
+
+**0.8.9 playtest-driven hiding:** Replace the generated studio's seven boxy
+lockers/wardrobes with six meaningful under-desk hiding positions, including
+reception, break room and archive worktables. The Engineer now catches a
+player after a confirmed cover inspection and may intentionally inspect a
+recently witnessed entry. E / touch Step out remains available. See
+[docs/UNDER_DESK_HIDING.md](docs/UNDER_DESK_HIDING.md).
 More playtest details: [studio](docs/STUDIO_V2_PLAYTEST.md) and
 [hub](docs/HUB_V1_PLAYTEST.md).
 
@@ -88,7 +95,7 @@ What a round looks like (about 20 to 25 minutes):
 | Shift | Run (fast, loud, tiring; shorter and slower while carrying something heavy) |
 | C or Ctrl | Crouch (slow, silent) |
 | F | Flashlight (a quiet click) |
-| E (hold) | Interact: read, take, use, hide in a wardrobe or locker |
+| E (hold) | Interact: read, take, use, get under a desk |
 | G | Put down what you're holding |
 | T | Throw what you're holding (bottles, cans, pipes) |
 | Space | While hiding with the monster close: hold your breath |
