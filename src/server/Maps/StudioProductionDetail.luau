@@ -5,10 +5,6 @@ local Kit = require(script.Parent.StudioDecorKit)
 local C = Kit.palette
 local Detail = {}
 
-local function portrait(parent: Instance, name: string, x: number, y: number, z: number)
-	Kit.poster(parent, name, x, y, z, 3.3)
-end
-
 local function speaker(parent: Instance, x: number, y: number, z: number)
 	Kit.box(parent, "MonitorSpeakerCabinet", x, y, z, 2.7, 4.4, 1.3, C.wood, Enum.Material.Wood)
 	Kit.disc(parent, "MonitorWoofer", x, y - 0.65, z - 0.73, 1.7, 0.15, C.black)
@@ -166,6 +162,7 @@ function Detail.apply(map: Model)
 		Kit.rod(ctrl, "PatchCable", Vector3.new(x, 4.5, -95.5),
 			Vector3.new(x - 0.5, 2.5, -95.5), 0.07, C.gold)
 	end
+	wallAward(ctrl, -77, 11, -106.45, "WRENMOUTH / 1986")
 	Kit.poster(ctrl, "THE LAST SESSION / 15 OCT 1987", -69, 9, -106.5, 4.2)
 	Kit.sign(ctrl, "STUDIO A / RECORD", CFrame.new(-45, 12, -106.5),
 		Vector3.new(15, 1.2, 0.1))
