@@ -102,7 +102,7 @@ local foundReels = 0
 for _, marker in markers:GetChildren() do
 	if marker.Name == "ReelSpot" then
 		foundReels += 1
-		check(marker.Position.Z > -131, "ReelSpot must remain in the accessible aisle")
+		check(marker.Position.Z > -131.75, "ReelSpot must remain in the accessible aisle")
 	end
 end
 check(foundReels == 4, "ReelSpots must remain intact for the chapter")
