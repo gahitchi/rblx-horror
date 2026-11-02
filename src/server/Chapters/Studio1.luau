@@ -88,7 +88,18 @@ local function objectiveLines()
 		Kit.setObjectives(lines)
 		return
 	end
-	table.insert(lines, "Booking diary (reception)  " .. (if state.diaryRead then done else ""))
+	if not state.diaryRead then
+		table.insert(lines, "Find the booking diary (reception)")
+		Kit.setObjectives(lines)
+		return
+	end
+	table.insert(lines, "Booking diary  " .. done)
+	if not state.logRead then
+		table.insert(lines, "Read the session log (control A)")
+		Kit.setObjectives(lines)
+		return
+	end
+	table.insert(lines, "Session log  " .. done)
 	if state.fixed then
 		table.insert(lines, "Tape machine (control A)  " .. done)
 	else
@@ -697,6 +708,7 @@ function Studio1.start()
 		if not state.logRead then
 			state.logRead = true
 			Kit.radio(Text.RADIO.logRead)
+			objectiveLines()
 		end
 	end)
 	Kit.prompt(Kit.objective("MemorialProgramme"), "Read", "Order of service", 0, function(player)
